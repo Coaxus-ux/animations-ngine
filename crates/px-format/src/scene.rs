@@ -39,12 +39,17 @@ pub(crate) fn parse(
                 let text = values::string(entry, diags)?;
                 palette.paint(text, entry.span().offset(), diags)
             });
+    let seed = match props.get("seed") {
+        Some(entry) => values::bounded(entry, 0, u64::MAX, diags),
+        None => Some(0),
+    };
     let shapes = palette.map(|palette| shapes(node, palette, diags));
     props.finish(diags);
     Some(SceneSpec {
         name: name?.to_owned(),
         size: size?,
         timing: timing?,
+        seed: seed?,
         palette: palette?.palette.clone(),
         background: background?,
         shapes: shapes?,

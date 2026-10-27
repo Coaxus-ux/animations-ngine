@@ -56,6 +56,14 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 - **Risks:** over-engineering the buffers. *Mitigation:* freeze the canvas layout after M2; profile before optimizing. Spikes balloon. *Mitigation:* strict time box; spike code is deleted, only the findings are kept.
 
 ### M1 — Format & live preview
+> **Plan (2026-10-28):** built in five slices, each ending with `tools/check.sh` green.
+> 1. ✅ **Expression language** (done 2026-10-28) — everything in [FORMAT.md](FORMAT.md) §9: comparisons, logic, ternary, `**`, time and angle literals, every math, periodic, time-scope, easing, randomness and noise function; rounding per §9.7; non-finite values become 0 with a per-frame report (§9.8).
+> 2. **Value kinds** — units, seeded ranges (`"2..5"`), `param` / `$name`, `@id.prop` references with cycle detection.
+> 3. **Keyframes** — `anim` tracks, every interpolation, relative times, track loop and blend modes.
+> 4. **Validation** — schemas for every node, "did you mean" suggestions, the severity rules of §15.
+> 5. **Live loop** — `pxe watch`, hot reload, a minimal preview window, frame-time measurement.
+>
+> Slice 1 notes: strings in expressions are limited to ease names and time literals until references land (slice 2); shape seeds derive from the shape's position in the scene until objects have ids; time noise loops automatically only through `wiggle` (use `loop()` for `noise`/`fbm` fed with `t`).
 - **Scope:** the full format on top of the M0 loader: every value kind (units, ranges, `=expr`, `$param`, `@ref`), the complete expression language ([FORMAT.md](FORMAT.md) §9), keyframes, schema validation, errors with suggestions, hot reload, a minimal preview window, and frame-time measurement in `tools/check.sh`.
 - **Deliverables:** `px-expr`, `px-schema`, extended `px-format`, `pxe watch`, preview window, preview-speed check in `pxe bench`.
 - **Done when:** editing a number in VS Code updates the preview in under 1 s; a typo produces `file:line — … Did you mean …?`; a warning never stops rendering; `tools/check.sh` reports frame times for every example scene.

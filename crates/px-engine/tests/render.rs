@@ -7,8 +7,9 @@ mod common;
 
 use common::{expr, kit, rect, scene};
 use px_core::{CanvasMut, Frame, Size, hash_cells};
-use px_engine::{FrameBuffer, MAX_SHAPES, ModelError, Param, RenderError, Scene, SceneSpec};
-use px_expr::EvalError;
+use px_engine::{
+    FrameBuffer, FrameReport, MAX_SHAPES, ModelError, Param, RenderError, Scene, SceneSpec,
+};
 
 #[test]
 fn shapes_draw_in_order_over_the_background() {
@@ -26,7 +27,6 @@ fn shapes_draw_in_order_over_the_background() {
 #[test]
 fn expressions_animate_and_periodic_scenes_loop() {
     let kit = kit();
-    // One full sweep across 4 pixels per second at 12 fps; the scene lasts 1 s.
     let shapes = vec![rect(
         expr("floor(t * 4) % 4"),
         Param::Fixed(0.0),
@@ -44,21 +44,21 @@ fn expressions_animate_and_periodic_scenes_loop() {
 }
 
 #[test]
-fn evaluation_errors_name_the_shape() {
+fn non_finite_values_become_zero_and_are_reported() {
     let kit = kit();
     let shapes = vec![
-        rect(Param::Fixed(0.0), Param::Fixed(0.0), 1.0, 1.0, kit.ink),
+        rect(Param::Fixed(0.0), Param::Fixed(0.0), 1.0, 1.0, kit.blank),
         rect(expr("1 / (t - t)"), Param::Fixed(0.0), 1.0, 1.0, kit.ink),
     ];
-    let scene = scene(&kit, (2, 2), 1, shapes);
-    let error = FrameBuffer::new(&scene)
-        .render(&scene, Frame::new(0))
-        .unwrap_err();
+    let scene = scene(&kit, (2, 1), 1, shapes);
+    let mut buffer = FrameBuffer::new(&scene);
+    let view = buffer.render(&scene, Frame::new(0)).unwrap();
+    assert_eq!(view.cells(), [kit.ink, kit.blank]);
     assert_eq!(
-        error,
-        RenderError::Eval {
-            shape: 1,
-            error: EvalError::NonFinite
+        buffer.report(),
+        FrameReport {
+            non_finite_values: 1,
+            first_non_finite_shape: Some(1)
         }
     );
 }
@@ -81,6 +81,7 @@ fn scene_validation_rejects_bad_paints_and_too_many_shapes() {
         name: "x".to_owned(),
         size: base.size(),
         timing: base.timing(),
+        seed: 0,
         palette: kit.palette.clone(),
         background: kit.blank,
         shapes,

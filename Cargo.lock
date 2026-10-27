@@ -317,6 +317,7 @@ name = "px-expr"
 version = "0.0.1"
 dependencies = [
  "libm",
+ "px-core",
 ]
 
 [[package]]

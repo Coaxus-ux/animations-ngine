@@ -68,19 +68,21 @@ fn set_and_fill_span_clip_to_the_canvas() {
 }
 
 #[test]
-fn snapping_floors_and_clamps() {
-    assert_eq!(snap_coord(2.9), 2);
-    assert_eq!(snap_coord(-0.1), -1);
+fn snapping_rounds_half_away_from_zero_and_clamps() {
+    assert_eq!(snap_coord(2.4), 2);
+    assert_eq!(snap_coord(2.5), 3);
+    assert_eq!(snap_coord(-2.5), -3);
+    assert_eq!(snap_coord(-0.4), 0);
+    assert_eq!(
+        snap_coord(2.5 - 1e-12),
+        3,
+        "float noise just below a half must still round up"
+    );
+    assert_eq!(snap_coord(36.0 - 2.4e-16), 36);
     assert_eq!(snap_coord(1e12), COORD_LIMIT);
     assert_eq!(snap_coord(-1e12), -COORD_LIMIT);
     assert_eq!(snap_coord(f64::NAN), 0);
     assert_eq!(snap_extent(-3.0), 0);
-    assert_eq!(
-        snap_coord(36.0 - 2.4e-16),
-        36,
-        "float noise near an integer must not floor down"
-    );
-    assert_eq!(snap_coord(2.999_99), 2);
 }
 
 #[test]

@@ -1,14 +1,36 @@
 use crate::error::{CompileError, CompileErrorKind};
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum Unit {
+    None,
+    Seconds,
+    Millis,
+    Frames,
+    Degrees,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum TokenKind {
-    Number(f64),
+    Number(f64, Unit),
+    Str,
     Ident,
     Plus,
     Minus,
     Star,
+    StarStar,
     Slash,
     Percent,
+    Eq,
+    Ne,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+    AndAnd,
+    OrOr,
+    Bang,
+    Question,
+    Colon,
     LParen,
     RParen,
     Comma,
@@ -33,7 +55,12 @@ impl<'a> Lexer<'a> {
     }
 
     pub(crate) fn text(&self, token: Token) -> &'a str {
-        self.source.get(token.start..token.end).unwrap_or("")
+        let range = if token.kind == TokenKind::Str {
+            token.start + 1..token.end - 1
+        } else {
+            token.start..token.end
+        };
+        self.source.get(range).unwrap_or("")
     }
 
     pub(crate) fn next_token(&mut self) -> Result<Token, CompileError> {
@@ -49,20 +76,34 @@ impl<'a> Lexer<'a> {
                 end: start,
             });
         };
-        let kind = match byte {
-            b'+' => TokenKind::Plus,
-            b'-' => TokenKind::Minus,
-            b'*' => TokenKind::Star,
-            b'/' => TokenKind::Slash,
-            b'%' => TokenKind::Percent,
-            b'(' => TokenKind::LParen,
-            b')' => TokenKind::RParen,
-            b',' => TokenKind::Comma,
-            b'0'..=b'9' | b'.' => return self.number(start),
-            b'a'..=b'z' | b'_' => return Ok(self.ident(start)),
+        let next = bytes.get(start + 1).copied();
+        let (kind, len) = match (byte, next) {
+            (b'*', Some(b'*')) => (TokenKind::StarStar, 2),
+            (b'=', Some(b'=')) => (TokenKind::Eq, 2),
+            (b'!', Some(b'=')) => (TokenKind::Ne, 2),
+            (b'<', Some(b'=')) => (TokenKind::Le, 2),
+            (b'>', Some(b'=')) => (TokenKind::Ge, 2),
+            (b'&', Some(b'&')) => (TokenKind::AndAnd, 2),
+            (b'|', Some(b'|')) => (TokenKind::OrOr, 2),
+            (b'+', _) => (TokenKind::Plus, 1),
+            (b'-', _) => (TokenKind::Minus, 1),
+            (b'*', _) => (TokenKind::Star, 1),
+            (b'/', _) => (TokenKind::Slash, 1),
+            (b'%', _) => (TokenKind::Percent, 1),
+            (b'<', _) => (TokenKind::Lt, 1),
+            (b'>', _) => (TokenKind::Gt, 1),
+            (b'!', _) => (TokenKind::Bang, 1),
+            (b'?', _) => (TokenKind::Question, 1),
+            (b':', _) => (TokenKind::Colon, 1),
+            (b'(', _) => (TokenKind::LParen, 1),
+            (b')', _) => (TokenKind::RParen, 1),
+            (b',', _) => (TokenKind::Comma, 1),
+            (b'0'..=b'9' | b'.', _) => return self.number(start),
+            (b'\'', _) => return self.string(start),
+            (b'a'..=b'z' | b'_', _) => return Ok(self.ident(start)),
             _ => return Err(error(CompileErrorKind::UnexpectedChar, start, start + 1)),
         };
-        self.pos += 1;
+        self.pos += len;
         Ok(Token {
             kind,
             start,
@@ -78,12 +119,40 @@ impl<'a> Lexer<'a> {
         {
             self.pos += 1;
         }
-        let text = self.source.get(start..self.pos).unwrap_or("");
-        let value = text
-            .parse::<f64>()
-            .map_err(|_| error(CompileErrorKind::InvalidNumber, start, self.pos))?;
+        let digits_end = self.pos;
+        while bytes.get(self.pos).is_some_and(u8::is_ascii_lowercase) {
+            self.pos += 1;
+        }
+        let invalid = || error(CompileErrorKind::InvalidNumber, start, self.pos);
+        let digits = self.source.get(start..digits_end).ok_or_else(invalid)?;
+        let value: f64 = digits.parse().map_err(|_| invalid())?;
+        let unit = match self.source.get(digits_end..self.pos).unwrap_or("") {
+            "" => Unit::None,
+            "s" => Unit::Seconds,
+            "ms" => Unit::Millis,
+            "f" => Unit::Frames,
+            "deg" => Unit::Degrees,
+            _ => return Err(error(CompileErrorKind::InvalidUnit, digits_end, self.pos)),
+        };
         Ok(Token {
-            kind: TokenKind::Number(value),
+            kind: TokenKind::Number(value, unit),
+            start,
+            end: self.pos,
+        })
+    }
+
+    fn string(&mut self, start: usize) -> Result<Token, CompileError> {
+        let bytes = self.source.as_bytes();
+        self.pos += 1;
+        while bytes.get(self.pos).is_some_and(|b| *b != b'\'') {
+            self.pos += 1;
+        }
+        if self.pos >= bytes.len() {
+            return Err(error(CompileErrorKind::UnterminatedString, start, self.pos));
+        }
+        self.pos += 1;
+        Ok(Token {
+            kind: TokenKind::Str,
             start,
             end: self.pos,
         })
@@ -112,4 +181,18 @@ impl<'a> Lexer<'a> {
 
 pub(crate) const fn error(kind: CompileErrorKind, start: usize, end: usize) -> CompileError {
     CompileError { kind, start, end }
+}
+
+pub(crate) fn time_literal(text: &str) -> Option<(f64, Unit)> {
+    let mut lexer = Lexer::new(text);
+    let token = lexer.next_token().ok()?;
+    let end = lexer.next_token().ok()?;
+    match (token.kind, end.kind) {
+        (TokenKind::Number(value, unit), TokenKind::End)
+            if matches!(unit, Unit::Seconds | Unit::Millis | Unit::Frames) =>
+        {
+            Some((value, unit))
+        }
+        _ => None,
+    }
 }

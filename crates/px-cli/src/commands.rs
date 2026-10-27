@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use px_core::Frame;
-use px_engine::{FrameBuffer, Scene};
+use px_engine::{FrameBuffer, FrameReport, Scene};
 use px_export::{GifWriter, MAX_SCALE, Scale, write_png};
 
 use crate::args::{Command, Input};
@@ -31,6 +31,7 @@ fn render(input: &Input, frame: Frame, out: Option<&Path>) -> Result<()> {
         scene.palette(),
         scale,
     )?;
+    warn_non_finite(buffer.report());
     println!("wrote {}", path.display());
     Ok(())
 }
@@ -53,10 +54,28 @@ fn write_gif(scene: &Scene, scale: Scale, path: &Path) -> Result<()> {
     let file = BufWriter::new(create(path)?);
     let mut gif = GifWriter::new(file, scene.size(), scene.palette(), scale, timing.fps)?;
     let mut buffer = FrameBuffer::new(scene);
+    let mut total = FrameReport::default();
     for frame in timing.duration.frames() {
         gif.add_frame(&buffer.render(scene, frame)?)?;
+        let report = buffer.report();
+        total.non_finite_values = total
+            .non_finite_values
+            .saturating_add(report.non_finite_values);
+        total.first_non_finite_shape = total
+            .first_non_finite_shape
+            .or(report.first_non_finite_shape);
     }
+    warn_non_finite(total);
     Ok(())
+}
+
+fn warn_non_finite(report: FrameReport) {
+    if let Some(shape) = report.first_non_finite_shape {
+        eprintln!(
+            "warning: {} non-finite value(s) were replaced by 0, first in shape #{shape}",
+            report.non_finite_values
+        );
+    }
 }
 
 fn scale(input: &Input) -> Result<Scale> {

@@ -67,6 +67,7 @@ pub struct SceneSpec {
     pub name: String,
     pub size: Size,
     pub timing: Timing,
+    pub seed: u64,
     pub palette: Palette,
     pub background: Paint,
     pub shapes: Vec<Shape>,
@@ -115,6 +116,11 @@ impl Scene {
     #[must_use]
     pub const fn timing(&self) -> Timing {
         self.spec.timing
+    }
+
+    #[must_use]
+    pub const fn seed(&self) -> u64 {
+        self.spec.seed
     }
 
     #[must_use]

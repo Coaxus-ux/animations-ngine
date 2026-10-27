@@ -1,4 +1,4 @@
-//! The single table of names the language understands.
+use crate::funcs::Func;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Var {
@@ -6,16 +6,14 @@ pub enum Var {
     Frame,
     Fps,
     Duration,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum Func {
-    Sin,
-    Cos,
-    Abs,
-    Floor,
-    Min,
-    Max,
+    Seed,
+    Index,
+    Count,
+    Position,
+    X,
+    Y,
+    Width,
+    Height,
 }
 
 pub(crate) enum Name {
@@ -25,40 +23,24 @@ pub(crate) enum Name {
 }
 
 pub(crate) fn lookup(name: &str) -> Option<Name> {
-    Some(match name {
-        "t" => Name::Var(Var::Time),
-        "f" => Name::Var(Var::Frame),
-        "fps" => Name::Var(Var::Fps),
-        "dur" => Name::Var(Var::Duration),
-        "pi" => Name::Const(core::f64::consts::PI),
-        "tau" => Name::Const(core::f64::consts::TAU),
-        "sin" => Name::Func(Func::Sin),
-        "cos" => Name::Func(Func::Cos),
-        "abs" => Name::Func(Func::Abs),
-        "floor" => Name::Func(Func::Floor),
-        "min" => Name::Func(Func::Min),
-        "max" => Name::Func(Func::Max),
-        _ => return None,
-    })
-}
-
-impl Func {
-    pub(crate) const fn arity(self) -> u8 {
-        match self {
-            Self::Sin | Self::Cos | Self::Abs | Self::Floor => 1,
-            Self::Min | Self::Max => 2,
-        }
-    }
-
-    pub(crate) fn apply(self, args: &[f64]) -> Option<f64> {
-        Some(match (self, args) {
-            (Self::Sin, [x]) => libm::sin(*x),
-            (Self::Cos, [x]) => libm::cos(*x),
-            (Self::Abs, [x]) => libm::fabs(*x),
-            (Self::Floor, [x]) => libm::floor(*x),
-            (Self::Min, [a, b]) => libm::fmin(*a, *b),
-            (Self::Max, [a, b]) => libm::fmax(*a, *b),
-            _ => return None,
-        })
-    }
+    let var = match name {
+        "t" => Var::Time,
+        "f" => Var::Frame,
+        "fps" => Var::Fps,
+        "dur" => Var::Duration,
+        "seed" => Var::Seed,
+        "i" => Var::Index,
+        "n" => Var::Count,
+        "u" => Var::Position,
+        "x" => Var::X,
+        "y" => Var::Y,
+        "w" => Var::Width,
+        "h" => Var::Height,
+        "pi" => return Some(Name::Const(core::f64::consts::PI)),
+        "tau" => return Some(Name::Const(core::f64::consts::TAU)),
+        "true" => return Some(Name::Const(1.0)),
+        "false" => return Some(Name::Const(0.0)),
+        _ => return Func::parse(name).map(Name::Func),
+    };
+    Some(Name::Var(var))
 }

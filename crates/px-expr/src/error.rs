@@ -5,11 +5,15 @@ pub enum CompileErrorKind {
     Empty,
     UnexpectedChar,
     InvalidNumber,
+    InvalidUnit,
+    UnterminatedString,
+    StringNotAllowed,
+    UnknownEase,
     UnexpectedToken,
     UnknownName,
     MissingCall,
     NotAFunction,
-    WrongArity { expected: u8, found: u8 },
+    WrongArity { min: u8, max: u8, found: u8 },
     TooDeep,
     TooComplex,
 }
@@ -33,14 +37,23 @@ impl fmt::Display for CompileErrorKind {
             Self::Empty => f.write_str("empty expression"),
             Self::UnexpectedChar => f.write_str("unexpected character"),
             Self::InvalidNumber => f.write_str("invalid number"),
-            Self::UnexpectedToken => f.write_str("unexpected token"),
-            Self::UnknownName => {
-                f.write_str("unknown name (write `a - b` with spaces to subtract)")
+            Self::InvalidUnit => f.write_str("unknown unit (use s, ms, f or deg)"),
+            Self::UnterminatedString => f.write_str("string is missing its closing quote"),
+            Self::StringNotAllowed => {
+                f.write_str("strings are only allowed as ease names or time literals")
             }
+            Self::UnknownEase => f.write_str(
+                "unknown ease (step, linear, smooth, ease-in, ease-out, ease-in-out, bounce, elastic)",
+            ),
+            Self::UnexpectedToken => f.write_str("unexpected token"),
+            Self::UnknownName => f.write_str("unknown name (write `a - b` with spaces to subtract)"),
             Self::MissingCall => f.write_str("function needs arguments in parentheses"),
             Self::NotAFunction => f.write_str("not a function"),
-            Self::WrongArity { expected, found } => {
-                write!(f, "function takes {expected} argument(s), found {found}")
+            Self::WrongArity { min, max, found } if min == max => {
+                write!(f, "function takes {min} argument(s), found {found}")
+            }
+            Self::WrongArity { min, max, found } => {
+                write!(f, "function takes {min} to {max} arguments, found {found}")
             }
             Self::TooDeep => f.write_str("expression is nested too deeply"),
             Self::TooComplex => f.write_str("expression is too complex"),

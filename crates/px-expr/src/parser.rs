@@ -1,9 +1,11 @@
 use alloc::vec::Vec;
 
+use crate::ease::Ease;
 use crate::error::{CompileError, CompileErrorKind};
-use crate::lexer::{Lexer, Token, TokenKind, error};
-use crate::names::{Func, Name, lookup};
-use crate::program::{BinaryOp, MAX_STACK, Op, Program};
+use crate::funcs::Func;
+use crate::lexer::{Lexer, Token, TokenKind, Unit, error, time_literal};
+use crate::names::{Name, Var, lookup};
+use crate::program::{BinaryOp, MAX_SCOPES, MAX_STACK, Op, Program, UnaryOp, required_stack};
 
 pub const MAX_NESTING: usize = 32;
 
@@ -11,8 +13,6 @@ pub(crate) struct Parser<'a> {
     lexer: Lexer<'a>,
     current: Token,
     ops: Vec<Op>,
-    stack_depth: usize,
-    max_stack_depth: usize,
     nesting: usize,
 }
 
@@ -27,8 +27,6 @@ impl<'a> Parser<'a> {
             lexer: Lexer::new(source),
             current: end,
             ops: Vec::new(),
-            stack_depth: 0,
-            max_stack_depth: 0,
             nesting: 0,
         }
     }
@@ -38,17 +36,15 @@ impl<'a> Parser<'a> {
         if self.current.kind == TokenKind::End {
             return Err(error(CompileErrorKind::Empty, 0, 0));
         }
-        self.expression()?;
+        self.ternary()?;
         if self.current.kind != TokenKind::End {
             return Err(self.unexpected());
         }
-        if self.max_stack_depth > MAX_STACK {
-            return Err(error(CompileErrorKind::TooComplex, 0, self.current.end));
+        let too_complex = error(CompileErrorKind::TooComplex, 0, self.current.end);
+        let (stack, scopes) = required_stack(&self.ops).ok_or(too_complex)?;
+        if stack > MAX_STACK || scopes > MAX_SCOPES {
+            return Err(too_complex);
         }
-        debug_assert_eq!(
-            self.stack_depth, 1,
-            "a complete expression leaves one value"
-        );
         Ok(Program::new(self.ops))
     }
 
@@ -66,27 +62,12 @@ impl<'a> Parser<'a> {
         )
     }
 
-    fn expect(&mut self, kind: TokenKind) -> Result<(), CompileError> {
+    fn expect(&mut self, kind: TokenKind) -> Result<Token, CompileError> {
         if self.current.kind == kind {
-            self.advance()?;
-            Ok(())
+            self.advance()
         } else {
             Err(self.unexpected())
         }
-    }
-
-    fn emit(&mut self, op: Op) {
-        match op {
-            Op::Const(_) | Op::Var(_) => self.stack_depth += 1,
-            Op::Neg => {}
-            Op::Binary(_) => self.stack_depth = self.stack_depth.saturating_sub(1),
-            Op::Call(func) => {
-                let consumed = usize::from(func.arity()).saturating_sub(1);
-                self.stack_depth = self.stack_depth.saturating_sub(consumed);
-            }
-        }
-        self.max_stack_depth = self.max_stack_depth.max(self.stack_depth);
-        self.ops.push(op);
     }
 
     fn nested(
@@ -103,43 +84,61 @@ impl<'a> Parser<'a> {
         result
     }
 
-    fn expression(&mut self) -> Result<(), CompileError> {
-        self.term()?;
-        loop {
-            let op = match self.current.kind {
-                TokenKind::Plus => BinaryOp::Add,
-                TokenKind::Minus => BinaryOp::Sub,
-                _ => return Ok(()),
-            };
-            self.advance()?;
-            self.term()?;
-            self.emit(Op::Binary(op));
-        }
-    }
-
-    fn term(&mut self) -> Result<(), CompileError> {
-        self.unary()?;
-        loop {
-            let op = match self.current.kind {
-                TokenKind::Star => BinaryOp::Mul,
-                TokenKind::Slash => BinaryOp::Div,
-                TokenKind::Percent => BinaryOp::Rem,
-                _ => return Ok(()),
-            };
-            self.advance()?;
-            self.unary()?;
-            self.emit(Op::Binary(op));
-        }
-    }
-
-    fn unary(&mut self) -> Result<(), CompileError> {
-        if self.current.kind != TokenKind::Minus {
-            return self.primary();
+    fn ternary(&mut self) -> Result<(), CompileError> {
+        self.binary_level(0)?;
+        if self.current.kind != TokenKind::Question {
+            return Ok(());
         }
         let start = self.advance()?.start;
         self.nested(start, |parser| {
+            parser.ternary()?;
+            parser.expect(TokenKind::Colon)?;
+            parser.ternary()?;
+            parser.ops.push(Op::Select);
+            Ok(())
+        })
+    }
+
+    fn binary_level(&mut self, level: usize) -> Result<(), CompileError> {
+        let Some(operators) = LEVELS.get(level) else {
+            return self.power();
+        };
+        self.binary_level(level + 1)?;
+        while let Some(op) = operators
+            .iter()
+            .find(|(kind, _)| *kind == self.current.kind)
+            .map(|(_, op)| *op)
+        {
+            self.advance()?;
+            self.binary_level(level + 1)?;
+            self.ops.push(Op::Binary(op));
+        }
+        Ok(())
+    }
+
+    fn power(&mut self) -> Result<(), CompileError> {
+        self.unary()?;
+        if self.current.kind != TokenKind::StarStar {
+            return Ok(());
+        }
+        let start = self.advance()?.start;
+        self.nested(start, |parser| {
+            parser.power()?;
+            parser.ops.push(Op::Binary(BinaryOp::Pow));
+            Ok(())
+        })
+    }
+
+    fn unary(&mut self) -> Result<(), CompileError> {
+        let op = match self.current.kind {
+            TokenKind::Minus => UnaryOp::Neg,
+            TokenKind::Bang => UnaryOp::Not,
+            _ => return self.primary(),
+        };
+        let start = self.advance()?.start;
+        self.nested(start, |parser| {
             parser.unary()?;
-            parser.emit(Op::Neg);
+            parser.ops.push(Op::Unary(op));
             Ok(())
         })
     }
@@ -147,20 +146,40 @@ impl<'a> Parser<'a> {
     fn primary(&mut self) -> Result<(), CompileError> {
         let token = self.current;
         match token.kind {
-            TokenKind::Number(value) => {
+            TokenKind::Number(value, unit) => {
                 self.advance()?;
-                self.emit(Op::Const(value));
+                self.number(value, unit);
+                Ok(())
+            }
+            TokenKind::Str => {
+                let (value, unit) = time_literal(self.lexer.text(token)).ok_or_else(|| {
+                    error(CompileErrorKind::StringNotAllowed, token.start, token.end)
+                })?;
+                self.advance()?;
+                self.number(value, unit);
                 Ok(())
             }
             TokenKind::Ident => self.name(token),
             TokenKind::LParen => {
                 self.advance()?;
                 self.nested(token.start, |parser| {
-                    parser.expression()?;
-                    parser.expect(TokenKind::RParen)
+                    parser.ternary()?;
+                    parser.expect(TokenKind::RParen).map(|_| ())
                 })
             }
             _ => Err(self.unexpected()),
+        }
+    }
+
+    fn number(&mut self, value: f64, unit: Unit) {
+        match unit {
+            Unit::None | Unit::Seconds | Unit::Degrees => self.ops.push(Op::Const(value)),
+            Unit::Millis => self.ops.push(Op::Const(value / 1000.0)),
+            Unit::Frames => self.ops.extend([
+                Op::Const(value),
+                Op::Var(Var::Fps),
+                Op::Binary(BinaryOp::Div),
+            ]),
         }
     }
 
@@ -170,7 +189,9 @@ impl<'a> Parser<'a> {
         self.advance()?;
         let is_call = self.current.kind == TokenKind::LParen;
         match name {
-            Name::Func(func) if is_call => self.call(func, token),
+            Name::Func(func) if is_call => {
+                self.nested(token.start, |parser| parser.call(func, token))
+            }
             Name::Func(_) => Err(error(CompileErrorKind::MissingCall, token.start, token.end)),
             _ if is_call => Err(error(
                 CompileErrorKind::NotAFunction,
@@ -178,11 +199,11 @@ impl<'a> Parser<'a> {
                 token.end,
             )),
             Name::Var(var) => {
-                self.emit(Op::Var(var));
+                self.ops.push(Op::Var(var));
                 Ok(())
             }
             Name::Const(value) => {
-                self.emit(Op::Const(value));
+                self.ops.push(Op::Const(value));
                 Ok(())
             }
         }
@@ -190,27 +211,101 @@ impl<'a> Parser<'a> {
 
     fn call(&mut self, func: Func, name: Token) -> Result<(), CompileError> {
         self.advance()?;
-        self.nested(name.start, |parser| {
-            let mut found: u8 = 0;
-            if parser.current.kind != TokenKind::RParen {
-                loop {
-                    parser.expression()?;
-                    found = found.saturating_add(1);
-                    if parser.current.kind != TokenKind::Comma {
-                        break;
-                    }
-                    parser.advance()?;
+        let ease = if func == Func::Ease {
+            Some(self.ease_name()?)
+        } else {
+            None
+        };
+        let first_arg = self.ops.len();
+        let mut second_arg = None;
+        let mut found = u8::from(ease.is_some());
+        if self.current.kind != TokenKind::RParen {
+            loop {
+                if found == 1 && ease.is_none() {
+                    second_arg = Some(self.ops.len());
                 }
+                self.ternary()?;
+                found = found.saturating_add(1);
+                if self.current.kind != TokenKind::Comma {
+                    break;
+                }
+                self.advance()?;
             }
-            let close = parser.current.end;
-            parser.expect(TokenKind::RParen)?;
-            let expected = func.arity();
-            if found != expected {
-                let kind = CompileErrorKind::WrongArity { expected, found };
-                return Err(error(kind, name.start, close));
-            }
-            parser.emit(Op::Call(func));
-            Ok(())
-        })
+        }
+        let close = self.expect(TokenKind::RParen)?.end;
+        let (min, max) = func.arity();
+        if found < min || found > max {
+            return Err(error(
+                CompileErrorKind::WrongArity { min, max, found },
+                name.start,
+                close,
+            ));
+        }
+        if let Some(ease) = ease {
+            self.ops.push(Op::Ease(ease));
+        } else if let Some((scope, fixed)) = func.scope() {
+            self.wrap_in_scope(first_arg, second_arg, scope, fixed);
+        } else {
+            let defaults = func.defaults();
+            let missing = usize::from(max - found).min(defaults.len());
+            self.ops.extend(
+                defaults[defaults.len() - missing..]
+                    .iter()
+                    .map(|value| Op::Const(*value)),
+            );
+            let argc = found + u8::try_from(missing).unwrap_or(0);
+            self.ops.push(Op::Call(func, argc));
+        }
+        Ok(())
+    }
+
+    fn ease_name(&mut self) -> Result<Ease, CompileError> {
+        let token = self.expect(TokenKind::Str)?;
+        let ease = Ease::parse(self.lexer.text(token))
+            .ok_or_else(|| error(CompileErrorKind::UnknownEase, token.start, token.end))?;
+        self.expect(TokenKind::Comma)?;
+        Ok(ease)
+    }
+
+    // `loop(expr, period)` must evaluate `period` before entering the scope that `expr` runs in.
+    fn wrap_in_scope(
+        &mut self,
+        first_arg: usize,
+        second_arg: Option<usize>,
+        scope: crate::funcs::Scope,
+        fixed: Option<f64>,
+    ) {
+        let parameter = second_arg.map(|start| self.ops.split_off(start));
+        let body = self.ops.split_off(first_arg);
+        match (fixed, parameter) {
+            (Some(value), _) => self.ops.push(Op::Const(value)),
+            (None, Some(parameter)) => self.ops.extend(parameter),
+            (None, None) => self.ops.push(Op::Const(0.0)),
+        }
+        self.ops.push(Op::Enter(scope));
+        self.ops.extend(body);
+        self.ops.push(Op::Leave);
     }
 }
+
+const LEVELS: [&[(TokenKind, BinaryOp)]; 5] = [
+    &[(TokenKind::OrOr, BinaryOp::Or)],
+    &[(TokenKind::AndAnd, BinaryOp::And)],
+    &[
+        (TokenKind::Eq, BinaryOp::Eq),
+        (TokenKind::Ne, BinaryOp::Ne),
+        (TokenKind::Lt, BinaryOp::Lt),
+        (TokenKind::Le, BinaryOp::Le),
+        (TokenKind::Gt, BinaryOp::Gt),
+        (TokenKind::Ge, BinaryOp::Ge),
+    ],
+    &[
+        (TokenKind::Plus, BinaryOp::Add),
+        (TokenKind::Minus, BinaryOp::Sub),
+    ],
+    &[
+        (TokenKind::Star, BinaryOp::Mul),
+        (TokenKind::Slash, BinaryOp::Div),
+        (TokenKind::Percent, BinaryOp::Rem),
+    ],
+];

@@ -51,6 +51,7 @@ pub fn scene(kit: &Kit, size: (u16, u16), frames: u32, shapes: Vec<Shape>) -> Sc
             duration: FrameCount::new(frames).unwrap(),
             looping: Looping::Loop,
         },
+        seed: 0,
         palette: kit.palette.clone(),
         background: kit.blank,
         shapes,
