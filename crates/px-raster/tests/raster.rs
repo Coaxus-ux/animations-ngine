@@ -1,4 +1,3 @@
-//! Rasterization results, drawn as ASCII grids for readability.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

@@ -1,5 +1,3 @@
-//! Builds small scenes directly from the engine API.
-
 use px_core::{FrameCount, FrameRate, Paint, Palette, Rgb, Size, Tone};
 use px_engine::{Bounds, Geometry, Looping, Param, Scene, SceneSpec, Shape, Timing};
 

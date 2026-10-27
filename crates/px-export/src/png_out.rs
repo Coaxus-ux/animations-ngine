@@ -6,11 +6,6 @@ use crate::error::ExportError;
 use crate::resolve::{indexed_len, resolve_rgb};
 use crate::scale::Scale;
 
-/// Writes one canvas as an upscaled RGB PNG.
-///
-/// # Errors
-///
-/// Any [`ExportError`] from resolving or encoding.
 pub fn write_png(
     writer: impl Write,
     view: &CanvasView<'_>,

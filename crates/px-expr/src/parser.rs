@@ -5,10 +5,8 @@ use crate::lexer::{Lexer, Token, TokenKind, error};
 use crate::names::{Func, Name, lookup};
 use crate::program::{BinaryOp, MAX_STACK, Op, Program};
 
-/// Maximum nesting of parentheses, unary minus and calls. Bounds parser recursion.
 pub const MAX_NESTING: usize = 32;
 
-/// Recursive-descent parser that emits postfix ops directly.
 pub(crate) struct Parser<'a> {
     lexer: Lexer<'a>,
     current: Token,

@@ -1,10 +1,4 @@
-//! Turns indexed canvases into image files: RGB resolve, nearest-neighbor integer
-//! upscale, PNG stills and looping GIFs.
-//!
-//! # Allocation
-//!
-//! Allocation-conscious: output buffers are allocated once per export and reused for
-//! every frame.
+//! Indexed canvas to PNG and GIF. Memory profile: allocation-conscious; buffers are reused across frames.
 #![forbid(unsafe_code)]
 
 mod error;

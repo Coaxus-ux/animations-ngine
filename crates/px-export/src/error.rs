@@ -2,25 +2,13 @@ use std::{fmt, io};
 
 use px_core::{CanvasError, PaletteError};
 
-/// Why an export failed.
 #[derive(Debug)]
 pub enum ExportError {
-    /// Reading or writing failed.
     Io(io::Error),
-    /// The image encoder rejected the data.
     Encoding(String),
-    /// The palette has more colors than the format supports (GIF: 256).
-    TooManyColors {
-        /// Colors in the palette.
-        count: usize,
-        /// The format's limit.
-        max: usize,
-    },
-    /// A pixel's paint is not in the palette.
+    TooManyColors { count: usize, max: usize },
     Palette(PaletteError),
-    /// The canvas buffer does not match its size.
     Canvas(CanvasError),
-    /// The upscaled image would exceed the format's limits.
     TooLarge,
 }
 

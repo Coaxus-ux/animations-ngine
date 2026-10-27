@@ -7,14 +7,12 @@ use crate::diagnostic::Diagnostics;
 use crate::props::Props;
 use crate::values;
 
-/// A palette plus the names of its ramps.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct NamedPalette {
     pub(crate) palette: Palette,
     ramps: BTreeMap<String, RampId>,
 }
 
-/// Parses `palette "name" { ramp "sky" "#112233" "#445566" … }`.
 pub(crate) fn parse(node: &KdlNode, diags: &mut Diagnostics) -> Option<(String, NamedPalette)> {
     let props = Props::new(node);
     let name = props.name_arg(diags)?;
@@ -75,7 +73,6 @@ impl NamedPalette {
         }
     }
 
-    /// Resolves `ramp`, `ramp.tone-name` or `ramp.index` (`docs/PALETTES.md` §1.2).
     pub(crate) fn paint(
         &self,
         text: &str,

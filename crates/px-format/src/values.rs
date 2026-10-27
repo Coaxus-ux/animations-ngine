@@ -1,5 +1,3 @@
-//! Converts KDL entry values into typed values, reporting problems as diagnostics.
-
 use std::fmt::Display;
 
 use kdl::{KdlEntry, KdlValue};
@@ -12,7 +10,6 @@ fn offset(entry: &KdlEntry) -> usize {
     entry.span().offset()
 }
 
-/// Converts an integer literal to `f64`.
 #[expect(
     clippy::cast_precision_loss,
     reason = "KDL integers in scene files are small; f64 is the engine's number type"
@@ -21,7 +18,6 @@ fn integer_to_f64(value: i128) -> f64 {
     value as f64
 }
 
-/// A number literal.
 pub(crate) fn number(entry: &KdlEntry, diags: &mut Diagnostics) -> Option<f64> {
     match entry.value() {
         KdlValue::Integer(value) => Some(integer_to_f64(*value)),
@@ -33,7 +29,6 @@ pub(crate) fn number(entry: &KdlEntry, diags: &mut Diagnostics) -> Option<f64> {
     }
 }
 
-/// An integer within `min..=max`.
 pub(crate) fn bounded<T>(entry: &KdlEntry, min: T, max: T, diags: &mut Diagnostics) -> Option<T>
 where
     T: TryFrom<i128> + PartialOrd + Display + Copy,
@@ -52,7 +47,6 @@ where
     value
 }
 
-/// A boolean (`#true` / `#false`).
 pub(crate) fn boolean(entry: &KdlEntry, diags: &mut Diagnostics) -> Option<bool> {
     let value = entry.value().as_bool();
     if value.is_none() {
@@ -61,7 +55,6 @@ pub(crate) fn boolean(entry: &KdlEntry, diags: &mut Diagnostics) -> Option<bool>
     value
 }
 
-/// A string.
 pub(crate) fn string<'a>(entry: &'a KdlEntry, diags: &mut Diagnostics) -> Option<&'a str> {
     let value = entry.value().as_string();
     if value.is_none() {
@@ -70,7 +63,6 @@ pub(crate) fn string<'a>(entry: &'a KdlEntry, diags: &mut Diagnostics) -> Option
     value
 }
 
-/// A numeric parameter: a number, or a string starting with `=` holding an expression.
 pub(crate) fn param(entry: &KdlEntry, diags: &mut Diagnostics) -> Option<Param> {
     let Some(text) = entry.value().as_string() else {
         return number(entry, diags).map(Param::Fixed);
@@ -99,8 +91,6 @@ pub(crate) fn param(entry: &KdlEntry, diags: &mut Diagnostics) -> Option<Param> 
     }
 }
 
-/// A duration with an explicit unit (`"2s"`, `"500ms"`, `"24f"`), as whole frames.
-/// A duration that is not a whole number of frames is rounded, with a warning.
 pub(crate) fn duration(
     entry: &KdlEntry,
     fps: FrameRate,

@@ -25,7 +25,6 @@ png = "0.18"
 [workspace.lints.rust]
 # Library crates additionally `#![forbid(unsafe_code)]`; see docs/engineering/DECISIONS.md D-002.
 unsafe_code = "deny"
-missing_docs = "warn"
 unused_must_use = "deny"
 
 [workspace.lints.clippy]
@@ -37,6 +36,9 @@ panic = "deny"
 todo = "deny"
 unimplemented = "deny"
 unwrap_used = "deny"
+# Code explains itself; doc sections are written only when they carry information (D-007).
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
 # Heap guardrails from clippy.toml are opted into by strict crates only.
 disallowed_macros = "allow"
 disallowed_types = "allow"

@@ -6,10 +6,8 @@ use crate::palette::NamedPalette;
 use crate::props::Props;
 use crate::values;
 
-/// Shape node names understood in M0.
 const SHAPES: [&str; 3] = ["rect", "ellipse", "line"];
 
-/// Parses one shape node (`rect`, `ellipse` or `line`).
 pub(crate) fn parse(
     node: &KdlNode,
     palette: &NamedPalette,

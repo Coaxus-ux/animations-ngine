@@ -3,11 +3,6 @@ use px_core::{CanvasView, Paint, Palette};
 use crate::error::ExportError;
 use crate::scale::Scale;
 
-/// Number of output values for a canvas upscaled by `scale` with `channels` per pixel.
-///
-/// # Errors
-///
-/// [`ExportError::TooLarge`] when the size overflows.
 pub fn indexed_len(
     view: &CanvasView<'_>,
     scale: Scale,
@@ -22,12 +17,6 @@ pub fn indexed_len(
         .ok_or(ExportError::TooLarge)
 }
 
-/// Writes the canvas as upscaled RGB8 into `out` (row-major, 3 bytes per pixel).
-///
-/// # Errors
-///
-/// [`ExportError::TooLarge`] when `out` has the wrong length, or
-/// [`ExportError::Palette`] when a pixel's paint is not in `palette`.
 pub fn resolve_rgb(
     view: &CanvasView<'_>,
     palette: &Palette,
@@ -41,8 +30,6 @@ pub fn resolve_rgb(
     })
 }
 
-/// Upscales `view` into `out`, letting `write` fill each output pixel of `channels`
-/// values. Shared by every exporter so the nearest-neighbor rule lives in one place.
 pub(crate) fn upscale(
     view: &CanvasView<'_>,
     scale: Scale,

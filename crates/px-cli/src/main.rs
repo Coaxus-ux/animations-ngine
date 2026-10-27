@@ -1,8 +1,3 @@
-//! `pxe`: renders KDL scenes to PNG stills and looping GIFs (`docs/CLI.md`).
-//!
-//! # Allocation
-//!
-//! Allocation-conscious application boundary.
 #![forbid(unsafe_code)]
 
 mod args;

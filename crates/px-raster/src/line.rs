@@ -2,10 +2,6 @@ use px_core::{COORD_LIMIT, CanvasMut, Paint};
 
 use crate::Point;
 
-/// Draws a one-pixel, 8-connected line (Bresenham), clipped to the canvas.
-///
-/// Endpoints are clamped into `±COORD_LIMIT`, so at most `4 × COORD_LIMIT + 1` pixels
-/// are visited. Diagonal steps never produce doubled "L" corners.
 pub fn draw_line(canvas: &mut CanvasMut<'_>, from: Point, to: Point, paint: Paint) {
     let (mut x, mut y) = (clamp(from.x), clamp(from.y));
     let (end_x, end_y) = (clamp(to.x), clamp(to.y));

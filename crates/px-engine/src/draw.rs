@@ -5,7 +5,6 @@ use px_raster::{Point, Rect, draw_line, fill_ellipse, fill_rect};
 use crate::model::{Bounds, Geometry, Segment};
 
 impl Geometry {
-    /// Evaluates the parameters at `env`, snaps them to pixels and rasterizes.
     pub(crate) fn draw(
         &self,
         canvas: &mut CanvasMut<'_>,

@@ -1,52 +1,29 @@
 use core::fmt;
 
-/// What went wrong while compiling.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CompileErrorKind {
-    /// The expression is empty.
     Empty,
-    /// A character that the language does not use.
     UnexpectedChar,
-    /// A malformed number.
     InvalidNumber,
-    /// A token in a place where it cannot appear.
     UnexpectedToken,
-    /// A name that is not a variable, constant or function.
     UnknownName,
-    /// A function name used without `( … )`.
     MissingCall,
-    /// A variable or constant followed by `( … )`.
     NotAFunction,
-    /// A function called with the wrong number of arguments.
-    WrongArity {
-        /// Arguments the function takes.
-        expected: u8,
-        /// Arguments given.
-        found: u8,
-    },
-    /// Parentheses or unary operators nested deeper than `MAX_NESTING`.
+    WrongArity { expected: u8, found: u8 },
     TooDeep,
-    /// Evaluation would need more than `MAX_STACK` stack slots.
     TooComplex,
 }
 
-/// A compile error and the byte range of the text that caused it.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CompileError {
-    /// What went wrong.
     pub kind: CompileErrorKind,
-    /// Start byte offset in the expression source.
     pub start: usize,
-    /// End byte offset (exclusive).
     pub end: usize,
 }
 
-/// Why evaluating a compiled program failed.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EvalError {
-    /// The result is infinite or NaN (for example a division by zero).
     NonFinite,
-    /// The program violates the compiler's stack invariant; a defect, never user error.
     Malformed,
 }
 

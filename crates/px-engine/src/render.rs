@@ -5,37 +5,12 @@ use px_expr::{Env, EvalError};
 
 use crate::model::{Scene, Timing};
 
-/// Why a frame could not be rendered.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RenderError {
-    /// The canvas size differs from the scene size.
-    CanvasSize {
-        /// The scene's size.
-        expected: Size,
-        /// The canvas's size.
-        actual: Size,
-    },
-    /// An expression failed.
-    Eval {
-        /// Index of the shape whose parameter failed.
-        shape: usize,
-        /// The evaluation error.
-        error: EvalError,
-    },
+    CanvasSize { expected: Size, actual: Size },
+    Eval { shape: usize, error: EvalError },
 }
 
-/// Renders one frame into a caller-owned canvas.
-///
-/// Frames past the scene's duration are allowed; a looping scene renders frame
-/// `duration` identically to frame 0.
-///
-/// # Allocation
-///
-/// No heap allocation (verified by `tests/no_alloc.rs`).
-///
-/// # Errors
-///
-/// [`RenderError::CanvasSize`] or [`RenderError::Eval`].
 pub fn render_frame(
     scene: &Scene,
     frame: Frame,

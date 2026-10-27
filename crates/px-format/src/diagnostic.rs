@@ -1,30 +1,21 @@
 use std::fmt;
 
-/// Maximum diagnostics kept per load; later ones are dropped to keep work bounded.
 const MAX_DIAGNOSTICS: usize = 64;
 
-/// How serious a diagnostic is. Warnings never stop rendering.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Severity {
-    /// The file cannot be used.
     Error,
-    /// The file is usable; something was ignored or adjusted.
     Warning,
 }
 
-/// A message tied to a byte offset in the source file.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Diagnostic {
-    /// Error or warning.
     pub severity: Severity,
-    /// Byte offset in the source.
     pub offset: usize,
-    /// Human-readable message.
     pub message: String,
 }
 
 impl Diagnostic {
-    /// Formats as `path:line:col severity message`.
     #[must_use]
     pub fn render(&self, path: &str, source: &str) -> String {
         let (line, column) = line_col(source, self.offset);
@@ -36,7 +27,6 @@ impl Diagnostic {
     }
 }
 
-/// 1-based line and column (in characters) of a byte offset.
 fn line_col(source: &str, offset: usize) -> (usize, usize) {
     let before = source.get(..offset.min(source.len())).unwrap_or(source);
     let line = before.matches('\n').count() + 1;
@@ -48,10 +38,8 @@ fn line_col(source: &str, offset: usize) -> (usize, usize) {
     (line, column)
 }
 
-/// Loading failed; holds every error and warning found.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LoadError {
-    /// All diagnostics, errors first.
     pub diagnostics: Vec<Diagnostic>,
 }
 
@@ -68,7 +56,6 @@ impl fmt::Display for LoadError {
 
 impl std::error::Error for LoadError {}
 
-/// Collects diagnostics while loading.
 #[derive(Debug, Default)]
 pub(crate) struct Diagnostics {
     items: Vec<Diagnostic>,
@@ -97,7 +84,6 @@ impl Diagnostics {
         self.items.iter().any(|d| d.severity == Severity::Error)
     }
 
-    /// Ends loading: `Ok(warnings)` when there are no errors.
     pub(crate) fn finish(mut self) -> Result<Vec<Diagnostic>, LoadError> {
         if self.has_errors() {
             self.items

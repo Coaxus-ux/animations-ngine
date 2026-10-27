@@ -25,11 +25,6 @@ pub use names::Var;
 pub use parser::MAX_NESTING;
 pub use program::{Env, MAX_STACK, Program};
 
-/// Compiles an expression (without its leading `=`).
-///
-/// # Errors
-///
-/// A [`CompileError`] with the byte range of the offending text.
 pub fn compile(source: &str) -> Result<Program, CompileError> {
     parser::Parser::new(source).parse()
 }

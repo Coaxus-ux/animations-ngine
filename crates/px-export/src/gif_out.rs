@@ -7,13 +7,8 @@ use crate::error::ExportError;
 use crate::resolve::{indexed_len, upscale};
 use crate::scale::Scale;
 
-/// GIF's color table limit.
 const GIF_MAX_COLORS: usize = 256;
 
-/// Writes a looping, palette-exact GIF one frame at a time.
-///
-/// The GIF color table is the scene palette flattened ramp by ramp, so pixels map to
-/// table indices without any color quantization.
 pub struct GifWriter<W: Write> {
     encoder: gif::Encoder<W>,
     ramp_spans: Vec<RampSpan>,
@@ -24,15 +19,6 @@ pub struct GifWriter<W: Write> {
 }
 
 impl<W: Write> GifWriter<W> {
-    /// Starts a GIF for canvases of `size`, upscaled by `scale`, looping forever.
-    ///
-    /// GIF delays are whole centiseconds, so the frame delay is rounded (12 fps plays at
-    /// 8 cs ≈ 12.5 fps).
-    ///
-    /// # Errors
-    ///
-    /// [`ExportError::TooManyColors`] when the palette exceeds 256 colors, or an
-    /// encoding/size error.
     pub fn new(
         writer: W,
         size: Size,
@@ -48,6 +34,7 @@ impl<W: Write> GifWriter<W> {
         encoder
             .set_repeat(gif::Repeat::Infinite)
             .map_err(encoding)?;
+        // GIF delays are whole centiseconds: 12 fps plays at 8 cs (≈ 12.5 fps).
         let delay = (100 + fps.get() / 2) / fps.get();
         Ok(Self {
             encoder,
@@ -59,12 +46,6 @@ impl<W: Write> GifWriter<W> {
         })
     }
 
-    /// Appends one frame.
-    ///
-    /// # Errors
-    ///
-    /// [`ExportError::TooLarge`] when the canvas size differs from the GIF's, a palette
-    /// error for paints outside the palette, or an encoding error.
     pub fn add_frame(&mut self, view: &CanvasView<'_>) -> Result<(), ExportError> {
         if view.size() != self.size {
             return Err(ExportError::TooLarge);
@@ -94,14 +75,12 @@ impl<W: Write> GifWriter<W> {
     }
 }
 
-/// Where a ramp's colors start in the GIF color table, and how many there are.
 #[derive(Clone, Copy, Debug)]
 struct RampSpan {
     start: u8,
     len: u8,
 }
 
-/// The flattened RGB table and each ramp's span in it.
 fn color_table(palette: &Palette) -> Result<(Vec<u8>, Vec<RampSpan>), ExportError> {
     let count: usize = palette.ramps().iter().map(|ramp| ramp.colors().len()).sum();
     let too_many = ExportError::TooManyColors {

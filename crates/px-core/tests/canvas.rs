@@ -1,4 +1,3 @@
-//! Canvas bounds, clipping, snapping and hashing.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

@@ -89,7 +89,6 @@ impl<'a> Lexer<'a> {
         })
     }
 
-    /// Identifiers are kebab-case: a hyphen followed by a letter belongs to the name.
     fn ident(&mut self, start: usize) -> Token {
         let bytes = self.source.as_bytes();
         loop {

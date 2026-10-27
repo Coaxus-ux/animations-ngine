@@ -9,10 +9,8 @@ use crate::palette::NamedPalette;
 use crate::props::Props;
 use crate::{shapes, values};
 
-/// Frame rate used when a scene does not set `fps` (`docs/SPEC.md` decision log).
 const DEFAULT_FPS: u16 = 12;
 
-/// Parses `scene "name" palette=… width=… height=… duration=… { shapes }`.
 pub(crate) fn parse(
     node: &KdlNode,
     palettes: &BTreeMap<String, NamedPalette>,

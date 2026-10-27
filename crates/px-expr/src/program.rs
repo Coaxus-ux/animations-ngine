@@ -3,19 +3,13 @@ use alloc::vec::Vec;
 use crate::error::EvalError;
 use crate::names::{Func, Var};
 
-/// Maximum evaluation stack depth of a compiled program.
 pub const MAX_STACK: usize = 32;
 
-/// Values of the variables during one evaluation.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Env {
-    /// `t`: scene time in seconds.
     pub time: f64,
-    /// `f`: frame index.
     pub frame: f64,
-    /// `fps`: frames per second.
     pub fps: f64,
-    /// `dur`: scene duration in seconds.
     pub duration: f64,
 }
 
@@ -60,7 +54,6 @@ impl BinaryOp {
     }
 }
 
-/// A compiled expression in postfix form.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Program {
     ops: Vec<Op>,
@@ -76,28 +69,16 @@ impl Program {
         Self { ops, constant }
     }
 
-    /// The value when the expression does not depend on any variable, e.g. `2 * 3`
-    /// is not folded but `5` is.
     #[must_use]
     pub const fn constant(&self) -> Option<f64> {
         self.constant
     }
 
-    /// Whether the program reads `var`.
     #[must_use]
     pub fn uses(&self, var: Var) -> bool {
         self.ops.contains(&Op::Var(var))
     }
 
-    /// Evaluates the program.
-    ///
-    /// # Allocation
-    ///
-    /// No heap allocation; the stack is a fixed array of [`MAX_STACK`] values.
-    ///
-    /// # Errors
-    ///
-    /// [`EvalError::NonFinite`] when the result is infinite or NaN.
     pub fn eval(&self, env: &Env) -> Result<f64, EvalError> {
         let mut stack = Stack::new();
         for op in &self.ops {

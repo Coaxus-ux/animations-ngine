@@ -1,45 +1,25 @@
 use core::fmt;
 
-/// An sRGB color with 8 bits per channel.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Rgb {
-    /// Red channel.
     pub r: u8,
-    /// Green channel.
     pub g: u8,
-    /// Blue channel.
     pub b: u8,
 }
 
-/// Why a `#rrggbb` color could not be parsed.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ColorParseError {
-    /// The text does not start with `#`.
     MissingHash,
-    /// The text after `#` is not exactly six digits long.
-    WrongLength {
-        /// Number of characters found after `#`.
-        len: usize,
-    },
-    /// A character is not a hexadecimal digit.
-    InvalidDigit {
-        /// Position of the character after `#`.
-        index: usize,
-    },
+    WrongLength { len: usize },
+    InvalidDigit { index: usize },
 }
 
 impl Rgb {
-    /// Creates a color from its channels.
     #[must_use]
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 
-    /// Parses `#rrggbb` (case-insensitive).
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ColorParseError`] describing the first problem found.
     pub fn parse_hex(text: &str) -> Result<Self, ColorParseError> {
         let digits = text.strip_prefix('#').ok_or(ColorParseError::MissingHash)?;
         let bytes = digits.as_bytes();

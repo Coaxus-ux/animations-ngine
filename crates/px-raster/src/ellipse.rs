@@ -2,12 +2,6 @@ use px_core::{COORD_LIMIT, CanvasMut, Paint};
 
 use crate::rect::Rect;
 
-/// Fills the ellipse inscribed in `bounds`, clipped to the canvas.
-///
-/// A pixel is inside when its center lies inside the ellipse. The test runs in doubled
-/// integer coordinates, so even and odd sizes are both exact and the result is
-/// symmetric. Sizes are clamped to [`COORD_LIMIT`], which keeps every product below
-/// 2^60, and each row costs `O(log width)`.
 pub fn fill_ellipse(canvas: &mut CanvasMut<'_>, bounds: Rect, paint: Paint) {
     let bounds = Rect {
         width: bounds.width.min(COORD_LIMIT),
@@ -25,7 +19,7 @@ pub fn fill_ellipse(canvas: &mut CanvasMut<'_>, bounds: Rect, paint: Paint) {
     }
 }
 
-/// The ellipse in doubled coordinates: pixel `p` has its center at `2p + 1`.
+// Doubled coordinates: pixel `p` has its center at `2p + 1`, so even and odd sizes stay exact.
 struct Doubled {
     width: i64,
     height: i64,
@@ -47,7 +41,6 @@ impl Doubled {
         }
     }
 
-    /// First and last covered column of row `y`, if any. `y` must lie inside the bounds.
     fn span(&self, y: i32) -> Option<(i64, i64)> {
         let dy = 2 * i64::from(y) + 1 - self.center_y;
         debug_assert!(dy.abs() <= self.height, "row outside the ellipse bounds");
@@ -61,7 +54,6 @@ impl Doubled {
         (first <= last).then_some((first, last))
     }
 
-    /// Largest `half` in `0..=width` with `half² · height² + row_term ≤ limit`.
     fn widest_half(&self, row_term: i64) -> i64 {
         let fits = |half: i64| half * half * self.height * self.height + row_term <= self.limit;
         let (mut low, mut high) = (0, self.width);

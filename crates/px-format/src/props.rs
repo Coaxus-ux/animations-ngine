@@ -4,8 +4,6 @@ use kdl::{KdlEntry, KdlNode};
 
 use crate::diagnostic::Diagnostics;
 
-/// Typed access to one node's entries that remembers which properties were read, so
-/// unknown properties can be reported (`docs/FORMAT.md` §15: warning, ignored).
 pub(crate) struct Props<'a> {
     node: &'a KdlNode,
     used: BTreeSet<&'a str>,
@@ -27,7 +25,6 @@ impl<'a> Props<'a> {
         self.node.span().offset()
     }
 
-    /// Positional arguments, in order.
     pub(crate) fn args(&self) -> impl Iterator<Item = &'a KdlEntry> {
         self.node
             .entries()
@@ -35,7 +32,6 @@ impl<'a> Props<'a> {
             .filter(|entry| entry.name().is_none())
     }
 
-    /// The first positional argument as a string (the node's name or id).
     pub(crate) fn name_arg(&self, diags: &mut Diagnostics) -> Option<&'a str> {
         let arg = self.args().next();
         let text = arg.and_then(|entry| entry.value().as_string());
@@ -53,7 +49,6 @@ impl<'a> Props<'a> {
         text
     }
 
-    /// An optional property (marks it as known).
     pub(crate) fn get(&mut self, key: &'a str) -> Option<&'a KdlEntry> {
         self.used.insert(key);
         self.node
@@ -63,7 +58,6 @@ impl<'a> Props<'a> {
             .find(|entry| entry.name().is_some_and(|name| name.value() == key))
     }
 
-    /// A required property; reports an error when missing.
     pub(crate) fn require(
         &mut self,
         key: &'a str,
@@ -79,7 +73,6 @@ impl<'a> Props<'a> {
         entry
     }
 
-    /// Warns about every property that was never read.
     pub(crate) fn finish(self, diags: &mut Diagnostics) {
         for entry in self.node.entries() {
             if let Some(name) = entry

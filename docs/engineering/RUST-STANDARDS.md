@@ -120,9 +120,16 @@ Measure before and after (release mode, representative workloads, allocation cou
 - Golden tests compare **indexed-buffer hashes**, never RGB output.
 - Snapshot tests stay small and reviewable.
 
-## 14. Documentation
+## 14. Comments and documentation
 
-Comments explain *why*. Public items document purpose, `# Allocation`, `# Errors`, `# Panics`, bounds and determinism. TODOs reference an issue: `// TODO(#12): …`. Replace comments with types or tests when possible.
+**Code explains itself.** If code needs a comment to be understood, rename, extract or retype it instead ([DECISIONS.md](DECISIONS.md) D-007).
+
+- **No comments that restate code.** No doc comments on items whose name and signature already say what they do.
+- **A comment is allowed only for what code cannot express:** a non-obvious *why*, an invariant that types cannot enforce, a `// SAFETY:` proof, a reference to a spec rule, or instructions in a test file (how to bless golden files, how to run).
+- **Contracts that matter go where callers see them:** a short doc line on a public function only when its allocation, panic or determinism behavior is not obvious from its signature.
+- **Crate roots** state their memory profile in one line.
+- **CLI help text** is written as doc comments because clap turns it into `--help`.
+- **TODOs** reference an issue: `// TODO(#12): …`.
 
 ## 15. Dependencies
 
@@ -152,7 +159,7 @@ All of the above run locally through `tools/check.sh` (no hosted CI, [DECISIONS.
 - **Assertions:** real invariants only, side-effect free, not safety proofs, non-allocating?
 - **Performance and determinism:** measured? contiguous data? no needless clones? canonical output independent of scheduling and map order?
 - **Safety:** `unsafe` forbidden or isolated with `SAFETY:`? bounded queues and retries?
-- **Tests and docs:** success, capacity, malformed and error paths tested? allocation behavior tested? public contracts documented?
+- **Tests and comments:** success, capacity, malformed and error paths tested? allocation behavior tested? no comment that restates code?
 - **SOLID/DRY:** one responsibility per unit? single source of truth for each rule?
 
 ## 19. Anti-patterns

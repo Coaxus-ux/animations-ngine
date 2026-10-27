@@ -6,7 +6,6 @@ use px_format::{LoadError, load_scene};
 
 use crate::args::Input;
 
-/// Reads and loads the scene named by `input`, printing warnings to stderr.
 pub(crate) fn load(input: &Input) -> Result<Scene> {
     let path = input.file.display().to_string();
     let source = fs::read_to_string(&input.file).with_context(|| format!("cannot read {path}"))?;

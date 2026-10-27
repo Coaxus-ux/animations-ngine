@@ -1,4 +1,3 @@
-//! Palette, ramp and tone behavior.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

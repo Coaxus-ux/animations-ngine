@@ -1,12 +1,4 @@
-//! Core types shared by every crate of the engine.
-//!
-//! Pixels are stored as [`Paint`] values (a ramp and a tone), never as RGB. Colors are
-//! resolved through a [`Palette`] only at output time (see `docs/RENDERING.md` §1).
-//!
-//! # Allocation
-//!
-//! Strict heapless: this crate is `no_std` and does not use `alloc`. Every buffer is
-//! caller-owned and every container has a fixed, documented capacity.
+//! Core types: paints, palettes, canvas views, time, hashing. Memory profile: strict heapless (`no_std`, no `alloc`).
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(clippy::disallowed_macros, clippy::disallowed_types)]

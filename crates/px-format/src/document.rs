@@ -8,23 +8,12 @@ use crate::diagnostic::{Diagnostic, Diagnostics, LoadError};
 use crate::palette::{self, NamedPalette};
 use crate::scene;
 
-/// A successfully loaded scene and the warnings found while loading it.
 #[derive(Debug)]
 pub struct Loaded {
-    /// The validated scene.
     pub scene: Scene,
-    /// Non-fatal diagnostics.
     pub warnings: Vec<Diagnostic>,
 }
 
-/// Parses a KDL document and builds the requested scene.
-///
-/// `scene_name` picks a scene when the file holds several; with one scene it may be
-/// `None`.
-///
-/// # Errors
-///
-/// A [`LoadError`] listing every error (and warning) found.
 pub fn load_scene(source: &str, scene_name: Option<&str>) -> Result<Loaded, LoadError> {
     let mut diags = Diagnostics::default();
     let document = KdlDocument::parse_v2(source).map_err(|error| syntax_errors(&error))?;

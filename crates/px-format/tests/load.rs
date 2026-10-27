@@ -1,4 +1,3 @@
-//! Loading scene files: the example, and every kind of diagnostic.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -17,7 +16,6 @@ fn scene(body: &str, props: &str) -> String {
     )
 }
 
-/// Loads and returns every diagnostic rendered as `line:col severity message`.
 fn diagnostics(source: &str) -> Vec<String> {
     let diagnostics = match load_scene(source, None) {
         Ok(loaded) => loaded.warnings,

@@ -1,19 +1,13 @@
 //! The single table of names the language understands.
 
-/// A variable provided by the evaluation environment.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Var {
-    /// `t`: scene time in seconds.
     Time,
-    /// `f`: frame index.
     Frame,
-    /// `fps`: frames per second.
     Fps,
-    /// `dur`: scene duration in seconds.
     Duration,
 }
 
-/// A built-in function.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum Func {
     Sin,
@@ -24,7 +18,6 @@ pub(crate) enum Func {
     Max,
 }
 
-/// What an identifier refers to.
 pub(crate) enum Name {
     Var(Var),
     Const(f64),
@@ -57,7 +50,6 @@ impl Func {
         }
     }
 
-    /// Applies the function; `None` when `args` does not match the arity.
     pub(crate) fn apply(self, args: &[f64]) -> Option<f64> {
         Some(match (self, args) {
             (Self::Sin, [x]) => libm::sin(*x),
