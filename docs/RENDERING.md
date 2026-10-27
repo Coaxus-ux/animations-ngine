@@ -89,8 +89,9 @@ Shapes are combined as signed distance functions: `circle`, `capsule`, `rbox`, `
 `form tone = base + round(k · dot(n, key-light))`, clamped to the ramp.
 
 - `key-light` is the scene's key light direction (default upper-left), independent of real light sources.
-- `shade=flat` skips this step. `shade=soft` uses hard bands. `shade=dither` dithers band edges (§9).
+- `shade=flat` skips this step. `shade=soft` uses hard bands. `shade=dither` dithers band edges (§9), but only where a band edge spans at least 8 px; on smaller forms it falls back to hard bands, because dither there reads as noise ([spike](spikes/cleanup.md)).
 - **Anti-pillow rule:** form shading follows the light direction, never the distance to the silhouette. Uniform shading toward every edge (pillow shading) is forbidden.
+- **Normals for 2D shapes** come from a dome height field, `h = sqrt(clamp(-sdf / R, 0, 1))`, so forms read as rounded volumes lit from one side ([spike](spikes/cleanup.md)).
 
 ### 4.4 Textures and patterns
 Patterns (planks, bricks, scales, bark, fur, noise) are sampled in **object space**, so they move with the object and never "swim". They write `material` and/or `tone` offsets. Noise-based textures always go through noise clustering (§7.4).
@@ -196,7 +197,7 @@ Silhouette edges are traced as run lengths of horizontal and vertical segments.
 - Intentionally sharp corners (where the shape's tangent changes by more than 60°) are preserved.
 
 ### 7.4 Noise clustering
-After any noise-driven material or tone:
+After any noise-driven material or tone, **and after form shading**:
 1. Apply a 3×3 **mode filter** (majority) `cluster-passes` times (default 2).
 2. Flood-fill to find clusters and remove those smaller than `min-cluster` pixels (default 3), merging them into a neighbor.
 
@@ -403,7 +404,7 @@ A **style** is a bundle of rendering rules. It is independent of the **palette**
 | `outline` | `none` \| `sel-out` \| `full` \| `inner` | `sel-out` | §7.6 outline pass |
 | `outline-weight` | 1 \| 2 | 1 | Outline thickness in pixels |
 | `outline-ramp` | role | `outline` | Ramp used by `full` outlines |
-| `shading` | `flat` \| `banded` \| `soft` | `soft` | Form shading (§4.3, §5.4): `flat` = base tone only, `banded` = hard tone bands, `soft` = bands with dithered edges |
+| `shading` | `flat` \| `banded` \| `soft` | `soft` | Form shading (§4.3, §5.4): `flat` = base tone only, `banded` = hard tone bands, `soft` = bands with dithered edges where a band edge spans ≥ 8 px, hard bands on smaller forms |
 | `tones` | 2..5 | 5 | Max tones used per ramp (others snap to the nearest used tone) |
 | `dither` | `off` \| `bayer-2` \| `bayer-4` \| `pattern` | `bayer-4` | §9: gradients, light edges, fog |
 | `dither-strength` | 0..1 | 0.6 | How wide dithered transition bands are |

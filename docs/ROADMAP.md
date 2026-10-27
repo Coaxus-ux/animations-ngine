@@ -31,7 +31,7 @@
 ## 1. Milestones
 
 ### M0 — Walking skeleton
-> **Status (2026-10-28): in progress.** Done: workspace with `px-core`, `px-expr`, `px-raster`, `px-format`, `px-engine`, `px-export`, `px-cli` (two more crates than planned, see [DECISIONS.md](engineering/DECISIONS.md) D-004); `pxe render` / `pxe export`; `examples/hello.kdl` exports a seamless 24-frame GIF; golden hashes, loop-seam, palette-compliance and allocation-free tests pass locally; local check script `tools/check.sh` (hosted CI dropped to avoid costs, D-006); KDL round-trip spike done ([spikes/kdl-roundtrip.md](spikes/kdl-roundtrip.md)). Pending: the cleanup-quality spike, and confirming identical hashes in a local Linux container.
+> **Status (2026-10-28): done.** Done: workspace with `px-core`, `px-expr`, `px-raster`, `px-format`, `px-engine`, `px-export`, `px-cli` (two more crates than planned, see [DECISIONS.md](engineering/DECISIONS.md) D-004); `pxe render` / `pxe export`; `examples/hello.kdl` exports a seamless 24-frame GIF; golden hashes, loop-seam, palette-compliance and allocation-free tests pass locally; local check script `tools/check.sh` (hosted CI dropped to avoid costs, D-006); both spikes done: KDL round-trip ([spikes/kdl-roundtrip.md](spikes/kdl-roundtrip.md)) and cleanup quality ([spikes/cleanup.md](spikes/cleanup.md)), each with a "go" verdict. Optional: confirming identical hashes in a local Linux container.
 
 A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later milestone thickens this slice instead of building layers in isolation.
 

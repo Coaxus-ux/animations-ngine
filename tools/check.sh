@@ -31,10 +31,10 @@ step "clippy"
 cargo clippy --workspace --all-targets --locked -- -D warnings
 
 step "tests (includes golden hashes)"
-cargo test --workspace --locked
+cargo test --workspace --locked --no-fail-fast
 
 step "tests with optimized debug assertions"
-cargo test --workspace --profile release-assertions --locked
+cargo test --workspace --profile release-assertions --locked --no-fail-fast
 
 step "allocation-free rendering"
 cargo test -p px-engine --test no_alloc --locked -- --test-threads=1

@@ -1,3 +1,29 @@
-/target
-/out
+# Build output
+/target/
+**/*.rs.bk
+*.profraw
+*.profdata
+perf.data*
+flamegraph*.svg
+
+# Renders and exports (pxe render / pxe export default to ./out)
+/out/
+
+# Editors and OS
 .DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local environment and secrets
+.env
+.env.*
+
+# Personal Claude Code settings (project settings in .claude/settings.json are shared)
+.claude/settings.local.json
+
+# Python tooling caches
+__pycache__/
+*.pyc
