@@ -3,7 +3,7 @@
     reason = "tests should fail loudly on unexpected errors"
 )]
 
-use px_format::{Severity, load_scene};
+use px_format::{LoadOptions, Severity, load_scene};
 
 const HELLO: &str = include_str!("../../../examples/hello.kdl");
 
@@ -18,7 +18,7 @@ fn scene(body: &str, props: &str) -> String {
 
 /// Loads and returns every diagnostic rendered as `line:col severity message`.
 fn diagnostics(source: &str) -> Vec<String> {
-    let diagnostics = match load_scene(source, None) {
+    let diagnostics = match load_scene(source, LoadOptions::default()) {
         Ok(loaded) => loaded.warnings,
         Err(error) => error.diagnostics,
     };
@@ -30,7 +30,7 @@ fn diagnostics(source: &str) -> Vec<String> {
 
 #[test]
 fn example_scene_loads_without_warnings() {
-    let loaded = load_scene(HELLO, None).unwrap();
+    let loaded = load_scene(HELLO, LoadOptions::default()).unwrap();
     assert!(loaded.warnings.is_empty(), "{:?}", loaded.warnings);
     let scene = loaded.scene;
     assert_eq!(scene.name(), "hello");
@@ -43,7 +43,7 @@ fn example_scene_loads_without_warnings() {
 fn minimal_scene_loads_with_defaults() {
     let loaded = load_scene(
         &scene("rect x=0 y=0 width=1 height=1 paint=\"ink\"", ""),
-        None,
+        LoadOptions::default(),
     )
     .unwrap();
     assert_eq!(loaded.scene.timing().fps.get(), 12);
@@ -120,7 +120,7 @@ fn durations_need_units_and_round_with_a_warning() {
             .any(|d| d.contains("invalid duration \"2\""))
     );
     let fractional = scene("", "").replace("duration=\"2f\"", "duration=\"0.21s\"");
-    let loaded = load_scene(&fractional, None).unwrap();
+    let loaded = load_scene(&fractional, LoadOptions::default()).unwrap();
     assert_eq!(loaded.scene.timing().duration.get(), 3);
     assert_eq!(
         loaded.warnings.first().map(|w| w.severity),
@@ -142,8 +142,24 @@ fn several_scenes_need_a_name() {
     let two = format!(
         "{PALETTE}scene \"a\" palette=\"p\" width=1 height=1 duration=\"1f\" background=\"sky\"\nscene \"b\" palette=\"p\" width=2 height=2 duration=\"1f\" background=\"sky\"\n"
     );
-    assert!(load_scene(&two, None).is_err());
-    let loaded = load_scene(&two, Some("b")).unwrap();
+    assert!(load_scene(&two, LoadOptions::default()).is_err());
+    let loaded = load_scene(
+        &two,
+        LoadOptions {
+            scene: Some("b"),
+            ..LoadOptions::default()
+        },
+    )
+    .unwrap();
     assert_eq!(loaded.scene.size().width(), 2);
-    assert!(load_scene(&two, Some("c")).is_err());
+    assert!(
+        load_scene(
+            &two,
+            LoadOptions {
+                scene: Some("c"),
+                ..LoadOptions::default()
+            }
+        )
+        .is_err()
+    );
 }

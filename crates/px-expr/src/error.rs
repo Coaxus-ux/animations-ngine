@@ -16,6 +16,18 @@ pub enum CompileErrorKind {
     WrongArity { min: u8, max: u8, found: u8 },
     TooDeep,
     TooComplex,
+    Resolve(ResolveError),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ResolveError {
+    UnknownParam,
+    NotNumeric,
+    UnknownReference,
+    Cycle,
+    Failed,
+    TooDeep,
+    Unsupported,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -57,6 +69,7 @@ impl fmt::Display for CompileErrorKind {
             }
             Self::TooDeep => f.write_str("expression is nested too deeply"),
             Self::TooComplex => f.write_str("expression is too complex"),
+            Self::Resolve(error) => write!(f, "{error}"),
         }
     }
 }
@@ -73,5 +86,19 @@ impl fmt::Display for EvalError {
             Self::NonFinite => f.write_str("expression result is not a finite number"),
             Self::Malformed => f.write_str("internal error: malformed expression program"),
         }
+    }
+}
+
+impl fmt::Display for ResolveError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::UnknownParam => "unknown param",
+            Self::NotNumeric => "value is not a number",
+            Self::UnknownReference => "unknown reference",
+            Self::Cycle => "reference cycle",
+            Self::Failed => "referenced property has errors",
+            Self::TooDeep => "reference chain is too deep",
+            Self::Unsupported => "this kind of reference is not available yet",
+        })
     }
 }

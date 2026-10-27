@@ -14,6 +14,8 @@ pub(crate) enum TokenKind {
     Number(f64, Unit),
     Str,
     Ident,
+    Param,
+    Ref,
     Plus,
     Minus,
     Star,
@@ -55,10 +57,10 @@ impl<'a> Lexer<'a> {
     }
 
     pub(crate) fn text(&self, token: Token) -> &'a str {
-        let range = if token.kind == TokenKind::Str {
-            token.start + 1..token.end - 1
-        } else {
-            token.start..token.end
+        let range = match token.kind {
+            TokenKind::Str => token.start + 1..token.end - 1,
+            TokenKind::Param | TokenKind::Ref => token.start + 1..token.end,
+            _ => token.start..token.end,
         };
         self.source.get(range).unwrap_or("")
     }
@@ -101,6 +103,8 @@ impl<'a> Lexer<'a> {
             (b'0'..=b'9' | b'.', _) => return self.number(start),
             (b'\'', _) => return self.string(start),
             (b'a'..=b'z' | b'_', _) => return Ok(self.ident(start)),
+            (b'$', Some(b'a'..=b'z')) => return Ok(self.sigil(start, TokenKind::Param, false)),
+            (b'@', Some(b'a'..=b'z')) => return Ok(self.sigil(start, TokenKind::Ref, true)),
             _ => return Err(error(CompileErrorKind::UnexpectedChar, start, start + 1)),
         };
         self.pos += len;
@@ -156,6 +160,26 @@ impl<'a> Lexer<'a> {
             start,
             end: self.pos,
         })
+    }
+
+    fn sigil(&mut self, start: usize, kind: TokenKind, dotted: bool) -> Token {
+        let bytes = self.source.as_bytes();
+        self.pos += 1;
+        loop {
+            self.ident(self.pos);
+            let continues = dotted
+                && bytes.get(self.pos) == Some(&b'.')
+                && bytes.get(self.pos + 1).is_some_and(u8::is_ascii_lowercase);
+            if !continues {
+                break;
+            }
+            self.pos += 1;
+        }
+        Token {
+            kind,
+            start,
+            end: self.pos,
+        }
     }
 
     fn ident(&mut self, start: usize) -> Token {

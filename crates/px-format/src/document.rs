@@ -14,13 +14,19 @@ pub struct Loaded {
     pub warnings: Vec<Diagnostic>,
 }
 
-pub fn load_scene(source: &str, scene_name: Option<&str>) -> Result<Loaded, LoadError> {
+#[derive(Clone, Copy, Debug, Default)]
+pub struct LoadOptions<'a> {
+    pub scene: Option<&'a str>,
+    pub params: &'a [(String, String)],
+}
+
+pub fn load_scene(source: &str, options: LoadOptions<'_>) -> Result<Loaded, LoadError> {
     let mut diags = Diagnostics::default();
     let document = KdlDocument::parse_v2(source).map_err(|error| syntax_errors(&error))?;
 
     let palettes = palettes(&document, &mut diags);
-    let node = select_scene(&document, scene_name, &mut diags);
-    let spec = node.and_then(|node| scene::parse(node, &palettes, &mut diags));
+    let node = select_scene(&document, options.scene, &mut diags);
+    let spec = node.and_then(|node| scene::parse(node, &palettes, options.params, &mut diags));
     let scene = node.zip(spec).and_then(|(node, spec)| {
         Scene::new(spec)
             .map_err(|error| diags.error(node.span().offset(), error.to_string()))

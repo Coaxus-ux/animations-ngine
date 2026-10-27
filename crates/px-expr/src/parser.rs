@@ -1,23 +1,27 @@
 use alloc::vec::Vec;
 
+use crate::Resolver;
 use crate::ease::Ease;
 use crate::error::{CompileError, CompileErrorKind};
 use crate::funcs::Func;
 use crate::lexer::{Lexer, Token, TokenKind, Unit, error, time_literal};
 use crate::names::{Name, Var, lookup};
-use crate::program::{BinaryOp, MAX_SCOPES, MAX_STACK, Op, Program, UnaryOp, required_stack};
+use crate::program::{
+    BinaryOp, MAX_OPS, MAX_SCOPES, MAX_STACK, Op, Program, UnaryOp, required_stack,
+};
 
 pub const MAX_NESTING: usize = 32;
 
-pub(crate) struct Parser<'a> {
+pub(crate) struct Parser<'a, 'r> {
     lexer: Lexer<'a>,
+    resolver: &'r mut dyn Resolver,
     current: Token,
     ops: Vec<Op>,
     nesting: usize,
 }
 
-impl<'a> Parser<'a> {
-    pub(crate) fn new(source: &'a str) -> Self {
+impl<'a, 'r> Parser<'a, 'r> {
+    pub(crate) fn new(source: &'a str, resolver: &'r mut dyn Resolver) -> Self {
         let end = Token {
             kind: TokenKind::End,
             start: 0,
@@ -25,6 +29,7 @@ impl<'a> Parser<'a> {
         };
         Self {
             lexer: Lexer::new(source),
+            resolver,
             current: end,
             ops: Vec::new(),
             nesting: 0,
@@ -42,7 +47,7 @@ impl<'a> Parser<'a> {
         }
         let too_complex = error(CompileErrorKind::TooComplex, 0, self.current.end);
         let (stack, scopes) = required_stack(&self.ops).ok_or(too_complex)?;
-        if stack > MAX_STACK || scopes > MAX_SCOPES {
+        if stack > MAX_STACK || scopes > MAX_SCOPES || self.ops.len() > MAX_OPS {
             return Err(too_complex);
         }
         Ok(Program::new(self.ops))
@@ -160,6 +165,26 @@ impl<'a> Parser<'a> {
                 Ok(())
             }
             TokenKind::Ident => self.name(token),
+            TokenKind::Param => {
+                let value = self
+                    .resolver
+                    .param(self.lexer.text(token))
+                    .map_err(|cause| resolve_error(cause, token))?;
+                self.advance()?;
+                self.ops.push(Op::Const(value));
+                Ok(())
+            }
+            TokenKind::Ref => {
+                let reference = self
+                    .resolver
+                    .reference(self.lexer.text(token))
+                    .map_err(|cause| resolve_error(cause, token))?;
+                self.advance()?;
+                self.ops.push(Op::Seed(reference.seed));
+                self.ops.extend_from_slice(reference.program.ops());
+                self.ops.push(Op::Leave);
+                Ok(())
+            }
             TokenKind::LParen => {
                 self.advance()?;
                 self.nested(token.start, |parser| {
@@ -309,3 +334,7 @@ const LEVELS: [&[(TokenKind, BinaryOp)]; 5] = [
         (TokenKind::Percent, BinaryOp::Rem),
     ],
 ];
+
+const fn resolve_error(cause: crate::ResolveError, token: Token) -> CompileError {
+    error(CompileErrorKind::Resolve(cause), token.start, token.end)
+}

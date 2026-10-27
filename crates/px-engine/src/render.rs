@@ -1,9 +1,15 @@
 use std::fmt;
 
 use px_core::{CanvasMut, Frame, Size, hash_seed};
+
 use px_expr::{Env, EvalError};
 
 use crate::model::{Looping, Scene};
+
+#[must_use]
+pub fn object_seed(scene_seed: u64, index: usize) -> u64 {
+    hash_seed(scene_seed, &[u64::try_from(index).unwrap_or(u64::MAX)])
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RenderError {
@@ -42,7 +48,7 @@ pub fn render_frame(
     canvas.fill(scene.background());
     for (index, shape) in scene.shapes().iter().enumerate() {
         let env = Env {
-            seed: hash_seed(scene.seed(), &[u64::try_from(index).unwrap_or(u64::MAX)]),
+            seed: object_seed(scene.seed(), index),
             ..scene_env
         };
         shape

@@ -269,3 +269,76 @@ fn nesting_and_stack_are_bounded() {
     let tall = (0..32).map(|_| "1 + (").collect::<String>() + "1" + &")".repeat(32);
     assert_eq!(kind(&tall), CompileErrorKind::TooComplex);
 }
+
+struct Names;
+
+impl px_expr::Resolver for Names {
+    fn param(&mut self, name: &str) -> Result<f64, px_expr::ResolveError> {
+        match name {
+            "wind" => Ok(0.5),
+            "hero-color" => Ok(3.0),
+            _ => Err(px_expr::ResolveError::UnknownParam),
+        }
+    }
+
+    fn reference(&mut self, path: &str) -> Result<px_expr::Reference, px_expr::ResolveError> {
+        match path {
+            "lamp.intensity" => Ok(px_expr::Reference {
+                program: compile("2 * t").unwrap(),
+                seed: 1,
+            }),
+            "dice.face" => Ok(px_expr::Reference {
+                program: compile("rand()").unwrap(),
+                seed: 99,
+            }),
+            "street-lamp.on" => Ok(px_expr::Reference {
+                program: px_expr::Program::fixed(1.0),
+                seed: 0,
+            }),
+            _ => Err(px_expr::ResolveError::UnknownReference),
+        }
+    }
+}
+
+#[test]
+fn params_and_references_resolve_through_the_resolver() {
+    let with_names = |source: &str| {
+        px_expr::compile_with(source, &mut Names)
+            .unwrap()
+            .eval(&env())
+            .unwrap()
+    };
+    assert_eq!(with_names("$wind * 10 + $hero-color"), 8.0);
+    assert_eq!(with_names("@lamp.intensity + @street-lamp.on"), 2.0);
+    let own_seed = Env { seed: 5, ..env() };
+    let dice = px_expr::compile_with("@dice.face", &mut Names)
+        .unwrap()
+        .eval(&own_seed)
+        .unwrap();
+    let direct = compile("rand()")
+        .unwrap()
+        .eval(&Env { seed: 99, ..env() })
+        .unwrap();
+    assert_eq!(dice, direct, "a reference evaluates with its target's seed");
+    let mixed = px_expr::compile_with("rand() + @dice.face - rand()", &mut Names)
+        .unwrap()
+        .eval(&own_seed)
+        .unwrap();
+    assert!(
+        (mixed - direct).abs() < 1e-12,
+        "the seed scope ends after the reference"
+    );
+    let unknown = px_expr::compile_with("$gust", &mut Names).unwrap_err();
+    assert_eq!(
+        (unknown.kind, unknown.start, unknown.end),
+        (
+            CompileErrorKind::Resolve(px_expr::ResolveError::UnknownParam),
+            0,
+            5
+        )
+    );
+    assert_eq!(
+        kind("@lamp.intensity"),
+        CompileErrorKind::Resolve(px_expr::ResolveError::UnknownReference)
+    );
+}

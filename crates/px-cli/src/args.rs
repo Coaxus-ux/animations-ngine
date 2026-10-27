@@ -43,4 +43,14 @@ pub(crate) struct Input {
     /// Integer upscale factor (1..=16).
     #[arg(long, default_value_t = 4)]
     pub(crate) scale: u8,
+    /// Override a scene param, e.g. `--param wind=0.8` (repeatable).
+    #[arg(long = "param", value_name = "NAME=VALUE", value_parser = parse_param)]
+    pub(crate) params: Vec<(String, String)>,
+}
+
+fn parse_param(text: &str) -> Result<(String, String), String> {
+    text.split_once('=')
+        .map(|(name, value)| (name.trim().to_owned(), value.trim().to_owned()))
+        .filter(|(name, _)| !name.is_empty())
+        .ok_or_else(|| format!("expected NAME=VALUE, found \"{text}\""))
 }

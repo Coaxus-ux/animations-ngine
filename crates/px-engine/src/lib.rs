@@ -11,4 +11,4 @@ pub use model::{
     Bounds, Geometry, Looping, MAX_SHAPES, ModelError, Param, Scene, SceneSpec, Segment, Shape,
     Timing,
 };
-pub use render::{FrameReport, RenderError, render_frame};
+pub use render::{FrameReport, RenderError, object_seed, render_frame};

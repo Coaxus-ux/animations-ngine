@@ -4,9 +4,11 @@ use crate::ease::Ease;
 use crate::error::EvalError;
 use crate::funcs::{Ctx, Func, Scope};
 use crate::names::Var;
+use crate::stack::Stack;
 
 pub const MAX_STACK: usize = 32;
 pub const MAX_SCOPES: usize = 16;
+pub const MAX_OPS: usize = 4096;
 const MAX_ARGS: usize = 9;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -54,6 +56,7 @@ pub(crate) enum Op {
     Call(Func, u8),
     Ease(Ease),
     Enter(Scope),
+    Seed(u64),
     Leave,
 }
 
@@ -111,6 +114,7 @@ impl BinaryOp {
 struct Clock {
     time: f64,
     frame: f64,
+    seed: u64,
 }
 
 impl Clock {
@@ -118,6 +122,7 @@ impl Clock {
         let delay = |seconds: f64| Self {
             time: self.time - seconds,
             frame: self.frame - seconds * env.fps,
+            ..self
         };
         match scope {
             Scope::Loop if value > 0.0 => {
@@ -125,6 +130,7 @@ impl Clock {
                 Self {
                     time,
                     frame: time * env.fps,
+                    ..self
                 }
             }
             Scope::Loop => self,
@@ -136,6 +142,7 @@ impl Clock {
                 Self {
                     time: frame / env.fps,
                     frame,
+                    ..self
                 }
             }
         }
@@ -153,6 +160,27 @@ impl Program {
     }
 
     #[must_use]
+    pub fn fixed(value: f64) -> Self {
+        Self::new(alloc::vec![Op::Const(value)])
+    }
+
+    /// A value picked once per object seed: uniform in `low..high`, or an inclusive integer.
+    #[must_use]
+    pub fn random_range(low: f64, high: f64, integer: bool, key: f64) -> Self {
+        let func = if integer { Func::Randi } else { Func::Range };
+        Self::new(alloc::vec![
+            Op::Const(low),
+            Op::Const(high),
+            Op::Const(key),
+            Op::Call(func, 3)
+        ])
+    }
+
+    pub(crate) fn ops(&self) -> &[Op] {
+        &self.ops
+    }
+
+    #[must_use]
     pub fn constant(&self) -> Option<f64> {
         match self.ops.as_slice() {
             [Op::Const(value)] => Some(*value),
@@ -166,13 +194,13 @@ impl Program {
     }
 
     pub fn eval(&self, env: &Env) -> Result<f64, EvalError> {
-        let mut stack = Stack::<MAX_STACK>::new();
-        let mut clocks = Stack::<MAX_SCOPES>::new();
+        let mut stack = Stack::<f64, MAX_STACK>::new(0.0);
         let mut clock = Clock {
             time: env.time,
             frame: env.frame,
+            seed: env.seed,
         };
-        let mut saved = [clock; MAX_SCOPES];
+        let mut saved = Stack::<Clock, MAX_SCOPES>::new(clock);
         for op in &self.ops {
             match *op {
                 Op::Const(value) => stack.push(value)?,
@@ -201,7 +229,7 @@ impl Program {
                     let args = stack.pop_into(usize::from(arg_count), &mut buffer)?;
                     let ctx = Ctx {
                         time: clock.time,
-                        seed: env.seed,
+                        seed: clock.seed,
                         loop_period: env.loop_period,
                     };
                     stack.push(func.apply(args, &ctx).ok_or(EvalError::Malformed)?)?;
@@ -212,14 +240,14 @@ impl Program {
                 }
                 Op::Enter(scope) => {
                     let value = stack.pop()?;
-                    *saved.get_mut(clocks.len).ok_or(EvalError::Malformed)? = clock;
-                    clocks.push(0.0)?;
+                    saved.push(clock)?;
                     clock = clock.shifted(scope, value, env);
                 }
-                Op::Leave => {
-                    clocks.pop()?;
-                    clock = saved[clocks.len];
+                Op::Seed(seed) => {
+                    saved.push(clock)?;
+                    clock.seed = seed;
                 }
+                Op::Leave => clock = saved.pop()?,
             }
         }
         let result = stack.finish()?;
@@ -237,7 +265,7 @@ fn variable(var: Var, clock: Clock, env: &Env) -> f64 {
         Var::Frame => clock.frame,
         Var::Fps => env.fps,
         Var::Duration => env.duration,
-        Var::Seed => f64::from(u32::try_from(env.seed & u64::from(u32::MAX)).unwrap_or(0)),
+        Var::Seed => f64::from(u32::try_from(clock.seed & u64::from(u32::MAX)).unwrap_or(0)),
         Var::Index => env.index,
         Var::Count => env.count,
         Var::Position => env.index / (env.count - 1.0).max(1.0),
@@ -257,10 +285,10 @@ pub(crate) fn required_stack(ops: &[Op]) -> Option<(usize, usize)> {
             Op::Binary(_) => (2, 1),
             Op::Select => (3, 1),
             Op::Call(_, argc) => (usize::from(*argc), 1),
-            Op::Enter(_) => {
+            Op::Enter(_) | Op::Seed(_) => {
                 scopes += 1;
                 max_scopes = max_scopes.max(scopes);
-                (1, 0)
+                (usize::from(matches!(op, Op::Enter(_))), 0)
             }
             Op::Leave => {
                 scopes = scopes.checked_sub(1)?;
@@ -271,44 +299,4 @@ pub(crate) fn required_stack(ops: &[Op]) -> Option<(usize, usize)> {
         max_depth = max_depth.max(depth);
     }
     (depth == 1 && scopes == 0).then_some((max_depth, max_scopes))
-}
-
-struct Stack<const N: usize> {
-    values: [f64; N],
-    len: usize,
-}
-
-impl<const N: usize> Stack<N> {
-    const fn new() -> Self {
-        Self {
-            values: [0.0; N],
-            len: 0,
-        }
-    }
-
-    fn push(&mut self, value: f64) -> Result<(), EvalError> {
-        *self.values.get_mut(self.len).ok_or(EvalError::Malformed)? = value;
-        self.len += 1;
-        Ok(())
-    }
-
-    fn pop(&mut self) -> Result<f64, EvalError> {
-        self.len = self.len.checked_sub(1).ok_or(EvalError::Malformed)?;
-        Ok(self.values[self.len])
-    }
-
-    fn pop_into<'a>(&mut self, count: usize, dest: &'a mut [f64]) -> Result<&'a [f64], EvalError> {
-        let start = self.len.checked_sub(count).ok_or(EvalError::Malformed)?;
-        let dest = dest.get_mut(..count).ok_or(EvalError::Malformed)?;
-        dest.copy_from_slice(&self.values[start..self.len]);
-        self.len = start;
-        Ok(dest)
-    }
-
-    fn finish(&self) -> Result<f64, EvalError> {
-        match self.values.get(..self.len) {
-            Some([value]) => Ok(*value),
-            _ => Err(EvalError::Malformed),
-        }
-    }
 }

@@ -2,9 +2,9 @@ use std::fmt::Display;
 
 use kdl::{KdlEntry, KdlValue};
 use px_core::{FrameCount, FrameRate, MAX_FRAMES};
-use px_engine::Param;
 
 use crate::diagnostic::Diagnostics;
+use crate::units;
 
 fn offset(entry: &KdlEntry) -> usize {
     entry.span().offset()
@@ -14,7 +14,7 @@ fn offset(entry: &KdlEntry) -> usize {
     clippy::cast_precision_loss,
     reason = "KDL integers in scene files are small; f64 is the engine's number type"
 )]
-fn integer_to_f64(value: i128) -> f64 {
+pub(crate) fn integer_to_f64(value: i128) -> f64 {
     value as f64
 }
 
@@ -63,41 +63,16 @@ pub(crate) fn string<'a>(entry: &'a KdlEntry, diags: &mut Diagnostics) -> Option
     value
 }
 
-pub(crate) fn param(entry: &KdlEntry, diags: &mut Diagnostics) -> Option<Param> {
-    let Some(text) = entry.value().as_string() else {
-        return number(entry, diags).map(Param::Fixed);
-    };
-    let Some(source) = text.strip_prefix('=') else {
-        diags.error(
-            offset(entry),
-            format!("expected a number or \"=expression\", found \"{text}\""),
-        );
-        return None;
-    };
-    match px_expr::compile(source) {
-        Ok(program) => Some(Param::Expr(program)),
-        Err(error) => {
-            let snippet = source.get(error.start..error.end).unwrap_or("");
-            diags.error(
-                offset(entry),
-                format!(
-                    "invalid expression `{source}`: {} (`{snippet}` at character {})",
-                    error.kind,
-                    error.start + 1
-                ),
-            );
-            None
-        }
-    }
-}
-
 pub(crate) fn duration(
     entry: &KdlEntry,
     fps: FrameRate,
     diags: &mut Diagnostics,
 ) -> Option<FrameCount> {
     let text = string(entry, diags)?;
-    let Some(frames) = frames_of(text, fps) else {
+    let frames = units::literal(text)
+        .and_then(|literal| literal.frames(fps))
+        .filter(|frames| *frames >= 0.0);
+    let Some(frames) = frames else {
         diags.error(
             offset(entry),
             format!("invalid duration \"{text}\": use a unit like \"2s\", \"500ms\" or \"24f\""),
@@ -119,19 +94,6 @@ pub(crate) fn duration(
         );
     }
     count
-}
-
-fn frames_of(text: &str, fps: FrameRate) -> Option<f64> {
-    let fps = f64::from(fps.get());
-    let (number, scale) = if let Some(number) = text.strip_suffix("ms") {
-        (number, fps / 1000.0)
-    } else if let Some(number) = text.strip_suffix('s') {
-        (number, fps)
-    } else {
-        (text.strip_suffix('f')?, 1.0)
-    };
-    let value: f64 = number.parse().ok()?;
-    (value.is_finite() && value >= 0.0).then_some(value * scale)
 }
 
 #[expect(

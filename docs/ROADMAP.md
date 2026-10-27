@@ -58,10 +58,12 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 ### M1 — Format & live preview
 > **Plan (2026-10-28):** built in five slices, each ending with `tools/check.sh` green.
 > 1. ✅ **Expression language** (done 2026-10-28) — everything in [FORMAT.md](FORMAT.md) §9: comparisons, logic, ternary, `**`, time and angle literals, every math, periodic, time-scope, easing, randomness and noise function; rounding per §9.7; non-finite values become 0 with a per-frame report (§9.8).
-> 2. **Value kinds** — units, seeded ranges (`"2..5"`), `param` / `$name`, `@id.prop` references with cycle detection.
+> 2. ✅ **Value kinds** (done 2026-10-28) — units, seeded ranges (`"2..5"`), `param` / `$name`, `@id.prop` references with cycle detection.
 > 3. **Keyframes** — `anim` tracks, every interpolation, relative times, track loop and blend modes.
 > 4. **Validation** — schemas for every node, "did you mean" suggestions, the severity rules of §15.
 > 5. **Live loop** — `pxe watch`, hot reload, a minimal preview window, frame-time measurement.
+>
+> Slice 2 notes: params are substituted when the file loads (a changed param means a reload, which the live loop in slice 5 does automatically) and `--param name=value` overrides them; text params can't be used in expressions yet. References are inlined when the file loads, keeping the target's seed; `@id.inner.prop`, `@parent`, sockets, anchors and states arrive with prefabs and rigs. Ranges don't use a repeater index yet, because `repeat` doesn't exist yet.
 >
 > Slice 1 notes: strings in expressions are limited to ease names and time literals until references land (slice 2); shape seeds derive from the shape's position in the scene until objects have ids; time noise loops automatically only through `wiggle` (use `loop()` for `noise`/`fbm` fed with `t`).
 - **Scope:** the full format on top of the M0 loader: every value kind (units, ranges, `=expr`, `$param`, `@ref`), the complete expression language ([FORMAT.md](FORMAT.md) §9), keyframes, schema validation, errors with suggestions, hot reload, a minimal preview window, and frame-time measurement in `tools/check.sh`.
