@@ -1,0 +1,21 @@
+// M0 walking skeleton: a ball bouncing in front of a two-ramp background.
+// Render it with: pxe export examples/hello.kdl
+
+palette "hello" {
+    ramp "sky"    "#0d1824" "#16273a" "#21384f" "#2e4c66" "#3f627f"
+    ramp "ground" "#141c18" "#1e2a24" "#2b3a31" "#3a4c40"
+    ramp "ball"   "#5a1f24" "#93323a" "#c95a4c" "#f08d6b" "#ffd2a8"
+    ramp "sun"    "#c0703f" "#e8a964" "#ffd9a0"
+}
+
+scene "hello" palette="hello" width=64 height=64 fps=12 duration="2s" loop=#true background="sky.shade" {
+    rect x=0 y=0 width=64 height=18 paint="sky.deep"
+    ellipse x=44 y=8 width=11 height=11 paint="sun.lit"
+    rect x=0 y=48 width=64 height=16 paint="ground.base"
+    line x1=0 y1=48 x2=63 y2=48 paint="ground.hi"
+
+    // Shadow shrinks while the ball is in the air; the bounce repeats every second.
+    ellipse x="=26 + abs(sin(t * pi)) * 3" y=49 width="=12 - abs(sin(t * pi)) * 6" height=3 paint="ground.deep"
+    ellipse x=27 y="=36 - abs(sin(t * pi)) * 26" width=10 height=10 paint="ball.base"
+    rect x=29 y="=38 - abs(sin(t * pi)) * 26" width=2 height=2 paint="ball.hi"
+}

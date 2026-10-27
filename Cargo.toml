@@ -1,0 +1,50 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.99"
+publish = false
+
+[workspace.dependencies]
+px-core = { path = "crates/px-core" }
+px-expr = { path = "crates/px-expr" }
+px-raster = { path = "crates/px-raster" }
+px-format = { path = "crates/px-format" }
+px-engine = { path = "crates/px-engine" }
+px-export = { path = "crates/px-export" }
+anyhow = "1"
+clap = { version = "4.6", features = ["derive"] }
+gif = "0.14"
+kdl = { version = "6.7", default-features = false, features = ["span"] }
+libm = "0.2"
+png = "0.18"
+
+[workspace.lints.rust]
+# Library crates additionally `#![forbid(unsafe_code)]`; see docs/engineering/DECISIONS.md D-002.
+unsafe_code = "deny"
+missing_docs = "warn"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+dbg_macro = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unwrap_used = "deny"
+# Heap guardrails from clippy.toml are opted into by strict crates only.
+disallowed_macros = "allow"
+disallowed_types = "allow"
+
+[profile.release]
+overflow-checks = true
+
+[profile.release-assertions]
+inherits = "release"
+debug-assertions = true
+overflow-checks = true

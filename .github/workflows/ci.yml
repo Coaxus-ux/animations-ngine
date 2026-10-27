@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  commit-policy:
+    name: no agent signatures in commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check every commit message and identity
+        run: python3 tools/commit_guard.py history HEAD
+
+  checks:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      # rust-toolchain.toml pins the compiler; rustup installs it on first use.
+      - name: Toolchain
+        run: rustup show active-toolchain
+      - name: File size limits
+        if: runner.os != 'Windows'
+        shell: bash
+        run: python3 tools/file_size_guard.py check $(git ls-files)
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Tests (includes golden hashes, identical on every OS)
+        run: cargo test --workspace --locked
+      - name: Tests with optimized debug assertions
+        run: cargo test --workspace --profile release-assertions --locked
+      - name: Allocation-free rendering
+        run: cargo test -p px-engine --test no_alloc --locked -- --test-threads=1

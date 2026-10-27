@@ -1,0 +1,16 @@
+[package]
+name = "px-format"
+description = "Loads and validates KDL scene files into the engine's scene model."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+kdl.workspace = true
+px-core.workspace = true
+px-engine.workspace = true
+px-expr.workspace = true
+
+[lints]
+workspace = true

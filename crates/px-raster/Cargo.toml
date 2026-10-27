@@ -1,0 +1,13 @@
+[package]
+name = "px-raster"
+description = "Strict heapless rasterization of shapes into an indexed canvas."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+px-core.workspace = true
+
+[lints]
+workspace = true
