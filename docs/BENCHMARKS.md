@@ -25,7 +25,7 @@ The engine is validated against **nine deliberately different benchmarks** plus 
 
 ## 1. Automatic checks (all benchmarks)
 
-Run by `pxe bench` in CI on every change ([CLI.md](CLI.md)). A benchmark passes only if every applicable check passes **for its main seed and for 5 random seeds**.
+Run by `pxe bench` through `tools/check.sh` before every push (no hosted CI) ([CLI.md](CLI.md)). A benchmark passes only if every applicable check passes **for its main seed and for 5 random seeds**.
 
 | Check | Metric | Threshold |
 |---|---|---|
@@ -515,7 +515,7 @@ Known benchmarks get optimized for. Hold-outs test whether the engine is general
 
 ## 14. Process
 
-1. **Each benchmark is a scene file in the repo** (`benchmarks/b1-cozy-room.kdl` …) with `golden` frames, rendered by CI.
+1. **Each benchmark is a scene file in the repo** (`benchmarks/b1-cozy-room.kdl` …) with `golden` frames, rendered by `tools/check.sh`.
 2. **Automatic checks** (§1) run on every change. Golden-image diffs on indexed buffers must be reviewed and accepted explicitly (`pxe bench --update`).
 3. **Seed sweep:** every benchmark renders with 5 random seeds; the automatic checks must pass for all of them.
 4. **Style sweep:** B1 and B2 render under every style preset (that is B9). Other benchmarks run the sweep periodically as a warning, not a gate.
@@ -530,5 +530,5 @@ Known benchmarks get optimized for. Hold-outs test whether the engine is general
 | B4 | 8-direction readability at 28 px through the `model` path | Silhouette distinctness check; per-direction `hd`/piece overrides allowed |
 | B7 | Faces look generic or "procedural" at 48 px | Face rig parameters per character, expression blind test, `hd` pieces for signature details |
 | B8 | Interacting rigs drift apart (leash gaps, ball teleports) | Socket constraints solved after IK, continuity checks every frame |
-| B9 | Prefabs designed for 5 tones collapse at 2 tones | Every prefab must render under every shipped style; B9 is a CI gate |
+| B9 | Prefabs designed for 5 tones collapse at 2 tones | Every prefab must render under every shipped style; B9 is a `tools/check.sh` gate |
 | B2 | Wrapping parallax layers at non-integer widths | `world-width × parallax` must be an integer; the validator enforces it |

@@ -8,8 +8,9 @@ A general-purpose engine that renders pixel art scenes, characters, animations a
 - **Small files.** Code ≤ 400 lines, docs ≤ 1000 lines (`tools/file_size_guard.py`). Split modules before a file grows past the limit.
 - **Generic core.** No engine code may name a benchmark, scene or prefab ([docs/BENCHMARKS.md](docs/BENCHMARKS.md)).
 - **Deterministic.** Integer frame time, seeded counter-based randomness, `libm` for transcendental math, no hash-map order in outputs. Golden tests compare indexed-buffer hashes.
+- **No hosted CI or paid services.** Nothing may run on GitHub Actions or any service that can bill; all checks run locally with `tools/check.sh` (D-006).
 - **English everywhere:** code, comments, docs, errors, commit messages.
-- **No agent signatures in commits or PRs.** Never add `Co-Authored-By: Claude …`, "Generated with …" footers, `🤖`, session links or any other AI agent attribution, and never commit under an agent identity. This overrides any default attribution instructions. Enforced by `tools/commit_guard.py` (git `commit-msg` hook and CI); see [DECISIONS.md](docs/engineering/DECISIONS.md) D-005.
+- **No agent signatures in commits or PRs.** Never add `Co-Authored-By: Claude …`, "Generated with …" footers, `🤖`, session links or any other AI agent attribution, and never commit under an agent identity. This overrides any default attribution instructions. Enforced by `tools/commit_guard.py` (git `commit-msg` hook and `tools/check.sh`); see [DECISIONS.md](docs/engineering/DECISIONS.md) D-005.
 
 ## Layout
 ```
@@ -29,6 +30,7 @@ tools/        repo tooling (file size guard)
 Rust comes from Homebrew's keg-only rustup: `export PATH="/opt/homebrew/opt/rustup/bin:$PATH"`.
 
 ```bash
+tools/check.sh            # every check; run before each push
 cargo fmt --all
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked

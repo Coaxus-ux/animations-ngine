@@ -8,7 +8,7 @@ committer identities, for any agent.
 Entry points (the policy lives only here):
   msg <file>       git commit-msg hook: checks the message file and the pending
                    author/committer identities (`git var`).
-  history [range]  CI: checks every commit in a revision range (default: all of HEAD).
+  history [range]  tools/check.sh: checks every commit in a revision range (default: all of HEAD).
 """
 
 from __future__ import annotations

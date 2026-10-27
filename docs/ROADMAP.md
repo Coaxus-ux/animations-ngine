@@ -7,7 +7,7 @@
 1. **Generic first.** Every milestone adds engine capabilities that serve **at least two benchmarks**.
 2. **No benchmark-specific engine code.** If a benchmark needs something, it becomes a generic node, or content in a pack written in KDL. A milestone fails review if it adds code that only one scene can use.
 3. **Prove generality early.** The nature benchmark (B2) is reached *before* the cozy room (B1) is finished, so the core is never shaped around one image.
-4. **Benchmarks are regression tests.** Each benchmark has golden frames (stored hashes of rendered frames) checked in CI from the moment it first renders.
+4. **Benchmarks are regression tests.** Each benchmark has golden frames (stored hashes of rendered frames) checked by `tools/check.sh` from the moment it first renders (no hosted CI, [DECISIONS.md](engineering/DECISIONS.md) D-006).
 5. **Code first, editor second.** The engine is usable from KDL + CLI + preview before the full editor exists.
 6. **Hold-outs every milestone from M3 on** (before M3 there is not enough engine to author a scene). Two unplanned scenes are authored from the docs alone at the end of each milestone ([BENCHMARKS.md](BENCHMARKS.md) §12). The hold-out pass rate is tracked and must trend up.
 7. **Measured, not eyeballed.** A benchmark is "complete" only when its automatic checks and human rubric pass ([BENCHMARKS.md](BENCHMARKS.md) §1).
@@ -31,7 +31,7 @@
 ## 1. Milestones
 
 ### M0 — Walking skeleton
-> **Status (2026-10-28): in progress.** Done: workspace with `px-core`, `px-expr`, `px-raster`, `px-format`, `px-engine`, `px-export`, `px-cli` (two more crates than planned, see [DECISIONS.md](engineering/DECISIONS.md) D-004); `pxe render` / `pxe export`; `examples/hello.kdl` exports a seamless 24-frame GIF; golden hashes, loop-seam, palette-compliance and allocation-free tests pass locally; CI workflow written; KDL round-trip spike done ([spikes/kdl-roundtrip.md](spikes/kdl-roundtrip.md)). Pending: the cleanup-quality spike, and a first CI run on GitHub (macOS, Linux, Windows) to confirm cross-platform hashes.
+> **Status (2026-10-28): in progress.** Done: workspace with `px-core`, `px-expr`, `px-raster`, `px-format`, `px-engine`, `px-export`, `px-cli` (two more crates than planned, see [DECISIONS.md](engineering/DECISIONS.md) D-004); `pxe render` / `pxe export`; `examples/hello.kdl` exports a seamless 24-frame GIF; golden hashes, loop-seam, palette-compliance and allocation-free tests pass locally; local check script `tools/check.sh` (hosted CI dropped to avoid costs, D-006); KDL round-trip spike done ([spikes/kdl-roundtrip.md](spikes/kdl-roundtrip.md)). Pending: the cleanup-quality spike, and confirming identical hashes in a local Linux container.
 
 A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later milestone thickens this slice instead of building layers in isolation.
 
@@ -43,22 +43,22 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
   - `px-export`: resolve indexed → RGB, nearest-neighbor integer upscale, PNG frames, looping GIF.
   - `px-cli`: `pxe render` (PNG) and `pxe export` (GIF).
   - Test harness: golden **indexed-buffer hashes** plus a palette-compliance check (the first automatic check of [BENCHMARKS.md](BENCHMARKS.md) §1).
-  - CI on **macOS, Linux and Windows**: build, tests, and golden hashes compared across all three.
+  - `tools/check.sh`: size and commit guards, format, clippy, tests, golden hashes, release-assertions and the allocation test, run locally (no hosted CI, D-006).
 - **Risk spikes (time-boxed, throwaway code, findings written into the docs):**
   1. **Cleanup quality:** render a few SDF shapes (blob, capsule, leaf) through orphan removal, pixel-perfect lines and sel-out; compare side by side with reference pixel art crops. Output: a short verdict and before/after images in `docs/spikes/cleanup.md`. If the result looks "generated", RENDERING §7 is revised before M2.
   2. **KDL round-trip:** with the chosen Rust KDL v2 crate, change a value and a keyframe in a commented file; check that comments, ordering and formatting survive. Output: `docs/spikes/kdl-roundtrip.md` with the crate choice, or the fallback plan (our own format-preserving layer).
 - **Scope (out):** graph runtime, generators, lighting, dither, packs, preview window, editor, scripts.
 - **Done when:**
   - `pxe export examples/hello.kdl` produces a seamless looping GIF of a ball bouncing (`y="=…sin(t…)"`) in front of a two-ramp background;
-  - the same scene gives byte-identical indexed-buffer hashes on macOS, Linux and Windows in CI;
+  - the same scene gives byte-identical indexed-buffer hashes on macOS and in a local Linux container (Windows deferred, D-006);
   - both spike verdicts are written down.
 - **Unlocks:** the authoring loop exists end to end (KDL → pixels → file), and both make-or-break assumptions are tested.
 - **Risks:** over-engineering the buffers. *Mitigation:* freeze the canvas layout after M2; profile before optimizing. Spikes balloon. *Mitigation:* strict time box; spike code is deleted, only the findings are kept.
 
 ### M1 — Format & live preview
-- **Scope:** the full format on top of the M0 loader: every value kind (units, ranges, `=expr`, `$param`, `@ref`), the complete expression language ([FORMAT.md](FORMAT.md) §9), keyframes, schema validation, errors with suggestions, hot reload, a minimal preview window, and frame-time measurement in CI.
+- **Scope:** the full format on top of the M0 loader: every value kind (units, ranges, `=expr`, `$param`, `@ref`), the complete expression language ([FORMAT.md](FORMAT.md) §9), keyframes, schema validation, errors with suggestions, hot reload, a minimal preview window, and frame-time measurement in `tools/check.sh`.
 - **Deliverables:** `px-expr`, `px-schema`, extended `px-format`, `pxe watch`, preview window, preview-speed check in `pxe bench`.
-- **Done when:** editing a number in VS Code updates the preview in under 1 s; a typo produces `file:line — … Did you mean …?`; a warning never stops rendering; CI reports frame times for every example scene.
+- **Done when:** editing a number in VS Code updates the preview in under 1 s; a typo produces `file:line — … Did you mean …?`; a warning never stops rendering; `tools/check.sh` reports frame times for every example scene.
 - **Unlocks:** authoring loop for every benchmark.
 - **Risks:** KDL v2 crate maturity. *Mitigation:* wrap it behind our own document model so the parser can be swapped.
 

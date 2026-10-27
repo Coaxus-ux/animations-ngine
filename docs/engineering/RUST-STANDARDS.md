@@ -106,7 +106,7 @@ Measure before and after (release mode, representative workloads, allocation cou
 
 ## 12. Lints and formatting
 
-- CI: `cargo fmt --all -- --check` and `cargo clippy --workspace --all-targets --locked -- -D warnings`.
+- Every change: `cargo fmt --all -- --check` and `cargo clippy --workspace --all-targets --locked -- -D warnings`.
 - Lints are configured once in the workspace `Cargo.toml`; crates opt in with `[lints] workspace = true`.
 - Fix warnings; suppress only locally with `#[expect(lint, reason = "…")]`.
 - `clippy.toml` lists disallowed heap types and macros, denied in strict crates. It is a guardrail, not a proof.
@@ -132,7 +132,7 @@ Minimal dependency graph for core crates; `default-features = false` and explici
 
 Defined input order, stable ids, total ordering with tie-breaking, no hash-map iteration order in outputs, seeded counter-based randomness, integer frame time, fixed-width integers at boundaries, deterministic merge order under parallelism. Floating-point math uses pure-Rust `libm` (no platform libm) so results are identical on every OS.
 
-## 17. Cargo and CI baseline
+## 17. Cargo and check baseline
 
 ```bash
 cargo fmt --all -- --check
@@ -143,7 +143,7 @@ cargo test -p px-engine --test no_alloc -- --test-threads=1
 python3 tools/file_size_guard.py check $(git ls-files)
 ```
 
-CI runs on macOS, Linux and Windows and compares golden hashes across all three.
+All of the above run locally through `tools/check.sh` (no hosted CI, [DECISIONS.md](DECISIONS.md) D-006). Cross-platform hash checks use a free local Linux container.
 
 ## 18. Review checklist
 

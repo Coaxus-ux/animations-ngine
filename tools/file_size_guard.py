@@ -4,7 +4,7 @@
 One policy, three entry points (so the rules live in exactly one place):
   hook   Claude Code PreToolUse hook: reads the tool call JSON on stdin and
          blocks (exit 2) a Write/Edit/MultiEdit whose result is too large.
-  check  Checks files on disk given as arguments (git pre-commit, CI).
+  check  Checks files on disk given as arguments (git pre-commit, tools/check.sh).
          Exits 1 when any file is over its limit.
 
 A file that is already over its limit may still be edited as long as the edit

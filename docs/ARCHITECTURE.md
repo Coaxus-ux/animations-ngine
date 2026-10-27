@@ -279,7 +279,7 @@ The coordinator is the only owner of mutable graph state. Workers get immutable 
 | **Property-based** | Cleanup passes are idempotent; rasterizers never write out of bounds; palette operations never leave the palette; format edits preserve untouched bytes |
 | **Pack smoke tests** | Every std prefab and body plan renders in each declared view, at default params and at range extremes, without errors |
 | **Format round-trip** | Parse → edit → write leaves everything except the edit byte-identical |
-| **Performance** | Benchmarks per stage against the budgets in RENDERING §15; CI fails on regressions above a threshold |
+| **Performance** | Benchmarks per stage against the budgets in RENDERING §15; `tools/check.sh` fails on regressions above a threshold |
 | **Script sandbox** | Forbidden APIs are unavailable; `Math.random` is seeded; scripts can't break determinism |
 
 ---
