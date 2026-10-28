@@ -3,6 +3,7 @@ use std::collections::BTreeSet;
 use kdl::{KdlEntry, KdlNode};
 
 use crate::diagnostic::Diagnostics;
+use crate::suggest;
 
 pub(crate) struct Props<'a> {
     node: &'a KdlNode,
@@ -25,7 +26,7 @@ impl<'a> Props<'a> {
         self.node.span().offset()
     }
 
-    pub(crate) fn args(&self) -> impl Iterator<Item = &'a KdlEntry> {
+    pub(crate) fn args(&self) -> impl Iterator<Item = &'a KdlEntry> + use<'a> {
         self.node
             .entries()
             .iter()
@@ -79,10 +80,11 @@ impl<'a> Props<'a> {
                 .name()
                 .filter(|name| !self.used.contains(name.value()))
             {
+                let hint = suggest::did_you_mean(name.value(), self.used.iter().copied());
                 diags.warning(
                     entry.span().offset(),
                     format!(
-                        "unknown property `{}` on `{}` (ignored)",
+                        "unknown property `{}` on `{}` (ignored).{hint}",
                         name.value(),
                         self.node_name()
                     ),

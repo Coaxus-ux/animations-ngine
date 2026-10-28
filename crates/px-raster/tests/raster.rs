@@ -4,7 +4,7 @@
 )]
 
 use px_core::{CanvasMut, Paint, Palette, Rgb, Size, Tone};
-use px_raster::{Point, Rect, draw_line, fill_ellipse, fill_rect};
+use px_raster::{Brush, Point, Rect, draw_line, fill_ellipse, fill_rect};
 
 struct Fixture {
     cells: Vec<Paint>,
@@ -33,10 +33,10 @@ impl Fixture {
         }
     }
 
-    fn draw(mut self, draw: impl FnOnce(&mut CanvasMut<'_>, Paint)) -> String {
+    fn draw(mut self, draw: impl FnOnce(&mut Brush<'_, '_>)) -> String {
         let ink = self.ink;
         let mut canvas = CanvasMut::new(self.size, &mut self.cells).unwrap();
-        draw(&mut canvas, ink);
+        draw(&mut Brush::new(&mut canvas, ink));
         self.cells
             .chunks(usize::from(self.size.width()))
             .map(|row| {
@@ -51,7 +51,7 @@ impl Fixture {
 
 #[test]
 fn rect_is_clipped_to_the_canvas() {
-    let grid = Fixture::new(4, 3).draw(|c, ink| {
+    let grid = Fixture::new(4, 3).draw(|c| {
         fill_rect(
             c,
             Rect {
@@ -60,7 +60,6 @@ fn rect_is_clipped_to_the_canvas() {
                 width: 3,
                 height: 9,
             },
-            ink,
         );
     });
     assert_eq!(grid, "....\n##..\n##..");
@@ -68,7 +67,7 @@ fn rect_is_clipped_to_the_canvas() {
 
 #[test]
 fn empty_rects_draw_nothing() {
-    let grid = Fixture::new(2, 2).draw(|c, ink| {
+    let grid = Fixture::new(2, 2).draw(|c| {
         fill_rect(
             c,
             Rect {
@@ -77,7 +76,6 @@ fn empty_rects_draw_nothing() {
                 width: 0,
                 height: -2,
             },
-            ink,
         );
     });
     assert_eq!(grid, "..\n..");
@@ -85,7 +83,7 @@ fn empty_rects_draw_nothing() {
 
 #[test]
 fn ellipse_is_symmetric_for_odd_sizes() {
-    let grid = Fixture::new(5, 5).draw(|c, ink| {
+    let grid = Fixture::new(5, 5).draw(|c| {
         fill_ellipse(
             c,
             Rect {
@@ -94,7 +92,6 @@ fn ellipse_is_symmetric_for_odd_sizes() {
                 width: 5,
                 height: 5,
             },
-            ink,
         );
     });
     assert_eq!(grid, ".###.\n#####\n#####\n#####\n.###.");
@@ -102,7 +99,7 @@ fn ellipse_is_symmetric_for_odd_sizes() {
 
 #[test]
 fn ellipse_is_symmetric_for_even_sizes() {
-    let grid = Fixture::new(4, 4).draw(|c, ink| {
+    let grid = Fixture::new(4, 4).draw(|c| {
         fill_ellipse(
             c,
             Rect {
@@ -111,7 +108,6 @@ fn ellipse_is_symmetric_for_even_sizes() {
                 width: 4,
                 height: 4,
             },
-            ink,
         );
     });
     assert_eq!(grid, ".##.\n####\n####\n.##.");
@@ -119,7 +115,7 @@ fn ellipse_is_symmetric_for_even_sizes() {
 
 #[test]
 fn one_pixel_ellipse_is_one_pixel() {
-    let grid = Fixture::new(3, 3).draw(|c, ink| {
+    let grid = Fixture::new(3, 3).draw(|c| {
         fill_ellipse(
             c,
             Rect {
@@ -128,7 +124,6 @@ fn one_pixel_ellipse_is_one_pixel() {
                 width: 1,
                 height: 1,
             },
-            ink,
         );
     });
     assert_eq!(grid, "...\n.#.\n...");
@@ -136,7 +131,7 @@ fn one_pixel_ellipse_is_one_pixel() {
 
 #[test]
 fn huge_ellipses_are_clamped_not_overflowing() {
-    let grid = Fixture::new(2, 2).draw(|c, ink| {
+    let grid = Fixture::new(2, 2).draw(|c| {
         fill_ellipse(
             c,
             Rect {
@@ -145,7 +140,6 @@ fn huge_ellipses_are_clamped_not_overflowing() {
                 width: i32::MAX,
                 height: i32::MAX,
             },
-            ink,
         );
     });
     assert_eq!(grid.len(), 5);
@@ -153,8 +147,8 @@ fn huge_ellipses_are_clamped_not_overflowing() {
 
 #[test]
 fn diagonal_line_has_no_doubled_corners() {
-    let grid = Fixture::new(5, 3)
-        .draw(|c, ink| draw_line(c, Point { x: 0, y: 0 }, Point { x: 4, y: 2 }, ink));
+    let grid =
+        Fixture::new(5, 3).draw(|c| draw_line(c, Point { x: 0, y: 0 }, Point { x: 4, y: 2 }));
     assert_eq!(grid, "#....\n.##..\n...##");
 }
 
@@ -171,7 +165,7 @@ fn lines_never_form_l_corners_at_any_slope() {
         (3, -7),
     ] {
         let grid = Fixture::new(15, 15)
-            .draw(|c, ink| draw_line(c, Point { x: 7, y: 7 }, Point { x: 7 + x, y: 7 + y }, ink));
+            .draw(|c| draw_line(c, Point { x: 7, y: 7 }, Point { x: 7 + x, y: 7 + y }));
         let rows: Vec<&[u8]> = grid.lines().map(str::as_bytes).collect();
         for pair in rows.windows(2) {
             for col in 0..14 {
@@ -192,22 +186,17 @@ fn lines_never_form_l_corners_at_any_slope() {
 
 #[test]
 fn line_endpoints_are_inclusive_in_both_directions() {
-    let forward = Fixture::new(3, 1)
-        .draw(|c, ink| draw_line(c, Point { x: 0, y: 0 }, Point { x: 2, y: 0 }, ink));
-    let backward = Fixture::new(3, 1)
-        .draw(|c, ink| draw_line(c, Point { x: 2, y: 0 }, Point { x: 0, y: 0 }, ink));
+    let forward =
+        Fixture::new(3, 1).draw(|c| draw_line(c, Point { x: 0, y: 0 }, Point { x: 2, y: 0 }));
+    let backward =
+        Fixture::new(3, 1).draw(|c| draw_line(c, Point { x: 2, y: 0 }, Point { x: 0, y: 0 }));
     assert_eq!((forward.as_str(), backward.as_str()), ("###", "###"));
 }
 
 #[test]
 fn far_off_canvas_lines_terminate() {
-    let grid = Fixture::new(2, 2).draw(|c, ink| {
-        draw_line(
-            c,
-            Point { x: i32::MIN, y: 0 },
-            Point { x: i32::MAX, y: 1 },
-            ink,
-        );
+    let grid = Fixture::new(2, 2).draw(|c| {
+        draw_line(c, Point { x: i32::MIN, y: 0 }, Point { x: i32::MAX, y: 1 });
     });
     assert_eq!(grid.len(), 5);
 }

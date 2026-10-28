@@ -65,7 +65,7 @@ fn unknown_property_is_a_warning_not_an_error() {
 
 #[test]
 fn errors_point_at_the_offending_line() {
-    let found = diagnostics(&scene("rect x=0 y=0 width=1 paint=\"ink\"\nblob x=1", ""));
+    let found = diagnostics(&scene("rect x=0 y=0 width=1 paint=\"ink\"\nelipse x=1", ""));
     assert!(
         found
             .iter()
@@ -73,9 +73,8 @@ fn errors_point_at_the_offending_line() {
         "{found:?}"
     );
     assert!(
-        found
-            .iter()
-            .any(|d| d.starts_with("4:1 error") && d.contains("unknown shape `blob`")),
+        found.iter().any(|d| d.starts_with("4:1 error")
+            && d.contains("unknown node `elipse`. Did you mean `ellipse`?")),
         "{found:?}"
     );
 }

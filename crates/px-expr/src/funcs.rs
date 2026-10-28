@@ -1,5 +1,6 @@
 use core::f64::consts::{PI, TAU};
 
+use crate::program::Wind;
 use crate::random;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -55,6 +56,7 @@ pub(crate) enum Func {
     Fbm,
     Cells,
     Wiggle,
+    Wind,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -69,9 +71,11 @@ pub(crate) struct Ctx {
     pub(crate) time: f64,
     pub(crate) seed: u64,
     pub(crate) loop_period: Option<f64>,
+    pub(crate) wind: Wind,
 }
 
-const NAMES: [(&str, Func); 51] = [
+const NAMES: [(&str, Func); 52] = [
+    ("wind", Func::Wind),
     ("abs", Func::Abs),
     ("sign", Func::Sign),
     ("floor", Func::Floor),
@@ -155,7 +159,8 @@ impl Func {
             | Self::Saw
             | Self::Cycle
             | Self::On2
-            | Self::On3 => (1, 1),
+            | Self::On3
+            | Self::Wind => (1, 1),
             Self::Snap | Self::Square | Self::Pulse | Self::Chance => (1, 2),
             Self::Osc | Self::Noise => (1, 3),
             Self::Step
@@ -249,6 +254,7 @@ impl Func {
             Self::Cycle => fract(ctx.time / x),
             Self::Rand => random::rand(ctx.seed, x),
             Self::Noise => random::noise(ctx.seed, [x, 0.0, 0.0]),
+            Self::Wind => random::wind(ctx.wind, ctx.time, x, ctx.loop_period),
             _ => return None,
         })
     }

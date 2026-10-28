@@ -5,6 +5,26 @@ use crate::tone::{Tone, ToneName};
 
 pub const MAX_RAMPS: usize = 256;
 pub const MAX_TONES: usize = 8;
+pub const MAX_LIGHT_COLORS: usize = 8;
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct LightColor(u8);
+
+impl LightColor {
+    #[must_use]
+    pub const fn new(index: u8) -> Option<Self> {
+        if (index as usize) < MAX_LIGHT_COLORS {
+            Some(Self(index))
+        } else {
+            None
+        }
+    }
+
+    #[must_use]
+    pub const fn index(self) -> usize {
+        self.0 as usize
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct RampId(u16);
@@ -62,11 +82,13 @@ pub enum PaletteError {
     RampTooLong { len: usize, max: usize },
     UnknownRamp { ramp: RampId },
     ToneOutOfRange { ramp: RampId, tone: Tone, len: u8 },
+    TwinLength { ramp: RampId, twin: RampId },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Palette {
     ramps: [Ramp; MAX_RAMPS],
+    twins: [[Option<RampId>; MAX_LIGHT_COLORS]; MAX_RAMPS],
     len: u16,
 }
 
@@ -81,6 +103,7 @@ impl Palette {
     pub const fn new() -> Self {
         Self {
             ramps: [Ramp::EMPTY; MAX_RAMPS],
+            twins: [[None; MAX_LIGHT_COLORS]; MAX_RAMPS],
             len: 0,
         }
     }
@@ -145,6 +168,29 @@ impl Palette {
     pub fn contains(&self, paint: Paint) -> bool {
         self.resolve(paint).is_ok()
     }
+
+    /// The ramp a pixel switches to under a light of `color` (PALETTES §4.4).
+    pub fn set_twin(
+        &mut self,
+        ramp: RampId,
+        color: LightColor,
+        twin: RampId,
+    ) -> Result<(), PaletteError> {
+        let length = self.ramp(ramp)?.len();
+        let twin_length = self.ramp(twin)?.len();
+        if length != twin_length {
+            return Err(PaletteError::TwinLength { ramp, twin });
+        }
+        self.twins[ramp.index()][color.index()] = Some(twin);
+        Ok(())
+    }
+
+    #[must_use]
+    pub fn twin(&self, ramp: RampId, color: LightColor) -> Option<RampId> {
+        self.twins
+            .get(ramp.index())
+            .and_then(|twins| twins[color.index()])
+    }
 }
 
 impl fmt::Display for PaletteError {
@@ -158,6 +204,12 @@ impl fmt::Display for PaletteError {
                 f,
                 "tone {} is outside ramp #{} ({len} tones)",
                 tone.index(),
+                ramp.index()
+            ),
+            Self::TwinLength { ramp, twin } => write!(
+                f,
+                "twin ramp #{} must have as many tones as ramp #{}",
+                twin.index(),
                 ramp.index()
             ),
         }

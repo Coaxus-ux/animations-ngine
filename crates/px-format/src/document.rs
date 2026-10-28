@@ -6,7 +6,7 @@ use px_engine::Scene;
 
 use crate::diagnostic::{Diagnostic, Diagnostics, LoadError};
 use crate::palette::{self, NamedPalette};
-use crate::scene;
+use crate::{scene, suggest};
 
 #[derive(Debug)]
 pub struct Loaded {
@@ -94,7 +94,10 @@ fn select_scene<'a>(
             "scene" => scenes.push(node),
             other => diags.error(
                 node.span().offset(),
-                format!("unknown top-level node `{other}` (expected `palette` or `scene`)"),
+                format!(
+                    "unknown top-level node `{other}` (expected `palette` or `scene`).{}",
+                    suggest::did_you_mean(other, ["palette", "scene"])
+                ),
             ),
         }
     }
@@ -109,7 +112,10 @@ fn select_scene<'a>(
     };
     if chosen.is_none() {
         let reason = match wanted {
-            Some(wanted) => format!("no scene named \"{wanted}\""),
+            Some(wanted) => format!(
+                "no scene named \"{wanted}\".{}",
+                suggest::did_you_mean(wanted, names.iter().copied())
+            ),
             None if scenes.is_empty() => "the file has no `scene`".to_owned(),
             None => "the file has several scenes; choose one".to_owned(),
         };

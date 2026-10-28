@@ -28,6 +28,17 @@ pub(crate) enum Command {
         #[command(flatten)]
         input: Input,
     },
+    /// Time every frame of the example and benchmark scenes (or the given files).
+    Bench {
+        /// Scene files (default: `examples/*.kdl` and `benchmarks/*/*.kdl`).
+        files: Vec<PathBuf>,
+        /// Slowest allowed frame, in milliseconds.
+        #[arg(long, default_value_t = 33.3)]
+        budget_ms: f64,
+        /// Times each frame is rendered; the fastest run counts.
+        #[arg(long, default_value_t = 3)]
+        rounds: u32,
+    },
     /// Render every frame to a looping GIF.
     Export {
         #[command(flatten)]

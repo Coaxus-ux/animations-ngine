@@ -594,6 +594,7 @@ dependencies = [
 name = "px-engine"
 version = "0.0.1"
 dependencies = [
+ "libm",
  "px-core",
  "px-expr",
  "px-raster",
@@ -630,6 +631,7 @@ dependencies = [
 name = "px-raster"
 version = "0.0.1"
 dependencies = [
+ "libm",
  "px-core",
 ]
 

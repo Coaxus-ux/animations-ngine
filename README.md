@@ -2,7 +2,7 @@
 
 A general-purpose engine that creates pixel art scenes, characters, animations and game assets **entirely from code and data**: no drawing skills required and no AI inside the engine. Scenes are written in [KDL](https://kdl.dev), behaviors in TypeScript (planned), and everything renders through a palette-indexed Rust core.
 
-> Status: **M0 walking skeleton**. A KDL scene with shapes and expressions renders to PNG stills and seamless looping GIFs. See the [roadmap](docs/ROADMAP.md).
+> Status: **M1 done, with parts of M2–M5 pulled forward**. KDL scenes with expressions, keyframes, SDF shapes, form shading, outlines, textures, layers with parallax, clips, lights with cast shadows, fog, reflections, particles and ropes render to PNG stills and seamless looping GIFs, with a live preview. What the loader accepts today: [FORMAT.md appendix A](docs/FORMAT.md#appendix-a-what-the-loader-accepts-today). See the [roadmap](docs/ROADMAP.md).
 
 ## Quick start
 
@@ -12,7 +12,8 @@ brew install rustup && rustup default stable
 
 cargo run -p px-cli -- export examples/hello.kdl            # → out/hello.gif
 cargo run -p px-cli -- render examples/hello.kdl --frame 6  # → out/hello-6.png
-cargo run -p px-cli -- watch examples/sunset-walk.kdl       # live preview, reloads on save
+cargo run -p px-cli -- watch examples/lantern-night.kdl     # live preview, reloads on save
+cargo run -p px-cli -- bench                                # frame times for every example
 ```
 
 ## Development

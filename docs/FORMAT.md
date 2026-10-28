@@ -758,3 +758,71 @@ scene "street" view="perspective" palette="neon-night" warmup="2s" loop-blend="6
     golden frames="0 48 96"
 }
 ```
+
+---
+
+## Appendix A. What the loader accepts today
+
+The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-28). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes.
+
+### A.1 Scene children
+
+| Node | Animatable props (defaults) | Other props | Notes |
+|---|---|---|---|
+| `param` | | §7.6 | Top level of the scene only |
+| `wind` | | `strength` 1, `gust` 0.5, `speed` 16 | Field read by `wind(x)`, particles and `rope` |
+| `ambient` | `darkness` 0 | `occlusion` 0..4, `key-light` 225 (degrees) | Darkness lowers every non-emissive pixel by tone steps; occlusion darkens pixels next to closer shapes; `key-light` is the direction dome shading is lit from |
+| `camera` | `x` 0, `y` 0 | | Multi-property keys: `camera { k "0s" x=0; k "4s" x=24 }` |
+| `layer "name"` | `fog` 0 | `parallax` 1, `fog-paint` | Children are drawn in this layer; layers can't nest. Fog moves tones into the fog paint's ramp, toward its tone |
+| `group "name"` | `x y width height` 0 | `clip`, `round` | With `clip=#true`, children are clipped to the box (an ellipse if `round`). Clips nest up to 8 deep |
+| `light-point` | `x y` (required), `reach` 40, `intensity` 1 | `color`, `shadows` | `intensity` is in tone steps at the center, falling off linearly to `reach` |
+| `light-cone` | as `light-point` + `angle` 90°, `spread` 60° | `color`, `shadows` | 0° points right, 90° down. The outer part of the spread fades out |
+| `light-rect` | `x y width height` (required), `reach` 40, `intensity` 1 | `color`, `shadows` | Windows, screens, signs |
+| `reflection` | `x y width height axis` (required), `ripple` 1, `speed` 2, `tone-shift` -1, `opacity` 1 | `on` (ramp) | Mirrors the scene above `axis` into the box. With `on="water"`, only pixels of that ramp receive it, so floating objects stay on top |
+
+`color` names a light color declared by `twin` in the palette (A.4). A pixel lit at least one step by a colored light switches to its ramp's twin. With `shadows=#true`, shapes marked `casts-shadow` block the light for anything behind them.
+
+### A.2 Shapes
+
+Every shape takes `paint` (`"ramp"` or `"ramp.tone"`), except `shade`, and the style props in A.3.
+
+| Node | Animatable props (defaults) | Other props |
+|---|---|---|
+| `rect`, `ellipse` | `x y width height` | |
+| `rounded-rect` | `x y width height`, `radius` 2 | |
+| `line` | `x1 y1 x2 y2`, `width` 1 | Width ≤ 1.5 draws a pixel-perfect line, wider draws a capsule |
+| `capsule` | `x1 y1 x2 y2`, `radius` 2 | |
+| `polygon` | `x y` 0 | `points="0,0 8,0 4,6"` (at least 3, relative to `x y`) |
+| `blob` | `x y` 0, `smooth` 3 | `circles="0,0,4 6,1,3"` (`x,y,radius`, smoothly merged) |
+| `rope` | `x1 y1 x2 y2`, `sag` 0, `sway` 0, `width` 1 | Sags like a cable and bulges sideways by `sway` |
+| `particles` | `x y width height` (spawn area), `vx vy gravity` 0, `life` 1s, `size` 1, `wind` 0 | `count` 20 (≤ 1024), `fade`. Stateless: each particle cycles through its life, so loops stay seamless when `life` divides the duration |
+| `shade` | `x y width height`, `steps` -1 | `round`. Shifts the tones of whatever is below it |
+
+### A.3 Style props (any shape)
+
+| Prop | Kind | Meaning |
+|---|---|---|
+| `opacity` 1, `tone-shift` 0, `visible` 1, `contact-shadow` 0 | animatable | Opacity dithers; `visible` ≤ 0.5 hides the shape; `contact-shadow` draws a darkened ellipse under it |
+| `shading` | `flat` \| `dome` \| `soft` | Form shading from the shape's distance field, lit from `ambient key-light`. `shading-steps` (default 1) sets the depth |
+| `outline` | `none` \| `full` \| `selective` | `outline-paint` defaults to the palette's darkest tone; `selective` uses the shape's own darker tone on the lit side |
+| `texture` | 0..1 | Clustered noise in tone steps; `texture-scale` 3 |
+| `gradient` | `down` \| `up` \| `left` \| `right` \| `radial` | `gradient-steps` 2 (negative darkens). Solid bands with short dithered seams |
+| `emissive` | bool | Ignores darkness and lights; keeps its tone in reflections |
+| `casts-shadow` | bool | Blocks lights that have `shadows=#true` |
+| `cleanup` | bool | Removes orphan pixels and notches from the shape's mask |
+
+### A.4 Palette twins
+
+```kdl
+palette "night" {
+    ramp "wall"      "#0d0b16" "#1b1828" "#2c2840"
+    ramp "wall-warm" "#160c0d" "#2e1814" "#4f2c1e"
+    twin "wall" warm="wall-warm"   // declares the light color `warm`
+}
+```
+
+A twin must have as many tones as its base ramp. Up to 8 light colors per palette.
+
+### A.5 Keyframes
+
+`anim <prop>` works on every animatable prop above, with everything in §8: interpolations, relative times, `loop`, `blend`. A `replace` track also satisfies a required prop. References (`@id.prop`) see the animated value.

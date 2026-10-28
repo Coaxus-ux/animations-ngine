@@ -22,6 +22,9 @@ pub(crate) enum Axis {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum Quantity {
     Length(Axis),
+    Number,
+    Angle,
+    Time,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -34,6 +37,7 @@ pub(crate) struct Literal {
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Measure {
     pub(crate) canvas: Size,
+    pub(crate) fps: FrameRate,
 }
 
 const SUFFIXES: [(&str, Unit); 8] = [
@@ -83,18 +87,38 @@ impl Unit {
 
 impl Literal {
     pub(crate) fn convert(self, quantity: Quantity, measure: Measure) -> Result<f64, String> {
-        let Quantity::Length(axis) = quantity;
+        match (quantity, self.unit) {
+            (Quantity::Length(axis), unit) => self.length(axis, unit, measure),
+            (Quantity::Number, Unit::None) | (Quantity::Angle, Unit::None | Unit::Degrees) => {
+                Ok(self.value)
+            }
+            (Quantity::Number, Unit::Percent) => Ok(self.value / 100.0),
+            (Quantity::Time, Unit::None | Unit::Seconds) => Ok(self.value),
+            (Quantity::Time, _) => self
+                .frames(measure.fps)
+                .map(|frames| frames / f64::from(measure.fps.get()))
+                .ok_or_else(|| self.wrong("a time (use s, ms or f)")),
+            (Quantity::Angle, _) => Err(self.wrong("an angle (use deg)")),
+            (Quantity::Number, _) => Err(self.wrong("a plain number")),
+        }
+    }
+
+    fn length(self, axis: Axis, unit: Unit, measure: Measure) -> Result<f64, String> {
         let side = match axis {
             Axis::Horizontal => measure.canvas.width(),
             Axis::Vertical => measure.canvas.height(),
         };
-        match self.unit {
+        match unit {
             Unit::None | Unit::Px => Ok(self.value),
             Unit::Percent => Ok(self.value / 100.0 * f64::from(side)),
             Unit::HeadUnits => Err("`hu` is only available inside body plans".to_owned()),
             Unit::Tiles => Err("`tile` is only available with a tileset".to_owned()),
             other => Err(format!("`{}` is not a length (use px or %)", other.name())),
         }
+    }
+
+    fn wrong(self, expected: &str) -> String {
+        format!("`{}` is not {expected}", self.unit.name())
     }
 
     pub(crate) fn frames(self, fps: FrameRate) -> Option<f64> {

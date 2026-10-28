@@ -1,10 +1,12 @@
 use kdl::{KdlEntry, KdlValue};
-use px_engine::{Param, Shape, object_seed};
-use px_expr::{CompileErrorKind, Program, Reference, ResolveError, Resolver};
+use px_engine::{Param, object_seed};
+use px_expr::{Blend, CompileErrorKind, Program, Reference, ResolveError, Resolver};
 
 use crate::diagnostic::Diagnostics;
+use crate::keyframes;
+use crate::objects::Draft;
 use crate::params::SceneParams;
-use crate::shapes::{self, Draft, PROPERTIES};
+use crate::schema::Prop;
 use crate::units::{self, Literal, Measure, Quantity, Unit};
 use crate::values;
 
@@ -28,10 +30,10 @@ type Key = (usize, usize);
 
 pub(crate) struct Compiler<'a, 'd> {
     drafts: &'a [Draft<'a>],
+    seeds: Vec<u64>,
     params: &'a SceneParams,
     measure: Measure,
-    scene_seed: u64,
-    states: Vec<[State; PROPERTIES]>,
+    states: Vec<Vec<State>>,
     chain: Vec<Key>,
     diags: &'d mut Diagnostics,
 }
@@ -44,35 +46,46 @@ impl<'a, 'd> Compiler<'a, 'd> {
         scene_seed: u64,
         diags: &'d mut Diagnostics,
     ) -> Self {
+        let mut shapes = 0;
+        let seeds = drafts
+            .iter()
+            .map(|draft| {
+                let index = if draft.kind.is_shape() {
+                    shapes += 1;
+                    shapes - 1
+                } else {
+                    usize::MAX
+                };
+                object_seed(scene_seed, index)
+            })
+            .collect();
         let states = drafts
             .iter()
-            .map(|_| [const { State::Pending }; PROPERTIES])
+            .map(|draft| vec![State::Pending; draft.kind.prop_count()])
             .collect();
         Self {
             drafts,
+            seeds,
             params,
             measure,
-            scene_seed,
             states,
             chain: Vec::new(),
             diags,
         }
     }
 
-    pub(crate) fn shapes(mut self) -> Option<Vec<Shape>> {
-        let mut shapes = Vec::with_capacity(self.drafts.len());
+    /// Every property of every draft, in schema order, or `None` after reporting errors.
+    pub(crate) fn compile_all(mut self) -> Option<Vec<Vec<Param>>> {
+        let mut all = Vec::with_capacity(self.drafts.len());
         let mut complete = true;
         for (object, draft) in self.drafts.iter().enumerate() {
-            let params: [Option<Param>; PROPERTIES] =
-                std::array::from_fn(|property| self.property((object, property)).ok());
-            match (params, draft.paint) {
-                ([Some(a), Some(b), Some(c), Some(d)], Some(paint)) => {
-                    shapes.push(shapes::build(draft.kind, paint, [a, b, c, d]));
-                }
-                _ => complete = false,
-            }
+            let params: Vec<Option<Param>> = (0..draft.kind.prop_count())
+                .map(|property| self.property((object, property)).ok())
+                .collect();
+            complete &= params.iter().all(Option::is_some);
+            all.push(params.into_iter().flatten().collect());
         }
-        complete.then_some(shapes)
+        complete.then_some(all)
     }
 
     fn property(&mut self, key: Key) -> Result<Param, Failure> {
@@ -93,11 +106,49 @@ impl<'a, 'd> Compiler<'a, 'd> {
         compiled.ok_or(Failure::Failed)
     }
 
+    fn prop(&self, (object, property): Key) -> Option<Prop> {
+        self.drafts[object].kind.props().nth(property).copied()
+    }
+
     fn compile(&mut self, key: Key) -> Option<Param> {
-        let draft = &self.drafts[key.0];
-        let entry = draft.entries[key.1]?;
-        let (name, axis) = draft.kind.properties()[key.1];
-        let quantity = Quantity::Length(axis);
+        let drafts = self.drafts;
+        let draft = &drafts[key.0];
+        let prop = self.prop(key)?;
+        let animated = match draft.anims[key.1] {
+            Some(anim) => Some(keyframes::parse(
+                anim,
+                prop.quantity,
+                self.measure,
+                self.diags,
+            )?),
+            None => None,
+        };
+        let base = match draft.entries[key.1] {
+            Some(entry) => Some(self.base(key, entry, prop)?),
+            None => prop.default.map(Param::Fixed),
+        };
+        match (base, animated) {
+            (_, Some(animated)) if animated.blend == Blend::Replace => {
+                Some(Param::Expr(animated.track))
+            }
+            (Some(base), Some(animated)) => Some(Param::Expr(Program::blend(
+                &program_of(base),
+                &animated.track,
+                animated.blend,
+            ))),
+            (Some(base), None) => Some(base),
+            (None, _) => {
+                self.diags.error(
+                    draft.node.span().offset(),
+                    format!("`{}` is missing `{}`", draft.node.name().value(), prop.name),
+                );
+                None
+            }
+        }
+    }
+
+    fn base(&mut self, key: Key, entry: &KdlEntry, prop: Prop) -> Option<Param> {
+        let (name, quantity) = (prop.name, prop.quantity);
         let text = match entry.value() {
             KdlValue::String(text) => text.as_str(),
             _ => return values::number(entry, self.diags).map(Param::Fixed),
@@ -178,9 +229,8 @@ impl<'a, 'd> Compiler<'a, 'd> {
     }
 
     fn label(&self, (object, property): Key) -> String {
-        let draft = &self.drafts[object];
-        let name = draft.kind.properties()[property].0;
-        draft
+        let name = self.prop((object, property)).map_or("?", |prop| prop.name);
+        self.drafts[object]
             .id
             .map_or_else(|| format!("#{object}.{name}"), |id| format!("{id}.{name}"))
     }
@@ -217,17 +267,20 @@ impl<'a, 'd> Compiler<'a, 'd> {
             let known: Vec<&str> = self.drafts.iter().filter_map(|draft| draft.id).collect();
             return Err((
                 ResolveError::UnknownReference,
-                format!("no object with id \"{id}\" (ids: {})", known.join(", ")),
+                format!(
+                    "no object with id \"{id}\".{}",
+                    crate::suggest::hint(id, known)
+                ),
             ));
         };
         let kind = self.drafts[target].kind;
-        let index = kind.property_index(property).ok_or_else(|| {
-            let names: Vec<&str> = kind.properties().iter().map(|(name, _)| *name).collect();
+        let index = kind.prop_index(property).ok_or_else(|| {
+            let names: Vec<&str> = kind.props().map(|prop| prop.name).collect();
             (
                 ResolveError::UnknownReference,
                 format!(
-                    "`{id}` has no property `{property}` (has: {})",
-                    names.join(", ")
+                    "`{id}` has no property `{property}`.{}",
+                    crate::suggest::hint(property, names)
                 ),
             )
         })?;
@@ -264,7 +317,7 @@ impl Resolver for Lookup<'_, '_, '_> {
         match self.compiler.property(key) {
             Ok(param) => Ok(Reference {
                 program: program_of(param),
-                seed: object_seed(self.compiler.scene_seed, key.0),
+                seed: self.compiler.seeds[key.0],
             }),
             Err(Failure::Failed) => Err(ResolveError::Failed),
             Err(Failure::Cycle(chain)) => Err(self.fail((ResolveError::Cycle, chain))),

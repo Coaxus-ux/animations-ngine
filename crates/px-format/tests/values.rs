@@ -154,9 +154,10 @@ fn params_feed_expressions_and_accept_overrides() {
 fn param_errors_name_the_problem() {
     let found = errors(
         &format!(
-            "param mood \"calm\" options=\"calm wild\"\n{}\n{}",
+            "param mood \"calm\" options=\"calm wild\"\n{}\n{}\n{}",
             rect("\"=$mood\""),
-            rect("\"=$gust\"")
+            rect("\"=$gust\""),
+            rect("\"=$moood\"")
         ),
         &[],
     );
@@ -167,7 +168,13 @@ fn param_errors_name_the_problem() {
     assert!(
         found
             .iter()
-            .any(|d| d.contains("unknown param `$gust` (known: $mood)")),
+            .any(|d| d.contains("unknown param `$gust`. Known: mood.")),
+        "{found:?}"
+    );
+    assert!(
+        found
+            .iter()
+            .any(|d| d.contains("unknown param `$moood`. Did you mean `mood`?")),
         "{found:?}"
     );
     let found = errors("param speed 9 max=5\nparam speed 1", &[]);
@@ -222,13 +229,13 @@ fn reference_errors_and_cycles_are_reported_once() {
     assert!(
         found
             .iter()
-            .any(|d| d.contains("no object with id \"nobody\" (ids: a, b, c)")),
+            .any(|d| d.contains("no object with id \"nobody\". Known: a, b, c.")),
         "{found:?}"
     );
     assert!(
         found
             .iter()
-            .any(|d| d.contains("`a` has no property `depth` (has: x, y, width, height)")),
+            .any(|d| d.contains("`a` has no property `depth`. Known: x, y, width, height, opacity")),
         "{found:?}"
     );
 }

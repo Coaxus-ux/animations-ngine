@@ -1,17 +1,17 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use kdl::{KdlDocument, KdlNode};
 use px_core::{FrameRate, MAX_CANVAS_SIDE, MAX_FPS, Size};
-use px_engine::{Looping, MAX_SHAPES, SceneSpec, Shape, Timing};
+use px_engine::{Environment, Looping, SceneSpec, Shape, Timing};
 
+use crate::assemble::assemble;
 use crate::compiler::Compiler;
 use crate::diagnostic::Diagnostics;
 use crate::palette::NamedPalette;
 use crate::params::SceneParams;
 use crate::props::Props;
-use crate::shapes::Draft;
 use crate::units::Measure;
-use crate::{shapes, values};
+use crate::{objects, suggest, values};
 
 const DEFAULT_FPS: u16 = 12;
 
@@ -27,10 +27,10 @@ pub(crate) fn parse(
         let text = values::string(entry, diags)?;
         let found = palettes.get(text);
         if found.is_none() {
-            let known: Vec<&str> = palettes.keys().map(String::as_str).collect();
+            let hint = suggest::hint(text, palettes.keys().map(String::as_str));
             diags.error(
                 entry.span().offset(),
-                format!("unknown palette \"{text}\" (known: {})", known.join(", ")),
+                format!("unknown palette \"{text}\".{hint}"),
             );
         }
         found
@@ -49,18 +49,24 @@ pub(crate) fn parse(
         None => Some(0),
     };
     props.finish(diags);
-    let shapes = palette
-        .zip(size)
-        .zip(seed)
-        .and_then(|((palette, size), seed)| {
-            let context = Context {
-                palette,
-                measure: Measure { canvas: size },
-                seed,
-                overrides,
-            };
-            shapes(node, &context, diags)
-        });
+    let world =
+        palette
+            .zip(size)
+            .zip(seed)
+            .zip(timing)
+            .and_then(|(((palette, size), seed), timing)| {
+                let context = Context {
+                    palette,
+                    measure: Measure {
+                        canvas: size,
+                        fps: timing.fps,
+                    },
+                    seed,
+                    overrides,
+                };
+                world(node, &context, diags)
+            });
+    let (shapes, environment) = world?;
     Some(SceneSpec {
         name: name?.to_owned(),
         size: size?,
@@ -68,7 +74,8 @@ pub(crate) fn parse(
         seed: seed?,
         palette: palette?.palette.clone(),
         background: background?,
-        shapes: shapes?,
+        shapes,
+        environment,
     })
 }
 
@@ -114,46 +121,25 @@ struct Context<'a> {
     overrides: &'a [(String, String)],
 }
 
-fn shapes(node: &KdlNode, context: &Context<'_>, diags: &mut Diagnostics) -> Option<Vec<Shape>> {
-    let children = node.children().map(KdlDocument::nodes).unwrap_or_default();
-    let (param_nodes, shape_nodes): (Vec<&KdlNode>, Vec<&KdlNode>) = children
-        .iter()
-        .partition(|child| child.name().value() == "param");
-    if shape_nodes.len() > MAX_SHAPES {
-        diags.error(
-            node.span().offset(),
-            format!(
-                "scene has {} shapes, max is {MAX_SHAPES}",
-                shape_nodes.len()
-            ),
-        );
-        return None;
-    }
+fn world(
+    node: &KdlNode,
+    context: &Context<'_>,
+    diags: &mut Diagnostics,
+) -> Option<(Vec<Shape>, Environment)> {
     let mut params = SceneParams::default();
-    for param in param_nodes {
+    let children = node.children().map(KdlDocument::nodes).unwrap_or_default();
+    for param in children
+        .iter()
+        .filter(|child| child.name().value() == "param")
+    {
         params.add(param, diags);
     }
     params.apply_overrides(context.overrides, diags);
-    let drafts: Vec<Draft<'_>> = shape_nodes
-        .iter()
-        .filter_map(|child| shapes::draft(child, context.palette, diags))
-        .collect();
-    let unique = unique_ids(&drafts, &shape_nodes, diags);
-    let shapes = Compiler::new(&drafts, &params, context.measure, context.seed, diags).shapes();
-    shapes.filter(|shapes| unique && shapes.len() == shape_nodes.len())
-}
-
-fn unique_ids(drafts: &[Draft<'_>], nodes: &[&KdlNode], diags: &mut Diagnostics) -> bool {
-    let mut seen = BTreeSet::new();
-    let mut unique = true;
-    for (draft, node) in drafts.iter().zip(nodes) {
-        if let Some(id) = draft.id.filter(|id| !seen.insert(*id)) {
-            diags.error(
-                node.span().offset(),
-                format!("id \"{id}\" is used twice in this scene"),
-            );
-            unique = false;
-        }
+    let tree = objects::collect(node, context.palette, diags);
+    let params =
+        Compiler::new(&tree.drafts, &params, context.measure, context.seed, diags).compile_all();
+    if diags.has_errors() {
+        return None;
     }
-    unique
+    Some(assemble(tree, params?))
 }

@@ -1,4 +1,4 @@
-//! Certifies that `render_frame` performs no heap activity after setup
+//! Certifies that `FrameBuffer::render` performs no heap activity after setup
 //! (`docs/engineering/RUST-STANDARDS.md` §13). Run alone: `--test-threads=1`.
 #![allow(
     unsafe_code,
@@ -14,9 +14,14 @@ mod common;
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use common::{expr, kit, rect, scene};
-use px_core::{CanvasMut, Frame};
-use px_engine::{Bounds, Geometry, Param, Segment, Shape, render_frame};
+use common::{Kit, bounds, expr, fixed, kit, rect, shape, world};
+use px_core::{Frame, Paint};
+use px_engine::{
+    Ambient, Bounds, Camera, Clip, Environment, FrameBuffer, Geometry, Gradient, GradientDirection,
+    Layer, Light, LightKind, Outline, Particles, Reflection, Segment, Shading, Shape, Style,
+    Texture,
+};
+use px_expr::Wind;
 
 struct CountingAllocator;
 
@@ -54,49 +59,223 @@ unsafe impl GlobalAlloc for CountingAllocator {
 #[global_allocator]
 static GLOBAL: CountingAllocator = CountingAllocator;
 
+fn styled(geometry: Geometry, paint: Paint, style: Style) -> Shape {
+    Shape {
+        geometry,
+        paint,
+        style,
+    }
+}
+
+fn lit(kit: &Kit) -> Style {
+    Style {
+        shading: Shading::Dome {
+            steps: 2,
+            soft: true,
+        },
+        outline: Outline::Selective(kit.blank),
+        texture: Some(Texture {
+            amount: 0.4,
+            scale: 3.0,
+        }),
+        casts_shadow: true,
+        cleanup: true,
+        contact_shadow: fixed(1.0),
+        ..Style::default()
+    }
+}
+
+fn shapes(kit: &Kit) -> Vec<Shape> {
+    let lit = lit(kit);
+    let segment = Segment {
+        x1: fixed(2.0),
+        y1: fixed(2.0),
+        x2: expr("20 + sin(t * tau) * 6"),
+        y2: fixed(28.0),
+    };
+    vec![
+        rect(expr("floor(t * 4)"), fixed(1.0), 5.0, 5.0, kit.ink),
+        styled(
+            Geometry::Ellipse(Bounds {
+                x: expr("10 + sin(t * tau) * 8"),
+                ..bounds(0.0, 4.0, 12.0, 10.0)
+            }),
+            kit.mid,
+            lit.clone(),
+        ),
+        styled(
+            Geometry::RoundedRect {
+                bounds: bounds(14.0, 14.0, 12.0, 8.0),
+                radius: fixed(3.0),
+            },
+            kit.mid,
+            Style {
+                gradient: Some(Gradient {
+                    direction: GradientDirection::Radial,
+                    steps: 2,
+                }),
+                clips: vec![0],
+                ..lit.clone()
+            },
+        ),
+        shape(
+            Geometry::Line {
+                segment: segment.clone(),
+                width: fixed(3.0),
+            },
+            kit.ink,
+        ),
+        shape(
+            Geometry::Polygon {
+                x: fixed(4.0),
+                y: fixed(20.0),
+                points: vec![[0.0, 0.0], [8.0, 0.0], [4.0, 7.0]],
+            },
+            kit.ink,
+        ),
+        styled(
+            Geometry::Blob {
+                x: fixed(20.0),
+                y: fixed(4.0),
+                circles: vec![[0.0, 0.0, 3.0], [4.0, 1.0, 3.0]],
+                smooth: fixed(2.0),
+            },
+            kit.mid,
+            Style {
+                layer: 1,
+                emissive: true,
+                ..Style::default()
+            },
+        ),
+        shape(
+            Geometry::Rope {
+                segment,
+                sag: fixed(4.0),
+                sway: expr("sin(t * tau)"),
+                width: fixed(1.0),
+            },
+            kit.ink,
+        ),
+        shape(
+            Geometry::Particles(Box::new(Particles {
+                area: bounds(0.0, 0.0, 32.0, 4.0),
+                count: 40,
+                velocity_x: fixed(1.0),
+                velocity_y: fixed(6.0),
+                gravity: fixed(2.0),
+                life: fixed(2.0),
+                size: fixed(1.0),
+                wind: fixed(1.0),
+                fade: true,
+            })),
+            kit.mid,
+        ),
+        shape(
+            Geometry::Shade {
+                bounds: bounds(0.0, 24.0, 32.0, 8.0),
+                steps: fixed(-1.0),
+                round: true,
+            },
+            kit.blank,
+        ),
+    ]
+}
+
+fn environment(kit: &Kit) -> Environment {
+    Environment {
+        layers: vec![
+            Layer::default(),
+            Layer {
+                parallax: 0.5,
+                fog: fixed(0.5),
+                fog_paint: Some(kit.mid),
+            },
+        ],
+        clips: vec![Clip {
+            bounds: bounds(12.0, 12.0, 10.0, 10.0),
+            round: true,
+            layer: 0,
+        }],
+        camera: Camera {
+            x: expr("t * 2"),
+            y: fixed(0.0),
+        },
+        lights: vec![
+            Light {
+                kind: LightKind::Point,
+                x: fixed(16.0),
+                y: fixed(16.0),
+                reach: fixed(20.0),
+                intensity: fixed(1.0),
+                color: Some(kit.warm),
+                shadows: true,
+            },
+            Light {
+                kind: LightKind::Cone {
+                    angle: fixed(90.0),
+                    spread: fixed(40.0),
+                },
+                x: fixed(4.0),
+                y: fixed(0.0),
+                reach: fixed(30.0),
+                intensity: fixed(1.0),
+                color: None,
+                shadows: false,
+            },
+            Light {
+                kind: LightKind::Rect {
+                    width: fixed(6.0),
+                    height: fixed(4.0),
+                },
+                x: fixed(24.0),
+                y: fixed(24.0),
+                reach: fixed(8.0),
+                intensity: fixed(1.0),
+                color: None,
+                shadows: false,
+            },
+        ],
+        ambient: Ambient {
+            darkness: fixed(1.0),
+            occlusion: 1.0,
+            key_light: 225.0,
+        },
+        reflections: vec![Reflection {
+            bounds: bounds(0.0, 26.0, 32.0, 6.0),
+            axis: fixed(26.0),
+            ripple: fixed(1.0),
+            speed: fixed(2.0),
+            tone_shift: fixed(-1.0),
+            opacity: fixed(0.8),
+            surface: None,
+        }],
+        wind: Wind {
+            strength: 1.0,
+            gust: 0.5,
+            speed: 16.0,
+        },
+    }
+}
+
 #[test]
-fn render_frame_performs_no_heap_activity() {
+fn rendering_performs_no_heap_activity() {
     let kit = kit();
-    let ellipse = Bounds {
-        x: expr("10 + sin(t * tau) * 8"),
-        y: Param::Fixed(4.0),
-        width: Param::Fixed(9.0),
-        height: expr("6 + f % 3"),
-    };
-    let line = Segment {
-        x1: Param::Fixed(0.0),
-        y1: Param::Fixed(0.0),
-        x2: expr("max(t * 20, 3)"),
-        y2: Param::Fixed(31.0),
-    };
-    let shapes = vec![
-        rect(expr("floor(t * 4)"), Param::Fixed(1.0), 5.0, 5.0, kit.ink),
-        Shape {
-            geometry: Geometry::Ellipse(ellipse),
-            paint: kit.ink,
-        },
-        Shape {
-            geometry: Geometry::Line(line),
-            paint: kit.blank,
-        },
-    ];
-    let scene = scene(&kit, (32, 32), 24, shapes);
-    let mut cells = vec![kit.blank; scene.size().cell_count()];
+    let scene = world(&kit, (32, 32), 24, shapes(&kit), environment(&kit));
+    let mut buffer = FrameBuffer::new(&scene);
 
     let allocations = ALLOCATIONS.load(Ordering::Relaxed);
     let deallocations = DEALLOCATIONS.load(Ordering::Relaxed);
     for frame in 0..48 {
-        let mut canvas = CanvasMut::new(scene.size(), &mut cells).unwrap();
-        render_frame(&scene, Frame::new(frame), &mut canvas).unwrap();
+        buffer.render(&scene, Frame::new(frame)).unwrap();
     }
     assert_eq!(
         ALLOCATIONS.load(Ordering::Relaxed),
         allocations,
-        "render_frame allocated"
+        "render allocated"
     );
     assert_eq!(
         DEALLOCATIONS.load(Ordering::Relaxed),
         deallocations,
-        "render_frame freed memory"
+        "render freed memory"
     );
 }

@@ -5,10 +5,10 @@
 
 mod common;
 
-use common::{expr, kit, rect, scene};
-use px_core::{CanvasMut, Frame, Size, hash_cells};
+use common::{expr, kit, rect, scene, spec};
+use px_core::{Frame, hash_cells};
 use px_engine::{
-    FrameBuffer, FrameReport, MAX_SHAPES, ModelError, Param, RenderError, Scene, SceneSpec,
+    Environment, FrameBuffer, FrameReport, MAX_SHAPES, ModelError, Param, RenderError, Scene,
 };
 
 #[test]
@@ -64,28 +64,19 @@ fn non_finite_values_become_zero_and_are_reported() {
 }
 
 #[test]
-fn canvas_size_must_match_the_scene() {
+fn buffer_size_must_match_the_scene() {
     let kit = kit();
-    let scene = scene(&kit, (2, 2), 1, Vec::new());
-    let mut cells = vec![kit.blank; 9];
-    let mut canvas = CanvasMut::new(Size::new(3, 3).unwrap(), &mut cells).unwrap();
-    let error = px_engine::render_frame(&scene, Frame::new(0), &mut canvas).unwrap_err();
+    let small = scene(&kit, (2, 2), 1, Vec::new());
+    let large = scene(&kit, (3, 3), 1, Vec::new());
+    let mut buffer = FrameBuffer::new(&large);
+    let error = buffer.render(&small, Frame::new(0)).unwrap_err();
     assert!(matches!(error, RenderError::CanvasSize { .. }));
 }
 
 #[test]
 fn scene_validation_rejects_bad_paints_and_too_many_shapes() {
     let kit = kit();
-    let base = scene(&kit, (1, 1), 1, Vec::new());
-    let spec = |shapes| SceneSpec {
-        name: "x".to_owned(),
-        size: base.size(),
-        timing: base.timing(),
-        seed: 0,
-        palette: kit.palette.clone(),
-        background: kit.blank,
-        shapes,
-    };
+    let spec = |shapes| spec(&kit, (1, 1), 1, shapes, Environment::default());
     let foreign = px_core::Paint {
         ramp: kit.ink.ramp,
         tone: px_core::Tone::new(7),
@@ -104,6 +95,6 @@ fn scene_validation_rejects_bad_paints_and_too_many_shapes() {
     let many = vec![rect(Param::Fixed(0.0), Param::Fixed(0.0), 1.0, 1.0, kit.ink); MAX_SHAPES + 1];
     assert!(matches!(
         Scene::new(spec(many)),
-        Err(ModelError::TooManyShapes { .. })
+        Err(ModelError::TooMany { what: "shapes", .. })
     ));
 }

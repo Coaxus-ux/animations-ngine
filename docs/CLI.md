@@ -20,7 +20,7 @@ The binary's working name is **`pxe`** (to be renamed with the project). All com
 | `pxe bake <scene> <node>` | Bake a node to explicit KDL ([EDITOR.md](EDITOR.md) §3.1) |
 | `pxe pack <sub>` | Manage packs |
 | `pxe palette import <file>` | Import a palette from Lospec `.hex`/`.gpl` |
-| `pxe bench` | Run golden-image tests on benchmark scenes |
+| `pxe bench` | Time benchmark scenes (today); golden-image tests (planned) |
 | `pxe migrate` | Upgrade project files to the current format version, preserving formatting ([ARCHITECTURE.md](ARCHITECTURE.md)) |
 
 ---
@@ -149,6 +149,8 @@ Golden-image tests for the benchmark scenes ([BENCHMARKS.md](BENCHMARKS.md)) and
 pxe bench                 # render and compare all
 pxe bench B3 --update     # accept new output as golden
 ```
+
+> **Today (2026-10-28):** `pxe bench [FILES…] [--budget-ms 33.3] [--rounds 3]` times every frame of `examples/*.kdl` and `benchmarks/*/*.kdl` (or the given files), prints the mean and worst frame time per scene, and exits with code 4 when a worst frame is over budget. `tools/check.sh` runs it in release mode. Golden comparison runs as indexed-buffer hashes in `cargo test` (`crates/px-cli/tests/golden.rs`); the flags below are not implemented yet.
 | Flag | Meaning |
 |---|---|
 | `--update` | Overwrite golden images |

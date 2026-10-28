@@ -1,8 +1,10 @@
-use px_core::{COORD_LIMIT, CanvasMut, Paint};
+use px_core::COORD_LIMIT;
+
+use crate::Plot;
 
 use crate::rect::Rect;
 
-pub fn fill_ellipse(canvas: &mut CanvasMut<'_>, bounds: Rect, paint: Paint) {
+pub fn fill_ellipse(plot: &mut impl Plot, bounds: Rect) {
     let bounds = Rect {
         width: bounds.width.min(COORD_LIMIT),
         height: bounds.height.min(COORD_LIMIT),
@@ -12,9 +14,9 @@ pub fn fill_ellipse(canvas: &mut CanvasMut<'_>, bounds: Rect, paint: Paint) {
         return;
     }
     let shape = Doubled::new(bounds);
-    for y in bounds.rows(canvas.size().height()) {
+    for y in bounds.rows(plot.height()) {
         if let Some((first, last)) = shape.span(y) {
-            canvas.fill_span(y, saturate(first), saturate(last).saturating_add(1), paint);
+            plot.span(y, saturate(first), saturate(last).saturating_add(1));
         }
     }
 }

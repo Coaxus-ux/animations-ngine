@@ -5,6 +5,7 @@ use crate::error::EvalError;
 use crate::funcs::{Ctx, Func, Scope};
 use crate::names::Var;
 use crate::stack::Stack;
+use crate::track::Track;
 
 pub const MAX_STACK: usize = 32;
 pub const MAX_SCOPES: usize = 16;
@@ -25,6 +26,14 @@ pub struct Env {
     pub width: f64,
     pub height: f64,
     pub loop_period: Option<f64>,
+    pub wind: Wind,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Wind {
+    pub strength: f64,
+    pub gust: f64,
+    pub speed: f64,
 }
 
 impl Default for Env {
@@ -42,6 +51,7 @@ impl Default for Env {
             width: 0.0,
             height: 0.0,
             loop_period: None,
+            wind: Wind::default(),
         }
     }
 }
@@ -57,6 +67,7 @@ pub(crate) enum Op {
     Ease(Ease),
     Enter(Scope),
     Seed(u64),
+    Track(u16),
     Leave,
 }
 
@@ -152,32 +163,59 @@ impl Clock {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Program {
     ops: Vec<Op>,
+    tracks: Vec<Track>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Blend {
+    Replace,
+    Add,
+    Multiply,
 }
 
 impl Program {
-    pub(crate) fn new(ops: Vec<Op>) -> Self {
-        Self { ops }
+    pub(crate) fn new(ops: Vec<Op>, tracks: Vec<Track>) -> Self {
+        Self { ops, tracks }
+    }
+
+    #[must_use]
+    pub fn track(track: Track) -> Self {
+        Self::new(alloc::vec![Op::Track(0)], alloc::vec![track])
+    }
+
+    /// Combines a base value with a keyframe track (FORMAT §8 `blend`).
+    #[must_use]
+    pub fn blend(base: &Self, track: &Self, blend: Blend) -> Self {
+        let op = match blend {
+            Blend::Replace => return track.clone(),
+            Blend::Add => BinaryOp::Add,
+            Blend::Multiply => BinaryOp::Mul,
+        };
+        let (mut ops, mut tracks) = (Vec::new(), Vec::new());
+        append(&mut ops, &mut tracks, base);
+        append(&mut ops, &mut tracks, track);
+        ops.push(Op::Binary(op));
+        Self::new(ops, tracks)
     }
 
     #[must_use]
     pub fn fixed(value: f64) -> Self {
-        Self::new(alloc::vec![Op::Const(value)])
+        Self::new(alloc::vec![Op::Const(value)], Vec::new())
     }
 
     /// A value picked once per object seed: uniform in `low..high`, or an inclusive integer.
     #[must_use]
     pub fn random_range(low: f64, high: f64, integer: bool, key: f64) -> Self {
         let func = if integer { Func::Randi } else { Func::Range };
-        Self::new(alloc::vec![
-            Op::Const(low),
-            Op::Const(high),
-            Op::Const(key),
-            Op::Call(func, 3)
-        ])
-    }
-
-    pub(crate) fn ops(&self) -> &[Op] {
-        &self.ops
+        Self::new(
+            alloc::vec![
+                Op::Const(low),
+                Op::Const(high),
+                Op::Const(key),
+                Op::Call(func, 3)
+            ],
+            Vec::new(),
+        )
     }
 
     #[must_use]
@@ -231,6 +269,7 @@ impl Program {
                         time: clock.time,
                         seed: clock.seed,
                         loop_period: env.loop_period,
+                        wind: env.wind,
                     };
                     stack.push(func.apply(args, &ctx).ok_or(EvalError::Malformed)?)?;
                 }
@@ -246,6 +285,13 @@ impl Program {
                 Op::Seed(seed) => {
                     saved.push(clock)?;
                     clock.seed = seed;
+                }
+                Op::Track(index) => {
+                    let track = self
+                        .tracks
+                        .get(usize::from(index))
+                        .ok_or(EvalError::Malformed)?;
+                    stack.push(track.sample(clock.time, env.fps))?;
                 }
                 Op::Leave => clock = saved.pop()?,
             }
@@ -280,7 +326,7 @@ pub(crate) fn required_stack(ops: &[Op]) -> Option<(usize, usize)> {
     let (mut depth, mut max_depth, mut scopes, mut max_scopes) = (0usize, 0usize, 0usize, 0usize);
     for op in ops {
         let (pops, pushes) = match op {
-            Op::Const(_) | Op::Var(_) => (0, 1),
+            Op::Const(_) | Op::Var(_) | Op::Track(_) => (0, 1),
             Op::Unary(_) | Op::Ease(_) => (1, 1),
             Op::Binary(_) => (2, 1),
             Op::Select => (3, 1),
@@ -299,4 +345,14 @@ pub(crate) fn required_stack(ops: &[Op]) -> Option<(usize, usize)> {
         max_depth = max_depth.max(depth);
     }
     (depth == 1 && scopes == 0).then_some((max_depth, max_scopes))
+}
+
+/// Appends `program` to `ops`/`tracks`, renumbering its track indices.
+pub(crate) fn append(ops: &mut Vec<Op>, tracks: &mut Vec<Track>, program: &Program) {
+    let offset = u16::try_from(tracks.len()).unwrap_or(u16::MAX);
+    tracks.extend(program.tracks.iter().cloned());
+    ops.extend(program.ops.iter().map(|op| match *op {
+        Op::Track(index) => Op::Track(index.saturating_add(offset)),
+        other => other,
+    }));
 }

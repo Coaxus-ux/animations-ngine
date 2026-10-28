@@ -13,12 +13,14 @@ mod parser;
 mod program;
 mod random;
 mod stack;
+mod track;
 
 pub use ease::Ease;
 pub use error::{CompileError, CompileErrorKind, EvalError, ResolveError};
 pub use names::Var;
 pub use parser::MAX_NESTING;
-pub use program::{Env, MAX_OPS, MAX_SCOPES, MAX_STACK, Program};
+pub use program::{Blend, Env, MAX_OPS, MAX_SCOPES, MAX_STACK, Program, Wind};
+pub use track::{Key, Track, TrackLoop};
 
 pub struct Reference {
     pub program: Program,
@@ -41,6 +43,16 @@ impl Resolver for NoNames {
     fn reference(&mut self, _: &str) -> Result<Reference, ResolveError> {
         Err(ResolveError::UnknownReference)
     }
+}
+
+#[must_use]
+pub fn value_noise(seed: u64, x: f64, y: f64) -> f64 {
+    random::value_noise(seed, x, y)
+}
+
+#[must_use]
+pub fn wind_at(field: Wind, time: f64, x: f64, loop_period: Option<f64>) -> f64 {
+    random::wind(field, time, x, loop_period)
 }
 
 pub fn compile(source: &str) -> Result<Program, CompileError> {

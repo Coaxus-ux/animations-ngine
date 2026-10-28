@@ -59,9 +59,9 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 > **Plan (2026-10-28):** built in five slices, each ending with `tools/check.sh` green.
 > 1. ✅ **Expression language** (done 2026-10-28) — everything in [FORMAT.md](FORMAT.md) §9: comparisons, logic, ternary, `**`, time and angle literals, every math, periodic, time-scope, easing, randomness and noise function; rounding per §9.7; non-finite values become 0 with a per-frame report (§9.8).
 > 2. ✅ **Value kinds** (done 2026-10-28) — units, seeded ranges (`"2..5"`), `param` / `$name`, `@id.prop` references with cycle detection.
-> 3. **Keyframes** — `anim` tracks, every interpolation, relative times, track loop and blend modes.
-> 4. **Validation** — schemas for every node, "did you mean" suggestions, the severity rules of §15.
-> 5. 🟡 **Live loop** (started 2026-10-28: `pxe watch` with hot reload, a preview window and per-frame render time; pending: frame times in `tools/check.sh`) — `pxe watch`, hot reload, a minimal preview window, frame-time measurement.
+> 3. ✅ **Keyframes** (done 2026-10-28) — `anim` tracks, every interpolation, relative times, track loop and blend modes, multi-property keys in `camera`. Tracks compile into expression programs, so references and time scopes see animated values.
+> 4. ✅ **Validation** (done 2026-10-28) — a schema for every node kind (in `px-format`, not a separate `px-schema` crate yet); "did you mean" suggestions for nodes, properties, anim targets, interpolations, ids, params, palettes, ramps, light colors and scenes; unknown properties are warnings (§15). Pending: `--json` diagnostics and `--strict`.
+> 5. ✅ **Live loop** (done 2026-10-28) — `pxe watch` with hot reload, a preview window and per-frame render time; `pxe bench` reports frame times for every example and benchmark scene, and `tools/check.sh` fails when a frame is over budget.
 >
 > Slice 2 notes: params are substituted when the file loads (a changed param means a reload, which the live loop in slice 5 does automatically) and `--param name=value` overrides them; text params can't be used in expressions yet. References are inlined when the file loads, keeping the target's seed; `@id.inner.prop`, `@parent`, sockets, anchors and states arrive with prefabs and rigs. Ranges don't use a repeater index yet, because `repeat` doesn't exist yet.
 >
@@ -73,6 +73,7 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 - **Risks:** KDL v2 crate maturity. *Mitigation:* wrap it behind our own document model so the parser can be swapped.
 
 ### M2 — Graph, 2D shapes & pixel cleanup
+> **Pulled forward (2026-10-28), without the graph runtime:** `rounded-rect`, `capsule`, `polygon`, `blob` and thick lines through SDF rasterization; a per-shape coverage mask with orphan and notch cleanup; dome and soft form shading from a distance field; full and selective outlines; clustered-noise texture; gradients as solid bands with short dithered seams; clip groups. Still M2: the graph runtime, generators, sel-out tuned against reference crops, prefabs.
 - **Scope:** graph runtime (lazy evaluation, caching, static/animated detection, parallel branches); generate, SDF 2D, noise and patterns, field ops, pixel art filters, color/palette nodes; `ramp-gen`; groups (prefabs in KDL).
 - **Deliverables:** `px-graph`, extended `px-raster`, `px-filters`, `px-nodes` (NODES §1, 2, 5–8, 18).
 - **Done when:**
@@ -83,6 +84,7 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 - **Risks:** procedural shapes look "generated". *Mitigation:* cleanup passes are tuned against reference pixel art crops; side-by-side review is part of the done criteria.
 
 ### M3 — Procedural generators & first packs (generality proof)
+> **Pulled forward (2026-10-28):** layers with parallax and a keyframed camera.
 - **Scope:** `lsystem`, `tree`, `terrain-1d`, `skyline`, `facade`, `rock`, `cloud`, `grass`, `scatter`, `distribute-path`; layers with parallax; packs `core-kit` and `nature` (written in KDL); `interior` pack v0.
 - **Deliverables:** `px-nodes` (NODES §4, 10, 11), `px-packs`, packs `core-kit`, `nature`, `interior`.
 - **Done when:** **B2 static** (a dusk forest with parallax hills and three tree kinds) and **B1 static, without lights or characters** both render with no engine code specific to either.
@@ -90,6 +92,7 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 - **Risks:** the generators turn into a zoo. *Mitigation:* every generator must be used by at least two packs or benchmarks.
 
 ### M4 — Lighting
+> **Pulled forward (2026-10-28):** ambient darkness and occlusion; point, cone and rect lights with banded falloff; light colors through hand-written twins; emissive surfaces; cast shadows (ray-marched against `casts-shadow` shapes); contact shadows; fog as atmospheric perspective; reflections limited to a surface ramp. The B1 re-attempt's lamp tints the blue wall warm. Still M4: directional lights, auto-twins, glow and god rays, style presets, shipped palettes.
 - **Scope:** ambient, point, cone, rect, directional lights; tone steps with dithered falloff; twins and auto-twins; emissive ramps; `shadow-2d`, `glow`, `god-rays`; dither anchored to world space; **style presets** and `detail-scale` regeneration ([RENDERING.md](RENDERING.md) §16).
 - **Deliverables:** `px-light`, the palette twin system, style presets, shipped palettes `night-blue`, `dusk`, `morning`.
 - **Done when:** the B1 lamp cone tints the blue wall warm; the B2 dusk light comes through the canopy as god rays; swapping the palette `night-blue` ↔ `dusk` works on both scenes unchanged; B1 and B2 stills render in all six style presets with zero scene edits.
@@ -97,6 +100,7 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 - **Risks:** auto-twins look muddy. *Mitigation:* hand-written twins for the key roles; snap to existing palette colors (`closed=#true`).
 
 ### M5 — Animation & simulation
+> **Pulled forward (2026-10-28):** stateless loop-aware particles, ropes with sag and sway, a wind field read by `wind(x)`, loop-aware reflection ripples.
 - **Scope:** time, modulators, keyframes, `hold` (on2/on3), loop/delay/stagger, loop solver, loopable noise; particles, `boids`, `rope`, `cloth`, `wind-field`, `water-surface`, `caustics`, `feedback`; checkpoints for stateful nodes.
 - **Deliverables:** `px-sim`, `px-fx`, NODES §12–13, simulation checkpoints, `water` pack v0.
 - **Done when:**

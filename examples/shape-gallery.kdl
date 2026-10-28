@@ -1,0 +1,61 @@
+// Every shape, surface style and keyframe interpolation in one looping sheet.
+// Top row: shapes with dome shading and outlines. Middle: textures, gradients and a clip.
+// Bottom: the same hop with different interpolations. Loops every 2 seconds.
+
+palette "gallery" {
+    ramp "bg"    "#1a1726" "#24203a" "#2f2a4a"
+    ramp "teal"  "#0f2f36" "#1d5357" "#2f7f73" "#55ab8c" "#90d5a5"
+    ramp "coral" "#3a1426" "#6e2338" "#a83c45" "#d9665a" "#f5a385"
+    ramp "gold"  "#3d2410" "#73451a" "#a87022" "#d9a33a" "#f5d87a"
+    ramp "ink"   "#0b0912"
+}
+
+scene "shape-gallery" palette="gallery" width=160 height=120 fps=12 duration="2s" loop=#true seed=5 background="bg.base" {
+    // Shapes
+    rounded-rect x=6 y=8 width=24 height=20 radius=5 paint="teal.base" shading="dome" outline="selective" contact-shadow=1
+    capsule x1=40 y1=18 x2=60 y2=18 radius=6 paint="coral.base" shading="soft" shading-steps=2 outline="full"
+    polygon x=70 y=6 points="12,0 24,22 0,22" paint="gold.base" shading="dome" outline="selective" cleanup=#true
+    blob x=112 y=16 circles="0,0,7 9,2,6 4,-6,5" smooth=3 paint="teal.lit" shading="dome" outline="full"
+    rope x1=132 y1=6 x2=156 y2=6 sag="=4 + sin(t * tau) * 2" width=1 paint="gold.hi"
+    particles x=132 y=10 width=24 height=16 count=12 vy=-8 life="1s" paint="gold.hi" fade=#true
+
+    // Surfaces
+    rect x=6 y=40 width=30 height=24 paint="teal.base" texture=0.5 texture-scale=3 outline="full"
+    rect x=44 y=40 width=30 height=24 paint="coral.base" gradient="down" gradient-steps=3
+    ellipse x=82 y=40 width=26 height=24 paint="gold.base" gradient="radial" gradient-steps=-3
+    group "porthole" clip=#true round=#true x=116 y=40 width=26 height=24 {
+        rect x=116 y=40 width=26 height=24 paint="teal.deep"
+        rect x="=110 + mod(t * 20, 40)" y=46 width=10 height=12 paint="coral.lit" shading="dome"
+    }
+    rounded-rect x=150 y=40 width=6 height=24 radius=2 paint="gold.lit" {
+        anim tone-shift loop="pingpong" { k "0s" -2; k "1s" 1 interp="smooth" }
+    }
+
+    // Interpolations: one hop per column, all on the same baseline
+    rect x=0 y=108 width="100%" height=12 paint="bg.deep"
+    ellipse x=4 y=100 width=10 height=8 paint="teal.lit" outline="full" {
+        anim y loop="repeat" { k "0s" 100 interp="linear"; k "1s" 76 interp="linear"; k "2s" 100 }
+    }
+    ellipse x=24 y=100 width=10 height=8 paint="teal.lit" outline="full" {
+        anim y loop="repeat" { k "0s" 100 interp="ease-out"; k "1s" 76 interp="ease-in"; k "2s" 100 }
+    }
+    ellipse x=44 y=100 width=10 height=8 paint="coral.lit" outline="full" {
+        anim y loop="repeat" { k "0s" 100 interp="smooth"; k "1s" 76 interp="smooth"; k "2s" 100 }
+    }
+    ellipse x=64 y=100 width=10 height=8 paint="coral.lit" outline="full" {
+        anim y loop="repeat" { k "0s" 76 interp="bounce"; k "1s" 100 interp="linear"; k "2s" 76 }
+    }
+    ellipse x=84 y=100 width=10 height=8 paint="gold.lit" outline="full" {
+        anim y loop="repeat" { k "0s" 100 interp="elastic"; k "1s" 80 interp="linear"; k "2s" 100 }
+    }
+    ellipse x=104 y=100 width=10 height=8 paint="gold.lit" outline="full" {
+        anim y loop="repeat" { k "0s" 100 interp="hold-2"; k "1s" 76 interp="hold-3"; k "2s" 100 }
+    }
+    ellipse x=124 y=100 width=10 height=8 paint="teal.lit" outline="full" {
+        anim y loop="repeat" { k "0s" 100 interp="step"; k "1s" 76 interp="step"; k "2s" 100 }
+    }
+    ellipse x=144 y=100 width=10 height=8 paint="coral.lit" outline="full" {
+        anim opacity loop="pingpong" { k "0s" 1; k "1s" 0 interp="linear" }
+        anim visible loop="repeat" { k "0s" 1 interp="step"; k "1.5s" 0 interp="step"; k "2s" 0 }
+    }
+}

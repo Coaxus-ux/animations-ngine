@@ -39,4 +39,7 @@ cargo test --workspace --profile release-assertions --locked --no-fail-fast
 step "allocation-free rendering"
 cargo test -p px-engine --test no_alloc --locked -- --test-threads=1
 
+step "frame times (every example and benchmark scene)"
+cargo run --quiet --release --locked -p px-cli -- bench
+
 printf '\nAll checks passed.\n'

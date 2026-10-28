@@ -5,6 +5,7 @@ use px_expr::ResolveError;
 
 use crate::diagnostic::Diagnostics;
 use crate::props::Props;
+use crate::suggest;
 use crate::values;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -80,14 +81,8 @@ impl SceneParams {
     ) {
         for (name, text) in overrides {
             let Some(param) = self.params.get_mut(name) else {
-                let known: Vec<&str> = self.params.keys().map(String::as_str).collect();
-                diags.error(
-                    0,
-                    format!(
-                        "--param {name}: unknown param (known: {})",
-                        known.join(", ")
-                    ),
-                );
+                let hint = suggest::hint(name, self.params.keys().map(String::as_str));
+                diags.error(0, format!("--param {name}: unknown param.{hint}"));
                 continue;
             };
             let parsed = match param.value {
@@ -116,10 +111,10 @@ impl SceneParams {
                 format!("param `${name}` is text; expressions need numbers"),
             )),
             None => {
-                let known: Vec<String> = self.params.keys().map(|key| format!("${key}")).collect();
+                let hint = suggest::hint(name, self.params.keys().map(String::as_str));
                 Err((
                     ResolveError::UnknownParam,
-                    format!("unknown param `${name}` (known: {})", known.join(", ")),
+                    format!("unknown param `${name}`.{hint}"),
                 ))
             }
         }

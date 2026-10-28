@@ -2,6 +2,8 @@ use core::f64::consts::TAU;
 
 use px_core::{hash_seed as hash, mix};
 
+use crate::program::Wind;
+
 const MAX_OCTAVES: u32 = 8;
 
 #[expect(
@@ -100,4 +102,35 @@ pub(crate) fn wiggle(
         None => noise(seed, [time * frequency, 0.0, 0.0]),
     };
     amplitude * (2.0 * value - 1.0)
+}
+
+const WIND_SEED: u64 = 0x5749_4e44;
+const WIND_CELL: f64 = 32.0;
+
+// Gusts travel along x; in looping scenes time is sampled on a circle so the field loops too.
+pub(crate) fn wind(field: Wind, time: f64, x: f64, loop_period: Option<f64>) -> f64 {
+    let along = x / WIND_CELL;
+    let gust = match loop_period.filter(|period| *period > 0.0) {
+        Some(period) => {
+            let radius = field.speed * period / (TAU * WIND_CELL);
+            let angle = TAU * time / period;
+            noise(
+                WIND_SEED,
+                [
+                    along + libm::cos(angle) * radius,
+                    libm::sin(angle) * radius,
+                    0.0,
+                ],
+            )
+        }
+        None => noise(
+            WIND_SEED,
+            [along - time * field.speed / WIND_CELL, 0.5, 0.0],
+        ),
+    };
+    field.strength * (1.0 + field.gust * (2.0 * gust - 1.0))
+}
+
+pub(crate) fn value_noise(seed: u64, x: f64, y: f64) -> f64 {
+    noise(seed, [x, y, 0.0])
 }

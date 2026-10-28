@@ -7,8 +7,9 @@ use crate::funcs::Func;
 use crate::lexer::{Lexer, Token, TokenKind, Unit, error, time_literal};
 use crate::names::{Name, Var, lookup};
 use crate::program::{
-    BinaryOp, MAX_OPS, MAX_SCOPES, MAX_STACK, Op, Program, UnaryOp, required_stack,
+    BinaryOp, MAX_OPS, MAX_SCOPES, MAX_STACK, Op, Program, UnaryOp, append, required_stack,
 };
+use crate::track::Track;
 
 pub const MAX_NESTING: usize = 32;
 
@@ -17,6 +18,7 @@ pub(crate) struct Parser<'a, 'r> {
     resolver: &'r mut dyn Resolver,
     current: Token,
     ops: Vec<Op>,
+    tracks: Vec<Track>,
     nesting: usize,
 }
 
@@ -32,6 +34,7 @@ impl<'a, 'r> Parser<'a, 'r> {
             resolver,
             current: end,
             ops: Vec::new(),
+            tracks: Vec::new(),
             nesting: 0,
         }
     }
@@ -50,7 +53,7 @@ impl<'a, 'r> Parser<'a, 'r> {
         if stack > MAX_STACK || scopes > MAX_SCOPES || self.ops.len() > MAX_OPS {
             return Err(too_complex);
         }
-        Ok(Program::new(self.ops))
+        Ok(Program::new(self.ops, self.tracks))
     }
 
     fn advance(&mut self) -> Result<Token, CompileError> {
@@ -181,7 +184,7 @@ impl<'a, 'r> Parser<'a, 'r> {
                     .map_err(|cause| resolve_error(cause, token))?;
                 self.advance()?;
                 self.ops.push(Op::Seed(reference.seed));
-                self.ops.extend_from_slice(reference.program.ops());
+                append(&mut self.ops, &mut self.tracks, &reference.program);
                 self.ops.push(Op::Leave);
                 Ok(())
             }
