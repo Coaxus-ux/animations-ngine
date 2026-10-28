@@ -1,6 +1,7 @@
-//! Golden-hash test for every scene in `examples/`: indexed-buffer hashes per frame must
-//! match `tests/golden/<name>.txt` on every platform. Set `PX_BLESS=1` to rewrite the files
-//! after an intended change, and review the diff.
+//! Golden-hash test for every scene in `examples/` and `benchmarks/*/`: indexed-buffer
+//! hashes per frame must match `tests/golden/<name>.txt` on every platform (benchmark
+//! names are prefixed with their folder). Set `PX_BLESS=1` to rewrite the files after an
+//! intended change, and review the diff.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -13,14 +14,43 @@ use px_core::{Frame, hash_cells};
 use px_engine::{FrameBuffer, Looping, Scene};
 use px_format::LoadOptions;
 
-fn examples(root: &Path) -> Vec<PathBuf> {
-    let mut files: Vec<PathBuf> = std::fs::read_dir(root.join("../../examples"))
-        .unwrap()
-        .map(|entry| entry.unwrap().path())
+fn entries(dir: &Path) -> Vec<PathBuf> {
+    std::fs::read_dir(dir).map_or_else(
+        |_| Vec::new(),
+        |entries| entries.map(|entry| entry.unwrap().path()).collect(),
+    )
+}
+
+fn kdl_files(dir: &Path) -> Vec<PathBuf> {
+    entries(dir)
+        .into_iter()
         .filter(|path| path.extension().is_some_and(|ext| ext == "kdl"))
+        .collect()
+}
+
+fn scene_files(root: &Path) -> Vec<(String, PathBuf)> {
+    let repo = root.join("../..");
+    let mut files: Vec<(String, PathBuf)> = kdl_files(&repo.join("examples"))
+        .into_iter()
+        .map(|path| (stem(&path), path))
         .collect();
+    for dir in entries(&repo.join("benchmarks"))
+        .into_iter()
+        .filter(|path| path.is_dir())
+    {
+        let prefix = stem(&dir);
+        files.extend(
+            kdl_files(&dir)
+                .into_iter()
+                .map(|path| (format!("{prefix}-{}", stem(&path)), path)),
+        );
+    }
     files.sort();
     files
+}
+
+fn stem(path: &Path) -> String {
+    path.file_stem().unwrap().to_string_lossy().into_owned()
 }
 
 fn frame_hashes(scene: &Scene) -> String {
@@ -54,25 +84,24 @@ fn frame_hashes(scene: &Scene) -> String {
 }
 
 #[test]
-fn every_example_matches_its_golden_hashes() {
+fn every_example_and_benchmark_matches_its_golden_hashes() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let files = examples(root);
+    let files = scene_files(root);
     assert_ne!(files.len(), 0, "no example scenes found");
-    for file in files {
+    for (name, file) in files {
         let source = std::fs::read_to_string(&file).unwrap();
         let scene = px_format::load_scene(&source, LoadOptions::default())
             .unwrap()
             .scene;
         let actual = frame_hashes(&scene);
-        let stem = file.file_stem().unwrap().to_string_lossy();
-        let golden = root.join(format!("tests/golden/{stem}.txt"));
+        let golden = root.join(format!("tests/golden/{name}.txt"));
         if std::env::var_os("PX_BLESS").is_some() {
             std::fs::write(&golden, &actual).unwrap();
         }
         let expected = std::fs::read_to_string(&golden).unwrap_or_default();
         assert_eq!(
             actual, expected,
-            "{stem}: golden hashes changed; rerun with PX_BLESS=1 if intended"
+            "{name}: golden hashes changed; rerun with PX_BLESS=1 if intended"
         );
     }
 }

@@ -58,6 +58,8 @@ Two reviewers score 1–5 on each axis. A benchmark passes with an average **≥
 
 **Description.** A dark blue bedroom-study at night: a person typing at a CRT, a child sitting on an old TV looking at rainy city windows, a black cat reaching up, shelves full of books, a warm arm lamp, a red heater. This is the user's original reference image.
 
+**Baseline (M1, 2026-10-28):** [benchmarks/b1-cozy-room/](../benchmarks/b1-cozy-room/README.md) rebuilds the reference with M1 features only, reaching about 40%. Its gaps list what each later milestone must close.
+
 | | |
 |---|---|
 | **Palette / style** | `night-blue` / `moody` |
