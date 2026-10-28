@@ -37,7 +37,7 @@ pub(crate) fn reflect(surface: &mut Surface<'_>, palette: &Palette, mirror: &Mir
             };
             let on_surface = mirror
                 .surface
-                .is_none_or(|ramp| surface.cells[target].ramp == ramp);
+                .is_none_or(|ramp| palette.is_variant_of(surface.cells[target].ramp, ramp));
             if !on_surface || !dither_keep(mirror.opacity, x, y) {
                 continue;
             }

@@ -1,0 +1,119 @@
+// A harbor at nightfall. The lighthouse beam sweeps the sky and sea once per loop, boats bob
+// at anchor with their lanterns lit, ropes sag between the dock posts and gulls circle.
+// Shows: a keyframed rotating cone light with a twin color, reflections on the sea ramp,
+// textured cliffs, polygons, ropes, bobbing with expressions, parallax clouds. Loops every 4 seconds.
+
+palette "harbor" {
+    ramp "sky"        "#121a2e" "#1c2742" "#2a3858" "#3d4e72" "#566a8e"
+    ramp "sky-beam"   "#3a3a3c" "#5a5650" "#857c66" "#b8a67c" "#e6d29a"
+    ramp "dusk"       "#3a2a48" "#5e3a5a" "#8a4e62" "#c06a64" "#e89a72"
+    ramp "dusk-beam"  "#5a4a54" "#7e5e62" "#a8806e" "#d0a07a" "#f4c48e"
+    ramp "cloud"      "#1e2840" "#2c3858" "#3e4c70" "#56648a" "#7480a6"
+    ramp "cloud-beam" "#4a4644" "#6c6458" "#988a6c" "#c6b284" "#f0dca4"
+    ramp "sea"        "#0b1424" "#122036" "#1a2d4a" "#253d60" "#335078"
+    ramp "sea-beam"   "#222428" "#363634" "#545044" "#7c7458" "#a89a70"
+    ramp "rock"       "#141619" "#1f2226" "#2c3036" "#3c4249" "#50575f"
+    ramp "rock-beam"  "#2e2c24" "#444030" "#605840" "#827654" "#a8986a"
+    ramp "wall"       "#4a4c58" "#6e7080" "#9496a6" "#babccc" "#e0e2ee"
+    ramp "red"        "#3a1418" "#5e1c22" "#8a2a2e" "#b43c3a" "#d85a4c"
+    ramp "wood"       "#1a120c" "#2a1c12" "#3c2a1a" "#523a24" "#6a4e30"
+    ramp "sail"       "#5a5a64" "#7c7c86" "#a2a2aa" "#c8c8cc" "#ececee"
+    ramp "lamp"       "#a8702c" "#f0b450" "#ffe08a" "#fff8e0"
+    ramp "ink"        "#080a10"
+    twin "sky" beam="sky-beam"
+    twin "dusk" beam="dusk-beam"
+    twin "cloud" beam="cloud-beam"
+    twin "sea" beam="sea-beam"
+    twin "rock" beam="rock-beam"
+}
+
+scene "lighthouse-harbor" palette="harbor" width=192 height=128 fps=12 duration="4s" loop=#true seed=8 background="sky.base" {
+    ambient darkness=1 occlusion=1 key-light=200
+    wind strength=1 gust=0.5 speed=4
+
+    // Sky: a dusk band low on the horizon, the moon and stars
+    layer "sky" parallax=0 {
+        rect x=0 y=0 width="100%" height=60 paint="sky.deep" gradient="down" gradient-steps=3
+        rect x=0 y=58 width="100%" height=14 paint="dusk.shade" gradient="down" gradient-steps=2
+        ellipse x=150 y=12 width=10 height=10 paint="sail.hi" emissive=#true
+        rect x=20 y=8 width=1 height=1 paint="sail.lit" emissive=#true
+        rect x=62 y=18 width=1 height=1 paint="sail.lit" emissive=#true
+        rect x=88 y=6 width=1 height=1 paint="sail.hi" emissive=#true visible="=1 - pulse(1s, 0.2)"
+        rect x=112 y=24 width=1 height=1 paint="sail.lit" emissive=#true
+        rect x=176 y=30 width=1 height=1 paint="sail.lit" emissive=#true
+        rect x=134 y=4 width=1 height=1 paint="sail.hi" emissive=#true visible="=1 - pulse(1.33s, 0.15)"
+    }
+
+    // Clouds drift back and forth at their own depth
+    layer "clouds" parallax=0.2 {
+        blob x="=60 + osc(4s, -4, 4)" y=26 circles="0,0,6 8,-3,7 17,0,6 25,2,4" smooth=4 paint="cloud.base" shading="dome"
+        blob x="=124 + osc(4s, 3, -3)" y=40 circles="0,0,4 7,-2,5 14,1,4" smooth=3 paint="cloud.shade" shading="dome"
+        blob x="=170 + osc(4s, -2, 2)" y=18 circles="0,0,3 6,-1,4 11,1,3" smooth=3 paint="cloud.lit" shading="dome"
+    }
+
+    // The sea with drifting wave highlights
+    rect "sea" x=0 y=72 width="100%" height=56 paint="sea.base" gradient="down" gradient-steps=-2
+    rect x="=96 + osc(4s, -3, 3)" y=78 width=10 height=1 paint="sea.hi"
+    rect x="=140 + osc(4s, 2, -2)" y=84 width=14 height=1 paint="sea.lit"
+    rect x="=70 + osc(2s, -2, 2)" y=92 width=8 height=1 paint="sea.lit"
+    rect x="=118 + osc(2s, 3, -3)" y=104 width=16 height=1 paint="sea.hi"
+    rect x="=160 + osc(4s, -3, 3)" y=116 width=12 height=1 paint="sea.lit"
+    rect x="=84 + osc(4s, 2, -2)" y=120 width=18 height=1 paint="sea.lit"
+
+    // Cliff, keeper's house and the lighthouse
+    polygon "cliff" x=0 y=48 points="0,6 14,0 30,4 46,12 58,26 64,40 60,80 0,80" paint="rock.base" texture=0.35 texture-scale=3 shading="dome" outline="selective" casts-shadow=#true
+    polygon x=0 y=78 points="0,0 40,0 62,8 70,20 0,50" paint="rock.shade" texture=0.3 texture-scale=4
+    rect x=40 y=46 width=16 height=12 paint="wall.base" shading="dome" outline="selective" casts-shadow=#true
+    polygon x=38 y=38 points="10,0 20,8 0,8" paint="red.base" shading="dome" outline="selective"
+    rect x=45 y=50 width=4 height=4 paint="lamp.lit" emissive=#true
+    polygon "tower" x=16 y=14 points="6,0 18,0 22,40 2,40" paint="wall.lit" shading="dome" outline="selective" casts-shadow=#true
+    polygon x=16 y=14 points="6,0 18,0 18.6,6 5.4,6" paint="red.base" shading="dome"
+    polygon x=16 y=14 points="4.2,18 19.8,18 20.4,24 3.6,24" paint="red.base" shading="dome"
+    polygon x=16 y=14 points="2.6,34 21.4,34 22,40 2,40" paint="red.base" shading="dome"
+    rect x=21 y=30 width=3 height=5 paint="lamp.base" emissive=#true
+    rect x=19 y=6 width=10 height=8 paint="lamp.hi" emissive=#true
+    rect x=18 y=4 width=12 height=2 paint="ink"
+    polygon x=17 y=-2 points="7,0 14,6 0,6" paint="red.shade" outline="selective"
+    light-point x=24 y=10 reach=18 intensity=2
+    light-cone "beam" x=24 y=10 spread="26deg" reach=220 intensity=3.4 color="beam" {
+        anim angle loop="repeat" { k "0s" "-90deg"; k "4s" "270deg" }
+    }
+
+    // The dock: planks on posts, ropes sagging between them, a lamp at the end
+    rect x=112 y=88 width=80 height=4 paint="wood.lit" shading="dome" outline="selective" casts-shadow=#true
+    rect x=116 y=92 width=3 height=14 paint="wood.shade" casts-shadow=#true
+    rect x=140 y=92 width=3 height=14 paint="wood.shade" casts-shadow=#true
+    rect x=164 y=92 width=3 height=14 paint="wood.shade" casts-shadow=#true
+    rect x=188 y=92 width=3 height=14 paint="wood.shade" casts-shadow=#true
+    rect x=116 y=80 width=2 height=8 paint="wood.base"
+    rect x=140 y=80 width=2 height=8 paint="wood.base"
+    rect x=164 y=80 width=2 height=8 paint="wood.base"
+    rope x1=117 y1=81 x2=141 y2=81 sag=3 sway="=osc(4s, -0.5, 0.5)" paint="wood.hi"
+    rope x1=141 y1=81 x2=165 y2=81 sag=3 sway="=osc(4s, 0.5, -0.5)" paint="wood.hi"
+    capsule x1=185 y1=66 x2=185 y2=88 radius=1 paint="ink"
+    ellipse x=182 y=63 width=7 height=5 paint="lamp.lit" emissive=#true
+    light-point x=185 y=66 reach=34 intensity=2.2
+
+    // Boats bobbing at anchor
+    group "sailboat" {
+        polygon "hull" x=72 y="=96 + osc(2s, -1, 1)" points="0,0 30,0 26,7 4,7" paint="red.base" shading="dome" outline="selective" casts-shadow=#true
+        line x1=87 y1="=@hull.y - 26" x2=87 y2="=@hull.y" paint="wood.shade"
+        polygon x=88 y="=@hull.y - 25" points="0,0 13,22 0,22" paint="sail.lit" shading="dome" outline="selective"
+        polygon x=73 y="=@hull.y - 20" points="13,0 13,18 0,18" paint="sail.base" shading="dome" outline="selective"
+        ellipse x=97 y="=@hull.y - 4" width=3 height=3 paint="lamp.hi" emissive=#true
+        light-point x=98 y="=@hull.y - 3" reach=16 intensity=1.6
+    }
+    group "rowboat" {
+        polygon "dinghy" x=138 y="=108 + osc(2s, 1, -1)" points="0,0 20,0 17,5 3,5" paint="wood.lit" shading="dome" outline="selective" casts-shadow=#true
+        rope x1=141 y1="=@dinghy.y" x2=141 y2=106 sag=-2 paint="wood.hi"
+        line x1="=@dinghy.x + 4" y1="=@dinghy.y - 1" x2="=@dinghy.x + 16" y2="=@dinghy.y - 1" paint="wood.hi"
+    }
+
+    // Gulls circling over the water
+    line "gull" x1="=120 + osc(4s, -24, 24)" y1="=30 + osc(2s, -3, 3)" x2="=@self.x1 + 3" y2="=@self.y1 + 1 + on2(square(t * 3))" paint="sail.hi"
+    line x1="=@gull.x2" y1="=@gull.y2" x2="=@gull.x1 + 6" y2="=@gull.y1" paint="sail.hi"
+    line "gull2" x1="=80 + osc(4s, 18, -18)" y1="=40 + osc(2s, 2, -2)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3 + 0.5))" paint="sail.lit"
+    line x1="=@gull2.x2" y1="=@gull2.y2" x2="=@gull2.x1 + 4" y2="=@gull2.y1" paint="sail.lit"
+
+    reflection x=0 y=72 width=192 height=56 axis=72 ripple=1 speed=2 tone-shift=-1 on="sea"
+}

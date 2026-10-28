@@ -28,6 +28,8 @@ pub struct Particles {
     pub life: Param,
     pub size: Param,
     pub wind: Param,
+    /// Seconds of travel drawn as a trail behind each particle (rain, sparks).
+    pub streak: Param,
     pub fade: bool,
 }
 

@@ -152,6 +152,7 @@ fn particles(
     let (vx, vy) = (values.of(&spec.velocity_x)?, values.of(&spec.velocity_y)?);
     let (gravity, life) = (values.of(&spec.gravity)?, values.of(&spec.life)?);
     let (size, wind_factor) = (values.of(&spec.size)?, values.of(&spec.wind)?);
+    let streak = values.of(&spec.streak)?.max(0.0);
     let life = life.max(1.0 / values.env.fps.max(1.0));
     let dot = snap_extent(size).max(1);
     for index in 0..u64::from(spec.count) {
@@ -165,8 +166,13 @@ fn particles(
                 spawn[0],
                 values.env.loop_period,
             );
-        let px = spawn[0] + (vx + wind) * age;
-        let py = spawn[1] + vy * age + 0.5 * gravity * age * age;
+        let at = |age: f64| {
+            [
+                spawn[0] + (vx + wind) * age,
+                spawn[1] + vy * age + 0.5 * gravity * age * age,
+            ]
+        };
+        let [px, py] = at(age);
         let fade = if spec.fade { 1.0 - age / life } else { 1.0 };
         #[expect(
             clippy::cast_possible_truncation,
@@ -175,6 +181,15 @@ fn particles(
         )]
         let alpha = (fade.clamp(0.0, 1.0) * f64::from(FULL)).round().max(1.0) as u8;
         let (left, top) = (snap_coord(px), snap_coord(py));
+        if streak > 0.0 {
+            let [tail_x, tail_y] = at((age - streak).max(0.0));
+            trail(
+                mask,
+                [snap_coord(tail_x), snap_coord(tail_y)],
+                [left, top],
+                alpha,
+            );
+        }
         for dy in 0..dot {
             for dx in 0..dot {
                 mask.set_alpha(left + dx, top + dy, alpha);
@@ -182,4 +197,12 @@ fn particles(
         }
     }
     Ok(())
+}
+
+fn trail(mask: &mut Mask<'_>, [x0, y0]: [i32; 2], [x1, y1]: [i32; 2], alpha: u8) {
+    let steps = (x1 - x0).abs().max((y1 - y0).abs()).max(1);
+    for step in 0..steps {
+        let (x, y) = (x0 + (x1 - x0) * step / steps, y0 + (y1 - y0) * step / steps);
+        mask.set_alpha(x, y, alpha);
+    }
 }

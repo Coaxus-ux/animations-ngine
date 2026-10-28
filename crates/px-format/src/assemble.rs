@@ -207,6 +207,7 @@ fn geometry(kind: Kind, extras: Extras, next: &mut Next) -> Geometry {
             life: next.param(),
             size: next.param(),
             wind: next.param(),
+            streak: next.param(),
             count,
             fade,
         })),

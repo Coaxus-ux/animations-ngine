@@ -191,6 +191,16 @@ impl Palette {
             .get(ramp.index())
             .and_then(|twins| twins[color.index()])
     }
+
+    /// Whether `ramp` is `base` itself or one of its twins, i.e. the same material under some light.
+    #[must_use]
+    pub fn is_variant_of(&self, ramp: RampId, base: RampId) -> bool {
+        ramp == base
+            || self
+                .twins
+                .get(base.index())
+                .is_some_and(|twins| twins.contains(&Some(ramp)))
+    }
 }
 
 impl fmt::Display for PaletteError {

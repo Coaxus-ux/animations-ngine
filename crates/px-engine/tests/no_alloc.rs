@@ -166,6 +166,7 @@ fn shapes(kit: &Kit) -> Vec<Shape> {
                 life: fixed(2.0),
                 size: fixed(1.0),
                 wind: fixed(1.0),
+                streak: fixed(0.1),
                 fade: true,
             })),
             kit.mid,

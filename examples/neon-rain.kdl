@@ -1,0 +1,143 @@
+// A rainy street at night. Two neon signs tint the walls pink and cyan, the puddles mirror
+// the city, a car drives through with its headlights on, and someone waits under a lamp.
+// Shows: two light colors with twins, emissive signs that flicker, reflections limited to
+// puddles, a keyframed car carrying a cone light, parallax skyline, rain. Loops every 4 seconds.
+
+palette "neon" {
+    ramp "sky"         "#0c0a1a" "#15122b" "#1f1a3d" "#2b2452" "#3a3168"
+    ramp "bldg"        "#0e0d1a" "#161427" "#1f1c36" "#2a2647" "#37325a"
+    ramp "bldg-pink"   "#1a0d1c" "#27122d" "#381840" "#4a2152" "#5e2c66"
+    ramp "bldg-cyan"   "#0a1620" "#0f2130" "#152e42" "#1d3d56" "#274f6c"
+    ramp "street"      "#0b0b14" "#13131f" "#1c1c2c" "#26263a" "#32324a"
+    ramp "street-pink" "#170b16" "#24101f" "#33162c" "#43203b" "#552b4b"
+    ramp "street-cyan" "#08141a" "#0d1f27" "#132b36" "#1a3a47" "#244b5a"
+    ramp "car"         "#1a1626" "#2a2440" "#3e3660" "#5a4f84" "#7a6eaa"
+    ramp "car-pink"    "#26122a" "#3d1c44" "#5a2a62" "#7a3c84" "#9c52a8"
+    ramp "car-cyan"    "#0e1e28" "#183242" "#24485e" "#346280" "#4880a6"
+    ramp "coat"        "#161a22" "#222836" "#30384c" "#424c66" "#566282"
+    ramp "coat-pink"   "#24141f" "#3a1f33" "#522c4a" "#6c3c62" "#8a4e7e"
+    ramp "coat-cyan"   "#0f1c24" "#182c3a" "#243f52" "#32566e" "#44708e"
+    ramp "puddle"      "#0a0c18" "#121628" "#1c223c" "#283052" "#36406a"
+    ramp "umbrella"    "#2a0a14" "#4e1424" "#7a2234" "#a83444" "#d04a58"
+    ramp "window"      "#4a3018" "#8a5c26" "#d0943c" "#ffd27a"
+    ramp "pink"        "#5a0f3a" "#b0206a" "#ff4fa0" "#ffb0d8"
+    ramp "cyan"        "#0a3a48" "#1590a8" "#3fe0f0" "#b8fbff"
+    ramp "lamp"        "#8a7a5a" "#e0d0a0" "#fff8e0"
+    ramp "rain"        "#4a5680" "#7d8cb8" "#b4c2e8"
+    twin "bldg" pink="bldg-pink" cyan="bldg-cyan"
+    twin "street" pink="street-pink" cyan="street-cyan"
+    twin "car" pink="car-pink" cyan="car-cyan"
+    twin "coat" pink="coat-pink" cyan="coat-cyan"
+}
+
+scene "neon-rain" palette="neon" width=192 height=128 fps=12 duration="4s" loop=#true seed=33 background="sky.shade" {
+    ambient darkness=1 occlusion=1 key-light=270
+    wind strength=1 gust=0.4 speed=6
+
+    // A hazy sky and a far skyline with a few lit windows
+    layer "sky" parallax=0 {
+        rect x=0 y=0 width="100%" height=80 paint="sky.deep" gradient="down" gradient-steps=3
+    }
+    layer "skyline" parallax=0.2 fog="35%" fog-paint="sky.lit" {
+        rect x=0 y=30 width=22 height=60 paint="bldg.shade"
+        rect x=20 y=18 width=16 height=72 paint="bldg.base"
+        rect x=38 y=36 width=26 height=54 paint="bldg.shade"
+        rect x=66 y=10 width=14 height=80 paint="bldg.base"
+        line x1=73 y1=2 x2=73 y2=10 paint="bldg.base"
+        rect x=82 y=28 width=30 height=62 paint="bldg.shade"
+        rect x=114 y=22 width=18 height=68 paint="bldg.base"
+        rect x=134 y=40 width=28 height=50 paint="bldg.shade"
+        rect x=164 y=16 width=20 height=74 paint="bldg.base"
+        rect x=24 y=24 width=2 height=2 paint="window.lit" emissive=#true
+        rect x=30 y=40 width=2 height=2 paint="window.base" emissive=#true
+        rect x=70 y=20 width=2 height=2 paint="window.lit" emissive=#true
+        rect x=74 y=46 width=2 height=2 paint="window.lit" emissive=#true
+        rect x=90 y=36 width=2 height=2 paint="window.base" emissive=#true
+        rect x=120 y=30 width=2 height=2 paint="window.lit" emissive=#true
+        rect x=168 y=26 width=2 height=2 paint="window.base" emissive=#true
+        rect x=176 y=52 width=2 height=2 paint="window.lit" emissive=#true
+        rect x=72 y=0 width=3 height=2 paint="pink.base" emissive=#true visible="=square(t)"
+    }
+
+    // Left building: brick-textured facade, lit windows and a pink sign
+    rect "left" x=0 y=6 width=62 height=94 paint="bldg.base" texture=0.2 texture-scale=3 outline="selective"
+    rect x=0 y=6 width=62 height=3 paint="bldg.lit"
+    rect x=6 y=16 width=10 height=14 paint="window.lit" emissive=#true
+    rect x=22 y=16 width=10 height=14 paint="bldg.deep"
+    rect x=38 y=16 width=10 height=14 paint="window.base" emissive=#true visible="=1 - square(t / 4, 0.1)"
+    rect x=6 y=40 width=10 height=14 paint="bldg.deep"
+    rect x=22 y=40 width=10 height=14 paint="window.hi" emissive=#true
+    rect x=38 y=40 width=10 height=14 paint="bldg.deep"
+    rect x=6 y=64 width=10 height=14 paint="window.base" emissive=#true
+    rect x=4 y=86 width=16 height=14 paint="bldg.deep" outline="full"
+    rect x=26 y=84 width=30 height=16 paint="window.base" emissive=#true gradient="down" gradient-steps=-1
+    rect x=26 y=82 width=30 height=2 paint="pink.base" emissive=#true
+    rounded-rect "pink-sign" x=50 y=36 width=10 height=30 radius=2 paint="pink.base" emissive=#true tone-shift="=-floor(pulse(2s, 0.08) * 2)"
+    rect x=53 y=40 width=4 height=22 paint="pink.hi" emissive=#true tone-shift="=-floor(pulse(2s, 0.08) * 2)"
+    light-rect x=50 y=36 width=10 height=30 reach=40 intensity="=2.4 - pulse(2s, 0.08) * 2" color="pink"
+
+    // Right building with an awning and a cyan sign
+    rect "right" x=128 y=0 width=64 height=100 paint="bldg.shade" texture=0.2 texture-scale=3 outline="selective"
+    rect x=140 y=10 width=10 height=16 paint="window.lit" emissive=#true
+    rect x=158 y=10 width=10 height=16 paint="bldg.deep"
+    rect x=176 y=10 width=10 height=16 paint="window.base" emissive=#true
+    rect x=140 y=36 width=10 height=16 paint="bldg.deep"
+    rect x=158 y=36 width=10 height=16 paint="window.base" emissive=#true
+    rect x=176 y=36 width=10 height=16 paint="window.lit" emissive=#true
+    rounded-rect "cyan-sign" x=134 y=58 width=52 height=12 radius=3 paint="bldg.deep" outline="full" outline-paint="cyan.lit"
+    rect x=139 y=62 width=42 height=4 paint="cyan.lit" emissive=#true tone-shift="=round(wiggle(0.4, 3))"
+    light-rect x=134 y=58 width=52 height=12 reach=44 intensity=2.4 color="cyan"
+    polygon x=128 y=74 points="0,0 64,0 64,6 0,10" paint="cyan.deep" shading="dome" outline="selective" casts-shadow=#true
+    rect x=140 y=84 width=14 height=16 paint="bldg.deep" outline="full"
+    rect x=160 y=82 width=26 height=18 paint="window.lit" emissive=#true
+
+    // Sidewalk, curb and the wet road
+    rect x=0 y=100 width="100%" height=6 paint="street.lit" texture=0.2 texture-scale=2
+    rect x=0 y=106 width="100%" height=2 paint="street.hi"
+    rect x=0 y=108 width="100%" height=20 paint="street.base" gradient="down" gradient-steps=-1
+    rect x=0 y=117 width=10 height=1 paint="street.hi"
+    rect x=32 y=117 width=14 height=1 paint="street.hi"
+    rect x=70 y=117 width=14 height=1 paint="street.hi"
+    rect x=108 y=117 width=14 height=1 paint="street.hi"
+    rect x=146 y=117 width=14 height=1 paint="street.hi"
+    rect x=184 y=117 width=8 height=1 paint="street.hi"
+
+    // Puddles hold the reflection of everything above the curb
+    ellipse x=8 y=110 width=44 height=6 paint="puddle.base"
+    ellipse x=60 y=120 width=56 height=7 paint="puddle.base"
+    ellipse x=126 y=110 width=40 height=5 paint="puddle.base"
+    ellipse x=150 y=121 width=36 height=6 paint="puddle.base"
+    ellipse x=82 y=102 width=22 height=3 paint="puddle.base"
+    reflection x=0 y=100 width=192 height=28 axis=100 ripple=1 speed=4 tone-shift=-1 on="puddle"
+
+    // Street lamp with someone waiting under it, umbrella open
+    capsule x1=98 y1=36 x2=98 y2=100 radius=1.5 paint="bldg.lit" shading="dome" casts-shadow=#true contact-shadow=1
+    polygon x=92 y=30 points="2,0 10,0 12,6 0,6" paint="bldg.lit" shading="dome" outline="selective"
+    ellipse x=94 y=35 width=8 height=3 paint="lamp.hi" emissive=#true
+    light-cone x=98 y=36 angle="90deg" spread="70deg" reach=70 intensity=2 shadows=#true
+    polygon "umbrella" x=104 y=70 points="0,7 4,2 11,0 18,2 22,7" paint="umbrella.base" shading="dome" outline="selective" casts-shadow=#true
+    line x1=115 y1=71 x2=115 y2=84 paint="bldg.deep"
+    rounded-rect "coat" x=110 y=78 width=10 height=16 radius=3 paint="coat.base" shading="dome" outline="selective" casts-shadow=#true
+    ellipse x=111 y=72 width=8 height=8 paint="coat.lit" shading="dome" outline="selective"
+    capsule x1=113 y1=93 x2=113 y2=100 radius=1.5 paint="coat.shade"
+    capsule x1=117 y1=93 x2="=117 + on2(square(t * 2, 0.25))" y2=100 radius=1.5 paint="coat.shade" contact-shadow=1
+
+    // A car drives through every 4 seconds, headlights first
+    group "car" {
+        rounded-rect "car-body" y=98 width=48 height=11 radius=3 paint="car.hi" shading="dome" outline="selective" casts-shadow=#true contact-shadow=1 {
+            anim x loop="repeat" { k "0s" -70; k "4s" 210 }
+        }
+        polygon x="=@car-body.x + 10" y=90 points="4,0 26,0 32,8 0,8" paint="car.lit" shading="dome" outline="selective"
+        polygon x="=@car-body.x + 14" y=91 points="3,0 12,0 12,6 0,6" paint="cyan.deep" emissive=#true
+        polygon x="=@car-body.x + 28" y=91 points="0,0 9,0 13,6 0,6" paint="cyan.deep" emissive=#true
+        ellipse x="=@car-body.x + 6" y=105 width=9 height=9 paint="car.deep" shading="dome" outline="full" outline-paint="street.deep"
+        ellipse x="=@car-body.x + 34" y=105 width=9 height=9 paint="car.deep" shading="dome" outline="full" outline-paint="street.deep"
+        rect x="=@car-body.x + 45" y=100 width=3 height=3 paint="lamp.hi" emissive=#true
+        rect x="=@car-body.x" y=100 width=2 height=3 paint="pink.lit" emissive=#true
+        light-cone x="=@car-body.x + 48" y=102 angle="4deg" spread="34deg" reach=64 intensity=2.4
+    }
+
+    // Rain, and splashes where it lands
+    particles x=-20 y=-12 width=230 height=12 count=70 vx=-10 vy=150 life="1s" size=1 wind=3 streak="0.03s" paint="rain.base"
+    particles x=0 y=104 width=192 height=22 count=26 vx=0 vy=-6 gravity=40 life="0.25s" size=1 paint="rain.hi" fade=#true
+}

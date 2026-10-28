@@ -4,15 +4,19 @@ use crate::{Plot, Rect};
 
 pub const MAX_POLYGON_POINTS: usize = 32;
 pub const MAX_BLOB_CIRCLES: usize = 16;
+/// Pixel centers often sit exactly on an edge (distance 0); float noise of 1e-15 must not
+/// decide them, or animated shapes break perfect loops. The edge test uses this margin.
+const EDGE_TOLERANCE: f64 = 1e-6;
 
-/// Covers every pixel whose center has `distance(x, y) <= 0`, scanning only `bbox`.
+/// Covers every pixel whose center has `distance(x, y) <= 0` (within `EDGE_TOLERANCE`), scanning only `bbox`.
 pub fn fill_sdf(plot: &mut impl Plot, bbox: Rect, distance: impl Fn(f64, f64) -> f64) {
     let x_end = bbox.right().min(plot.width());
     let x_start = bbox.x.max(0);
     for y in bbox.rows(plot.height()) {
         let mut run: Option<i32> = None;
         for x in x_start..=x_end {
-            let inside = x < x_end && distance(f64::from(x) + 0.5, f64::from(y) + 0.5) <= 0.0;
+            let inside =
+                x < x_end && distance(f64::from(x) + 0.5, f64::from(y) + 0.5) <= EDGE_TOLERANCE;
             match (inside, run) {
                 (true, None) => run = Some(x),
                 (false, Some(start)) => {

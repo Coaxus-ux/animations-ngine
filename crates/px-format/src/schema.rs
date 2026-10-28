@@ -155,7 +155,7 @@ impl Kind {
             optional("sway", N, 0.0),
             optional("width", N, 1.0),
         ];
-        const PARTICLES: [Prop; 10] = [
+        const PARTICLES: [Prop; 11] = [
             BOX[0],
             BOX[1],
             BOX[2],
@@ -166,6 +166,7 @@ impl Kind {
             optional("life", Quantity::Time, 1.0),
             optional("size", N, 1.0),
             optional("wind", N, 0.0),
+            optional("streak", Quantity::Time, 0.0),
         ];
         const LAYER: [Prop; 1] = [optional("fog", N, 0.0)];
         const AMBIENT: [Prop; 1] = [optional("darkness", N, 0.0)];

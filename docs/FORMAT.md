@@ -795,7 +795,7 @@ Every shape takes `paint` (`"ramp"` or `"ramp.tone"`), except `shade`, and the s
 | `polygon` | `x y` 0 | `points="0,0 8,0 4,6"` (at least 3, relative to `x y`) |
 | `blob` | `x y` 0, `smooth` 3 | `circles="0,0,4 6,1,3"` (`x,y,radius`, smoothly merged) |
 | `rope` | `x1 y1 x2 y2`, `sag` 0, `sway` 0, `width` 1 | Sags like a cable and bulges sideways by `sway` |
-| `particles` | `x y width height` (spawn area), `vx vy gravity` 0, `life` 1s, `size` 1, `wind` 0 | `count` 20 (≤ 1024), `fade`. Stateless: each particle cycles through its life, so loops stay seamless when `life` divides the duration |
+| `particles` | `x y width height` (spawn area), `vx vy gravity` 0, `life` 1s, `size` 1, `wind` 0, `streak` 0s (trail length in seconds of travel: rain, sparks) | `count` 20 (≤ 1024), `fade`. Stateless: each particle cycles through its life, so loops stay seamless when `life` divides the duration |
 | `shade` | `x y width height`, `steps` -1 | `round`. Shifts the tones of whatever is below it |
 
 ### A.3 Style props (any shape)

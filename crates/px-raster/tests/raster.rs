@@ -4,7 +4,7 @@
 )]
 
 use px_core::{CanvasMut, Paint, Palette, Rgb, Size, Tone};
-use px_raster::{Brush, Point, Rect, draw_line, fill_ellipse, fill_rect};
+use px_raster::{Brush, Point, Rect, draw_line, fill_capsule, fill_ellipse, fill_rect};
 
 struct Fixture {
     cells: Vec<Paint>,
@@ -199,4 +199,12 @@ fn far_off_canvas_lines_terminate() {
         draw_line(c, Point { x: i32::MIN, y: 0 }, Point { x: i32::MAX, y: 1 });
     });
     assert_eq!(grid.len(), 5);
+}
+
+#[test]
+fn float_noise_does_not_move_sdf_edges() {
+    let exact = Fixture::new(7, 4).draw(|c| fill_capsule(c, [1.0, 1.5], [5.0, 1.5], 1.0));
+    let noisy = Fixture::new(7, 4).draw(|c| fill_capsule(c, [1.0, 1.5 - 1e-15], [5.0, 1.5], 1.0));
+    assert_eq!(exact, noisy);
+    assert_eq!(exact.lines().filter(|row| row.contains('#')).count(), 3);
 }
