@@ -251,6 +251,15 @@ impl Kind {
         }
     }
 
+    /// Shapes, lights and placed scenes can be attached to another object.
+    pub(crate) const fn can_attach(self) -> bool {
+        self.is_shape()
+            || matches!(
+                self,
+                Self::LightPoint | Self::LightCone | Self::LightRect | Self::UseScene
+            )
+    }
+
     pub(crate) fn props(self) -> impl Iterator<Item = &'static Prop> {
         let style: &'static [Prop] = if self.is_shape() { &STYLE } else { &[] };
         self.geometry().iter().chain(style)

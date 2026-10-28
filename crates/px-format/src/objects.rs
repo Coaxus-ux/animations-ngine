@@ -28,6 +28,8 @@ pub(crate) struct Draft<'a> {
     pub(crate) extras: Extras,
     pub(crate) layer: usize,
     pub(crate) clips: Vec<usize>,
+    /// `attach="id"` or `attach="placed.id"`: what the object is positioned from.
+    pub(crate) attach: Option<&'a KdlEntry>,
 }
 
 #[derive(Default)]
@@ -161,6 +163,11 @@ fn draft<'a>(
     } else {
         Flags::default()
     };
+    let attach = if kind.can_attach() {
+        props.get("attach")
+    } else {
+        None
+    };
     let extras = extras::parse(&mut props, kind, palette, diags);
     props.finish(diags);
     Draft {
@@ -174,6 +181,7 @@ fn draft<'a>(
         extras,
         layer: context.layer,
         clips: context.clips.clone(),
+        attach,
     }
 }
 

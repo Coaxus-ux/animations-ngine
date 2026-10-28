@@ -21,6 +21,16 @@ impl Default for Window {
     }
 }
 
+/// A point an object is hooked to: `x`, `y` in the coordinates and time of `instance` (the
+/// scene itself when `None`). The object's own position is an offset from that point, and it
+/// moves, scales, flips and hides together with that instance.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Anchor {
+    pub instance: Option<usize>,
+    pub x: Param,
+    pub y: Param,
+}
+
 /// A scene placed inside another scene. Shapes, lights, clips and reflections that belong to
 /// it name it by index and are drawn through its transform, at its local time.
 #[derive(Clone, Debug, PartialEq)]
@@ -42,6 +52,8 @@ pub struct Instance {
     pub count: u32,
     /// Root of every seed inside the instance.
     pub seed: u64,
+    /// Placed relative to this point instead of its parent's origin.
+    pub anchor: Option<Anchor>,
 }
 
 impl Default for Instance {
@@ -58,6 +70,7 @@ impl Default for Instance {
             index: 0,
             count: 1,
             seed: 0,
+            anchor: None,
         }
     }
 }

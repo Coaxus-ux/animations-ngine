@@ -17,9 +17,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use common::{Kit, bounds, expr, fixed, kit, rect, shape, world};
 use px_core::{Frame, Paint};
 use px_engine::{
-    Ambient, Bounds, Camera, Clip, Environment, FrameBuffer, Geometry, Gradient, GradientDirection,
-    Instance, Layer, Light, LightKind, Outline, Particles, Reflection, Segment, Shading, Shape,
-    Style, Texture, Window,
+    Ambient, Anchor, Bounds, Camera, Clip, Environment, FrameBuffer, Geometry, Gradient,
+    GradientDirection, Instance, Layer, Light, LightKind, Outline, Particles, Reflection, Segment,
+    Shading, Shape, Style, Texture, Window,
 };
 use px_expr::Wind;
 
@@ -214,6 +214,7 @@ fn environment(kit: &Kit) -> Environment {
                 shadows: true,
                 layer: 0,
                 instance: None,
+                anchor: None,
             },
             Light {
                 kind: LightKind::Cone {
@@ -228,6 +229,7 @@ fn environment(kit: &Kit) -> Environment {
                 shadows: false,
                 layer: 0,
                 instance: None,
+                anchor: None,
             },
             Light {
                 kind: LightKind::Rect {
@@ -242,6 +244,7 @@ fn environment(kit: &Kit) -> Environment {
                 shadows: false,
                 layer: 0,
                 instance: None,
+                anchor: None,
             },
         ],
         ambient: Ambient {
@@ -302,6 +305,16 @@ fn rendering_performs_no_heap_activity() {
     shapes[1].style.instance = Some(0);
     let mut environment = environment(&kit);
     environment.lights[1].instance = Some(0);
+    environment.lights[0].anchor = Some(Anchor {
+        instance: Some(1),
+        x: expr("2 + t"),
+        y: fixed(1.0),
+    });
+    shapes[2].style.anchor = Some(Anchor {
+        instance: Some(0),
+        x: fixed(3.0),
+        y: expr("t"),
+    });
     let scene = world(&kit, (32, 32), 24, shapes, environment);
     let mut buffer = FrameBuffer::new(&scene);
 

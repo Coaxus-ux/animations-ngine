@@ -192,9 +192,16 @@ impl Builder<'_, '_> {
         let compiled =
             Compiler::new(&tree.drafts, &params, measure, scope.seed, diags).compile_all();
         if let Some(compiled) = compiled.filter(|_| !diags.has_errors()) {
-            assemble(tree, compiled, scope, out, &mut |request, out| {
-                instances::expand(self, &request, out, diags);
-            });
+            assemble(
+                tree,
+                compiled,
+                scope,
+                out,
+                diags,
+                &mut |request, out, diags| {
+                    instances::expand(self, &request, out, diags);
+                },
+            );
         }
         markers
     }

@@ -39,6 +39,7 @@ fn lamp(x: f64, y: f64, shadows: bool) -> Light {
         shadows,
         layer: 0,
         instance: None,
+        anchor: None,
     }
 }
 

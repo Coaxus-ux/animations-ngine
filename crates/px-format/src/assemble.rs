@@ -1,16 +1,19 @@
 use px_core::LightColor;
 use px_engine::object_seed;
 use px_engine::{
-    Ambient, Bounds, Camera, Clip, Environment, Geometry, Layer, Light, LightKind, Outline, Param,
-    Particles, Reflection, Segment, Shading, Shape, Style,
+    Ambient, Anchor, Bounds, Camera, Clip, Environment, Geometry, Layer, Light, LightKind, Outline,
+    Param, Particles, Reflection, Segment, Shading, Shape, Style,
 };
 use px_expr::{Blend, Program};
 
+use crate::attach::Targets;
+use crate::diagnostic::Diagnostics;
 use crate::extras::{Extras, Placement};
 use crate::objects::Tree;
 use crate::schema::Kind;
 use crate::style::Flags;
 use crate::timeline::Track;
+use crate::values;
 
 /// Hands out a draft's compiled properties in schema order.
 struct Next(std::vec::IntoIter<Param>);
@@ -45,6 +48,7 @@ pub(crate) struct Output {
     pub(crate) shapes: Vec<Shape>,
     pub(crate) world: Environment,
     pub(crate) tracks: Vec<Track>,
+    pub(crate) targets: Targets,
 }
 
 /// Where one scene's objects land: the instance that owns them (none for the root scene),
@@ -70,6 +74,7 @@ pub(crate) struct Request {
     pub(crate) order: usize,
     pub(crate) id: Option<String>,
     pub(crate) parent: Scope,
+    pub(crate) anchor: Option<Anchor>,
 }
 
 pub(crate) fn assemble(
@@ -77,7 +82,8 @@ pub(crate) fn assemble(
     params: Vec<Vec<Param>>,
     scope: &Scope,
     out: &mut Output,
-    place: &mut dyn FnMut(Request, &mut Output),
+    diags: &mut Diagnostics,
+    place: &mut dyn FnMut(Request, &mut Output, &mut Diagnostics),
 ) {
     if scope.instance.is_none() {
         out.world.wind = tree.wind;
@@ -86,8 +92,27 @@ pub(crate) fn assemble(
     let mut clip_ids = vec![None; tree.drafts.len()];
     let mut shape_index = 0;
     for (index, (draft, params)) in tree.drafts.into_iter().zip(params).enumerate() {
+        let own_layer = layers.get(draft.layer).copied().unwrap_or(scope.layer);
+        let attached = draft.attach.and_then(|entry| {
+            let path = values::string(entry, diags)?;
+            out.targets
+                .resolve(scope.instance, path)
+                .map_err(|message| diags.error(entry.span().offset(), message))
+                .ok()
+        });
+        let layer = attached.as_ref().map_or(own_layer, |(_, layer)| *layer);
+        let anchor = attached.map(|(anchor, _)| anchor);
+        if let Some(id) = draft.id.filter(|_| draft.kind != Kind::UseScene) {
+            out.targets.point(
+                scope.instance,
+                id,
+                draft.kind,
+                &params,
+                anchor.as_ref(),
+                layer,
+            );
+        }
         let mut next = Next(params.into_iter());
-        let layer = layers.get(draft.layer).copied().unwrap_or(scope.layer);
         match (draft.kind, draft.extras) {
             (_, Extras::Instance(placement)) => {
                 let request = Request {
@@ -105,14 +130,16 @@ pub(crate) fn assemble(
                         clips: clips(scope, &draft.clips, &clip_ids),
                         ..scope.clone()
                     },
+                    anchor,
                 };
-                place(request, out);
+                place(request, out, diags);
             }
             (kind, extras) if kind.is_shape() => {
                 let geometry = geometry(kind, extras, &mut next);
                 let clips = clips(scope, &draft.clips, &clip_ids);
                 let style = Style {
                     instance: scope.instance,
+                    anchor,
                     seed: Some(object_seed(scope.seed, shape_index)),
                     ..style(&draft.flags, &mut next, layer, clips)
                 };
@@ -128,6 +155,7 @@ pub(crate) fn assemble(
                     kind,
                     extras,
                     layer,
+                    anchor,
                 };
                 match world_node(node, &mut next, scope, &mut out.world) {
                     Added::Layer(added) => layers.push(added),
@@ -144,6 +172,7 @@ struct SceneNode {
     kind: Kind,
     extras: Extras,
     layer: usize,
+    anchor: Option<Anchor>,
 }
 
 enum Added {
@@ -204,6 +233,7 @@ fn world_node(node: SceneNode, next: &mut Next, scope: &Scope, world: &mut Envir
             world.lights.push(Light {
                 layer: node.layer,
                 instance: scope.instance,
+                anchor: node.anchor,
                 ..light(kind, next, color, shadows)
             });
         }
@@ -269,6 +299,7 @@ fn light(kind: Kind, next: &mut Next, color: Option<LightColor>, shadows: bool) 
         shadows,
         layer: 0,
         instance: None,
+        anchor: None,
     }
 }
 
@@ -288,6 +319,7 @@ fn style(flags: &Flags, next: &mut Next, layer: usize, clips: Vec<usize>) -> Sty
         layer,
         clips,
         instance: None,
+        anchor: None,
         seed: None,
     }
 }

@@ -5,7 +5,7 @@ use super::frame::object_seed;
 use super::report::FrameReport;
 use super::transform::Transform;
 use super::values::Values;
-use crate::model::Instance;
+use crate::model::{Anchor, Instance};
 
 /// Frame numbers this close to a whole number are that number, so speeds and offsets
 /// don't leave `hold`/`on2` one frame early from rounding.
@@ -38,20 +38,65 @@ pub(crate) fn place(
     placed: &mut [Placed],
     report: &mut FrameReport,
 ) -> Result<(), RenderError> {
+    let seed_of = |instance: Option<usize>| {
+        instance
+            .and_then(|instance| instances.get(instance))
+            .map_or(scene_seed, |instance| instance.seed)
+    };
     for index in 0..instances.len().min(placed.len()) {
         let instance = &instances[index];
-        let (parent, parent_seed) = match instance.parent {
-            Some(parent) => (placed[parent], instances[parent].seed),
-            None => (root, scene_seed),
+        let parent = instance.parent.map_or(root, |parent| placed[parent]);
+        let origin = match &instance.anchor {
+            Some(anchor) => {
+                let seed = seed_of(anchor.instance);
+                anchored(anchor, &placed[..index], &root, seed, report)?
+            }
+            None => Some(parent.transform),
         };
-        placed[index] = place_one(instance, &parent, parent_seed, report)?;
+        placed[index] = place_one(instance, &parent, origin, seed_of(instance.parent), report)?;
     }
     Ok(())
 }
 
+/// Where the local (0, 0) of an object hooked to `anchor` lands, or `None` while the
+/// anchor's instance is hidden.
+pub(crate) fn anchored(
+    anchor: &Anchor,
+    placed: &[Placed],
+    root: &Placed,
+    seed: u64,
+    report: &mut FrameReport,
+) -> Result<Option<Transform>, RenderError> {
+    let at = anchor
+        .instance
+        .and_then(|instance| placed.get(instance))
+        .unwrap_or(root);
+    if !at.visible {
+        return Ok(None);
+    }
+    let mut values = Values {
+        env: Env {
+            seed: object_seed(seed, usize::MAX),
+            ..at.env
+        },
+        report,
+        object: usize::MAX,
+        transform: Transform::IDENTITY,
+    };
+    let point = Transform {
+        dx: values.of(&anchor.x)?,
+        dy: values.of(&anchor.y)?,
+        ..Transform::IDENTITY
+    };
+    Ok(Some(point.then(&at.transform)))
+}
+
+/// `origin` is where the instance's position is measured from: its parent's origin, or the
+/// point it is hooked to; `None` hides it.
 fn place_one(
     instance: &Instance,
     parent: &Placed,
+    origin: Option<Transform>,
     parent_seed: u64,
     report: &mut FrameReport,
 ) -> Result<Placed, RenderError> {
@@ -66,7 +111,10 @@ fn place_one(
         .loop_period
         .filter(|period| *period > 0.0)
         .map_or(parent.env.time, |period| parent.env.time.rem_euclid(period));
-    if !parent.visible || host_time < window.start || host_time >= window.end {
+    let Some(origin) = origin.filter(|_| parent.visible) else {
+        return Ok(hidden);
+    };
+    if host_time < window.start || host_time >= window.end {
         return Ok(hidden);
     }
     let mut values = Values {
@@ -90,7 +138,7 @@ fn place_one(
     let frame = time * parent.env.fps;
     let rounded = libm::round(frame);
     Ok(Placed {
-        transform: local.then(&parent.transform),
+        transform: local.then(&origin),
         env: Env {
             time,
             frame: if (frame - rounded).abs() < FRAME_SNAP {

@@ -332,7 +332,7 @@ impl Resolver for Lookup<'_, '_, '_> {
     }
 }
 
-fn program_of(param: Param) -> Program {
+pub(crate) fn program_of(param: Param) -> Program {
     match param {
         Param::Fixed(value) => Program::fixed(value),
         Param::Expr(program) => program,

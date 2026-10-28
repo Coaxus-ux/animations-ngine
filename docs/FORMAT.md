@@ -866,6 +866,15 @@ scene "street" palette="festival" width=320 height=180 duration="12s" loop=#true
 - The host owns `camera`, `ambient` and `wind`; a placed scene's own are only used when it is previewed alone (which is how a part file is developed: `pxe watch parts/walker.kdl`).
 - In a looping host, a looping placed scene that plays through the whole loop must fit a whole number of its loops into it (`speed × host duration` a multiple of its duration). Otherwise the load warns that the loop will show a seam.
 
+**Attaching.** Shapes, lights and `use-scene` take `attach="id"` to hook onto another object, so they always go together: the object's own `x y` (or `x1 y1 …`) become an offset from that object's point (its `x y`, or `x1 y1` for lines and ropes; a placed scene's origin). A dotted path reaches inside placed scenes: `attach="hero.hand"` is the `hand` inside the scene placed as `hero`, and `attach="hero.carried"` a scene placed inside it. The attached object then moves, scales, flips and hides with what it is attached to, and is drawn in that object's layer; its own other properties keep the time of the scene it is written in.
+
+```kdl
+use-scene "walker" id="hero" x="=t * 20" y=160 lantern=#true
+light-point attach="hero.carried" y=7 reach=40 intensity=2 color="warm"   // a light that travels with her lantern
+```
+
+An object can only attach to something written before it, and not to a `use-scene` that places several copies.
+
 **Text params in paints.** `paint="$coat"` or `paint="$coat.lit"` uses a text param as the ramp name, so one scene can be placed with different colors (`coat="coat-red"`). Works in every paint prop (`outline-paint`, `fog-paint` too).
 
 `pxe timeline <file>` prints the markers and every placed scene on a time ruler (CLI.md §3.11).

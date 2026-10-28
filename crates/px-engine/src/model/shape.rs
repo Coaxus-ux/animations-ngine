@@ -1,5 +1,6 @@
 use px_core::Paint;
 
+use super::instance::Anchor;
 use super::param::Param;
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -120,6 +121,7 @@ pub struct Style {
     pub layer: usize,
     pub clips: Vec<usize>,
     pub instance: Option<usize>,
+    pub anchor: Option<Anchor>,
     /// Root of the shape's randomness; when `None`, derived from the scene seed and the
     /// shape's index.
     pub seed: Option<u64>,
@@ -142,6 +144,7 @@ impl Default for Style {
             layer: 0,
             clips: Vec::new(),
             instance: None,
+            anchor: None,
             seed: None,
         }
     }

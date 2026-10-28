@@ -1,3 +1,4 @@
+use kdl::KdlNode;
 use px_core::hash_seed;
 use px_engine::{Instance, Looping, MAX_INSTANCES, Param, Window};
 use px_expr::Env;
@@ -21,21 +22,9 @@ pub(crate) fn expand(
     diags: &mut Diagnostics,
 ) {
     let name = request.placement.scene.as_str();
-    let Some(&(file, node)) = builder.catalog.scenes.get(name) else {
-        let hint = suggest::hint(name, builder.catalog.scenes.keys().copied());
-        diags.error(request.offset, format!("no scene named \"{name}\".{hint}"));
+    let Some((file, node)) = find(builder, request, diags) else {
         return;
     };
-    if builder.stack.iter().any(|open| open == name) || builder.stack.len() >= MAX_DEPTH {
-        let chain = builder.stack.join(" → ");
-        let reason = if builder.stack.len() >= MAX_DEPTH {
-            format!("scenes can be placed at most {MAX_DEPTH} deep")
-        } else {
-            "a scene can't place itself".to_owned()
-        };
-        diags.error(request.offset, format!("{reason}: {chain} → {name}"));
-        return;
-    }
     let host_file = diags.in_file(file);
     let header = scene::header(node, builder.catalog, diags);
     diags.in_file(host_file);
@@ -77,6 +66,7 @@ pub(crate) fn expand(
         looping,
     }));
     builder.stack.push(name.to_owned());
+    let first_instance = out.world.instances.len();
     for index in 0..copies.count {
         let env = copies.env(index);
         let read = |prop: &str| read(&request.params, prop, &env);
@@ -100,6 +90,7 @@ pub(crate) fn expand(
             index,
             count: copies.count,
             seed,
+            anchor: request.anchor.clone(),
         };
         let scope = Scope {
             instance: Some(out.world.instances.len()),
@@ -119,6 +110,37 @@ pub(crate) fn expand(
     }
     builder.tracking = tracking;
     builder.stack.pop();
+    if let Some(id) = &request.id {
+        let count = usize::try_from(copies.count).unwrap_or(usize::MAX);
+        let parent = &request.parent;
+        out.targets
+            .placed(parent.instance, id, first_instance, count, parent.layer);
+    }
+}
+
+/// The scene a `use-scene` names and its file, unless it is unknown or would place itself.
+fn find<'l>(
+    builder: &Builder<'_, 'l>,
+    request: &Request,
+    diags: &mut Diagnostics,
+) -> Option<(usize, &'l KdlNode)> {
+    let name = request.placement.scene.as_str();
+    let Some(&(file, node)) = builder.catalog.scenes.get(name) else {
+        let hint = suggest::hint(name, builder.catalog.scenes.keys().copied());
+        diags.error(request.offset, format!("no scene named \"{name}\".{hint}"));
+        return None;
+    };
+    if builder.stack.iter().any(|open| open == name) || builder.stack.len() >= MAX_DEPTH {
+        let chain = builder.stack.join(" → ");
+        let reason = if builder.stack.len() >= MAX_DEPTH {
+            format!("scenes can be placed at most {MAX_DEPTH} deep")
+        } else {
+            "a scene can't place itself".to_owned()
+        };
+        diags.error(request.offset, format!("{reason}: {chain} → {name}"));
+        return None;
+    }
+    Some((file, node))
 }
 
 /// The copies one `use-scene` makes: `count` of them, numbered `i` = 0..n.

@@ -177,10 +177,12 @@ fn validate_shape(spec: &SceneSpec, index: usize, shape: &Shape) -> Result<(), M
     {
         return Err(ModelError::UnknownClip { shape: index });
     }
-    if shape
-        .style
-        .instance
-        .is_some_and(|instance| instance >= spec.environment.instances.len())
+    let style = &shape.style;
+    let anchor = style.anchor.as_ref().and_then(|anchor| anchor.instance);
+    if [style.instance, anchor]
+        .iter()
+        .flatten()
+        .any(|instance| *instance >= spec.environment.instances.len())
     {
         return Err(ModelError::UnknownInstance {
             what: "shape",
@@ -219,6 +221,14 @@ fn validate_instances(world: &Environment) -> Result<(), ModelError> {
         world.lights.iter().map(|light| light.instance).collect(),
     )?;
     check(
+        "light anchor",
+        world
+            .lights
+            .iter()
+            .map(|light| light.anchor.as_ref().and_then(|anchor| anchor.instance))
+            .collect(),
+    )?;
+    check(
         "reflection",
         world
             .reflections
@@ -230,8 +240,13 @@ fn validate_instances(world: &Environment) -> Result<(), ModelError> {
         .instances
         .iter()
         .enumerate()
-        .position(|(index, instance)| instance.parent.is_some_and(|parent| parent >= index))
-    {
+        .position(|(index, instance)| {
+            let anchor = instance.anchor.as_ref().and_then(|anchor| anchor.instance);
+            [instance.parent, anchor]
+                .iter()
+                .flatten()
+                .any(|earlier| *earlier >= index)
+        }) {
         Some(index) => Err(ModelError::UnknownInstance {
             what: "instance",
             index,

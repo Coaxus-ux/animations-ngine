@@ -1,7 +1,7 @@
 use px_core::{LightColor, Paint, RampId};
 use px_expr::Wind;
 
-use super::instance::Instance;
+use super::instance::{Anchor, Instance};
 use super::param::Param;
 use super::shape::Bounds;
 
@@ -66,6 +66,7 @@ pub struct Light {
     pub shadows: bool,
     pub layer: usize,
     pub instance: Option<usize>,
+    pub anchor: Option<Anchor>,
 }
 
 #[derive(Clone, Debug, PartialEq)]

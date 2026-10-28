@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 
 mod assemble;
+mod attach;
 mod compiler;
 mod diagnostic;
 mod document;

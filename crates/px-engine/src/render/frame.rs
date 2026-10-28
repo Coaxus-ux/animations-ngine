@@ -7,13 +7,15 @@ use super::RenderError;
 use super::composite::{Evaluated, composite};
 use super::geometry::{rasterize, rect, rect_of};
 use super::lighting::{self, Lit};
-use super::placement::{Placed, place};
+use super::placement::{Placed, anchored, place};
 use super::reflection::{Mirror, reflect};
 use super::report::FrameReport;
 use super::surface::{Region, Surface, Target};
 use super::transform::Transform;
 use super::values::Values;
-use crate::model::{Geometry, LightKind, Looping, MAX_CLIPS, MAX_LAYERS, MAX_LIGHTS, Param, Scene};
+use crate::model::{
+    Anchor, Geometry, LightKind, Looping, MAX_CLIPS, MAX_LAYERS, MAX_LIGHTS, Param, Scene,
+};
 
 const MAX_NESTED_CLIPS: usize = 8;
 
@@ -32,33 +34,47 @@ pub(crate) struct Pass<'s, 'r> {
 
 impl Pass<'_, '_> {
     /// Values for one object of `owner` (an instance, or the scene itself) drawn in `layer`,
-    /// or `None` while that instance is hidden.
+    /// positioned from `anchor` when it is hooked to one, or `None` while hidden.
     fn values(
         &mut self,
         object: usize,
         seed: u64,
         owner: Option<usize>,
         layer: usize,
-    ) -> Option<Values<'_>> {
+        anchor: Option<&Anchor>,
+    ) -> Result<Option<Values<'_>>, RenderError> {
         let placed = owner
             .and_then(|instance| self.placed.get(instance))
             .copied()
             .unwrap_or(self.root);
+        if !placed.visible {
+            return Ok(None);
+        }
+        let origin = match anchor {
+            Some(anchor) => {
+                let seed = self.instance_seed(anchor.instance);
+                anchored(anchor, self.placed, &self.root, seed, self.report)?
+            }
+            None => Some(placed.transform),
+        };
         let layer = self.layers.get(layer).copied().unwrap_or(self.layers[0]);
-        placed.visible.then(|| Values {
+        Ok(origin.map(|origin| Values {
             env: Env { seed, ..placed.env },
             report: &mut *self.report,
             object,
-            transform: placed.transform.then(&layer),
-        })
+            transform: origin.then(&layer),
+        }))
+    }
+
+    fn instance_seed(&self, instance: Option<usize>) -> u64 {
+        instance
+            .and_then(|instance| self.scene.environment().instances.get(instance))
+            .map_or(self.scene.seed(), |instance| instance.seed)
     }
 
     /// The seed of an object that isn't a shape (a clip, a light, a reflection).
     fn object_seed(&self, owner: Option<usize>) -> u64 {
-        let root = owner
-            .and_then(|instance| self.scene.environment().instances.get(instance))
-            .map_or(self.scene.seed(), |instance| instance.seed);
-        object_seed(root, usize::MAX)
+        object_seed(self.instance_seed(owner), usize::MAX)
     }
 
     fn eval(&mut self, param: &Param) -> Result<f64, RenderError> {
@@ -119,7 +135,9 @@ pub(crate) fn render(
         let seed = style
             .seed
             .unwrap_or_else(|| object_seed(scene.seed(), index));
-        let Some(mut values) = pass.values(index, seed, style.instance, style.layer) else {
+        let anchor = style.anchor.as_ref();
+        let Some(mut values) = pass.values(index, seed, style.instance, style.layer, anchor)?
+        else {
             continue;
         };
         if values.of(&style.visible)? <= 0.5 {
@@ -164,7 +182,9 @@ fn clip_regions(pass: &mut Pass<'_, '_>) -> Result<[Region; MAX_CLIPS], RenderEr
     let mut regions = [Region::default(); MAX_CLIPS];
     for (region, clip) in regions.iter_mut().zip(&pass.scene.environment().clips) {
         let owner_seed = pass.object_seed(clip.instance);
-        if let Some(mut values) = pass.values(usize::MAX, owner_seed, clip.instance, clip.layer) {
+        if let Some(mut values) =
+            pass.values(usize::MAX, owner_seed, clip.instance, clip.layer, None)?
+        {
             *region = Region {
                 rect: rect(&clip.bounds, &mut values)?,
                 round: clip.round,
@@ -178,7 +198,8 @@ fn reflect_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(
     let scene = pass.scene;
     for reflection in &scene.environment().reflections {
         let owner_seed = pass.object_seed(reflection.instance);
-        let Some(mut values) = pass.values(usize::MAX, owner_seed, reflection.instance, 0) else {
+        let Some(mut values) = pass.values(usize::MAX, owner_seed, reflection.instance, 0, None)?
+        else {
             continue;
         };
         let (env, speed) = (values.env, values.of(&reflection.speed)?);
@@ -214,7 +235,9 @@ fn light_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(),
     let mut count = 0;
     for lamp in &world.lights {
         let owner_seed = pass.object_seed(lamp.instance);
-        let Some(mut values) = pass.values(usize::MAX, owner_seed, lamp.instance, lamp.layer)
+        let anchor = lamp.anchor.as_ref();
+        let Some(mut values) =
+            pass.values(usize::MAX, owner_seed, lamp.instance, lamp.layer, anchor)?
         else {
             continue;
         };

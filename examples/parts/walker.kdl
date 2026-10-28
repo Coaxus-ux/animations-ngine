@@ -49,5 +49,5 @@ scene "walker" palette="festival" width=40 height=48 fps=12 duration="1s" loop=#
     // Near arm, and the lantern hanging from that hand
     capsule "front-arm" x1=1 y1="=-23 + @bob.y" x2="=1 - 4 * sin(tau * t)" y2="=-15 + @bob.y" radius=1.4 paint="$coat.lit" outline="selective"
     ellipse "hand" x="=@front-arm.x2 - 1" y="=@front-arm.y2 - 1" width=3 height=3 paint="skin" outline="selective"
-    use-scene "paper-lantern" count="=$lantern" x="=@hand.x + 2" y="=@hand.y + 1" scale=0.6
+    use-scene "paper-lantern" id="carried" count="=$lantern" x="=@hand.x + 2" y="=@hand.y + 1" scale=0.6
 }
