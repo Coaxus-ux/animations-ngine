@@ -14,7 +14,7 @@ The binary's working name is **`pxe`** (to be renamed with the project). All com
 | `pxe preview [scene]` | Open the editor (or a minimal preview window with `--lite`) |
 | `pxe render <scene>` | Render frames to PNG (debugging, stills) |
 | `pxe export <target>` | Produce final outputs: animations, sprite sheets, tilesets, layers |
-| `pxe watch <target>` | Re-run an export every time its inputs change |
+| `pxe watch <file>` | Live preview window that reloads whenever the scene file changes |
 | `pxe check` | Validate the whole project without rendering |
 | `pxe types` | Regenerate TypeScript declarations in `.engine/types/` |
 | `pxe bake <scene> <node>` | Bake a node to explicit KDL ([EDITOR.md](EDITOR.md) §3.1) |
@@ -99,9 +99,18 @@ MP4/WebM need `ffmpeg` (see §5).
 
 ### 3.4 `watch`
 ```bash
-pxe watch night-room --format gif --scale 4
+pxe watch examples/sunset-walk.kdl --scale 5 --param stride=6
 ```
-Same flags as `export`. Re-exports when any KDL, TS, piece, palette or pack the target depends on changes.
+Opens a window that plays the scene at its fps and reloads within a quarter second of the file being saved. If the file has errors, they are printed and the last valid version keeps playing. The title shows the frame, fps and average render time per frame.
+
+| Key | Action |
+|---|---|
+| Space | Pause / resume |
+| ← / → | Step one frame (while paused) |
+| R / Home | Restart from frame 0 |
+| Esc / Q | Quit |
+
+Flags: `--scene`, `--scale`, `--param` (as in `export`). Planned: also reloading on changes to packs, palettes and scripts the scene uses, and `--export` to re-export on every change.
 
 ### 3.5 `check`
 ```bash

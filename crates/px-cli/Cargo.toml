@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
+minifb.workspace = true
 px-core.workspace = true
 px-engine.workspace = true
 px-export.workspace = true

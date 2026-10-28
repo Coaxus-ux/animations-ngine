@@ -23,6 +23,11 @@ pub(crate) enum Command {
         #[arg(long)]
         out: Option<PathBuf>,
     },
+    /// Open a live preview that reloads whenever the scene file changes.
+    Watch {
+        #[command(flatten)]
+        input: Input,
+    },
     /// Render every frame to a looping GIF.
     Export {
         #[command(flatten)]

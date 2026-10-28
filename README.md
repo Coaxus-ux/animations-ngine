@@ -12,6 +12,7 @@ brew install rustup && rustup default stable
 
 cargo run -p px-cli -- export examples/hello.kdl            # → out/hello.gif
 cargo run -p px-cli -- render examples/hello.kdl --frame 6  # → out/hello-6.png
+cargo run -p px-cli -- watch examples/sunset-walk.kdl       # live preview, reloads on save
 ```
 
 ## Development

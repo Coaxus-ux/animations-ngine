@@ -61,7 +61,7 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 > 2. ✅ **Value kinds** (done 2026-10-28) — units, seeded ranges (`"2..5"`), `param` / `$name`, `@id.prop` references with cycle detection.
 > 3. **Keyframes** — `anim` tracks, every interpolation, relative times, track loop and blend modes.
 > 4. **Validation** — schemas for every node, "did you mean" suggestions, the severity rules of §15.
-> 5. **Live loop** — `pxe watch`, hot reload, a minimal preview window, frame-time measurement.
+> 5. 🟡 **Live loop** (started 2026-10-28: `pxe watch` with hot reload, a preview window and per-frame render time; pending: frame times in `tools/check.sh`) — `pxe watch`, hot reload, a minimal preview window, frame-time measurement.
 >
 > Slice 2 notes: params are substituted when the file loads (a changed param means a reload, which the live loop in slice 5 does automatically) and `--param name=value` overrides them; text params can't be used in expressions yet. References are inlined when the file loads, keeping the target's seed; `@id.inner.prop`, `@parent`, sockets, anchors and states arrive with prefabs and rigs. Ranges don't use a repeater index yet, because `repeat` doesn't exist yet.
 >

@@ -2,7 +2,11 @@
 
 mod args;
 mod commands;
+mod file_watch;
+mod playback;
+mod preview;
 mod source;
+mod watch;
 
 use std::process::ExitCode;
 
