@@ -1,0 +1,21 @@
+// A dragonfly seen from above: it hovers, darts to a new spot, hovers again and darts back.
+// Its wings blur between two positions; its shadow falls on the water below. Every 3 s.
+
+use "pond-palette.kdl"
+
+scene "dragonfly" palette="pond" width=64 height=40 fps=12 duration="3s" loop=#true background="water.base" {
+    camera x=-20 y=-20
+
+    group "body" {
+        anim x { k "0s" 0; k "0.8s" 1; k "1s" 28 interp="ease-out"; k "2.2s" 27; k "2.4s" 0 interp="ease-out"; k "3s" 0 }
+        anim y { k "0s" 0; k "0.8s" -1; k "1s" -6 interp="ease-out"; k "2.2s" -5; k "2.4s" 0 interp="ease-out"; k "3s" 0 }
+    }
+    shade x="=@body.x - 2" y="=@body.y + 10" width=12 height=3 steps=-1 round=#true
+
+    ellipse x="=@body.x - 1" y="=@body.y - 7" width=6 height=7 paint="dragonfly.hi" opacity=0.55 visible="=square(t * 12)"
+    ellipse x="=@body.x - 1" y="=@body.y + 1" width=6 height=7 paint="dragonfly.hi" opacity=0.55 visible="=square(t * 12)"
+    ellipse x="=@body.x + 1" y="=@body.y - 6" width=4 height=6 paint="dragonfly.lit" opacity=0.5 visible="=1 - square(t * 12)"
+    ellipse x="=@body.x + 1" y="=@body.y + 1" width=4 height=6 paint="dragonfly.lit" opacity=0.5 visible="=1 - square(t * 12)"
+    capsule x1="=@body.x - 9" y1="=@body.y" x2="=@body.x + 3" y2="=@body.y" radius=0.8 paint="dragonfly.base"
+    ellipse x="=@body.x + 3" y="=@body.y - 1" width=3 height=3 paint="dragonfly.lit" outline="full" outline-paint="ink"
+}

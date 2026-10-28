@@ -1,0 +1,33 @@
+// A passenger seated by a train window, seen from the side facing right, sitting at (0, 0).
+// With `reading` they hold a book and turn a page every 3 s; otherwise they doze, the head
+// nodding with the rhythm of the rails. `hair` and `coat` set the look.
+
+use "train-palette.kdl"
+
+scene "passenger" palette="night-train" width=24 height=24 fps=12 duration="3s" loop=#true background="window.base" {
+    param hair "hair"
+    param coat "coat"
+    param reading #true
+    camera x=-12 y=-20
+
+    group "nod" y="=$reading ? round(osc(3s, 0, 0.6)) : round(1 + osc(1s, 0, 1))"
+
+    // Seat back, torso and arms
+    rounded-rect x=-9 y=-14 width=4 height=14 radius=1 paint="car.shade" shading="dome"
+    rounded-rect x=-6 y=-11 width=9 height=11 radius=3 paint="$coat" shading="dome" outline="selective"
+    capsule x1=1 y1=-8 x2=6 y2="=-6 + @nod.y" radius=1.3 paint="$coat.lit" visible="=$reading"
+    capsule x1=1 y1=-8 x2=4 y2=-2 radius=1.3 paint="$coat.lit" visible="=1 - $reading"
+
+    // Head: hair behind, face, eye that blinks or stays closed
+    ellipse x=-5 y="=-19 + @nod.y" width=8 height=8 paint="skin" shading="dome" outline="selective"
+    blob x=-5 y="=-19 + @nod.y" circles="2,1,3 0,3,2.5 4,0,2.5" smooth=1.5 paint="$hair" shading="dome" outline="selective"
+    rect x=0 y="=-15 + @nod.y" width=1 height="=$reading ? 1 - square(t / 3, 0.06) : 0" paint="ink"
+    line x1=0 y1="=-14 + @nod.y" x2=1 y2="=-14 + @nod.y" paint="skin.shade" visible="=1 - $reading"
+    rect x=2 y="=-13 + @nod.y" width=1 height=1 paint="skin.shade"
+
+    // The book, with a page that lifts and turns over
+    polygon x=4 y="=-9 + @nod.y" points="0,0 6,-1 6,4 0,5" paint="paper.lit" outline="full" outline-paint="car.deep" visible="=$reading"
+    line x1=4 y1="=-9 + @nod.y" x2=4 y2="=-4 + @nod.y" paint="car.base" visible="=$reading"
+    line x1=4 y1="=-9 + @nod.y" x2="=10 - 9 * smoothstep(2.4, 2.9, t)" y2="=-10 + @nod.y - 2 * sin(pi * smoothstep(2.4, 2.9, t))" width=1 paint="paper.hi" visible="=$reading && t > 2.3"
+    ellipse x=5 y="=-6 + @nod.y" width=3 height=3 paint="skin" visible="=$reading"
+}

@@ -23,7 +23,7 @@ crates/
   px-engine   FrameBuffer::render: scene + frame → indexed canvas (no alloc)
   px-export   indexed → RGB, upscale, PNG, GIF
   px-cli      the `pxe` binary
-examples/     sample scenes; examples/parts/ holds scenes the examples place with `use-scene`
+examples/     sample scenes; examples/parts/<example>/ holds the scenes each example places with `use-scene`
 tools/        repo tooling (file size guard)
 ```
 

@@ -1,0 +1,24 @@
+// The koi pond's palette: deep teal water, mossy banks, lily pads and lotus, and the koi
+// colors (kohaku red and white, ogon gold, showa black, orange).
+
+palette "pond" {
+    ramp "water"       "#071c26" "#0b2a36" "#113a46" "#1a4e5a" "#2a6670"
+    ramp "floor"       "#0d1c20" "#15282b" "#1f3436" "#2b4344" "#3a5352"
+    ramp "stone"       "#232327" "#333337" "#47474b" "#5e5e62" "#7a7a7c"
+    ramp "moss"        "#16260f" "#203414" "#2c461b" "#3a5c23" "#4e742f"
+    ramp "pad"         "#0f2c16" "#17401f" "#215628" "#2c7032" "#3e8c40"
+    ramp "lotus"       "#5a2a44" "#8a3e62" "#c25c86" "#e888aa" "#ffcadc"
+    ramp "heart"       "#8a6a10" "#d0a82a" "#ffe070"
+    ramp "koi-orange"  "#5a1a08" "#8e300e" "#c84a14" "#f0701e" "#ffa050"
+    ramp "koi-red"     "#4a0a10" "#7a1218" "#b01e22" "#dc3a30" "#ff6a54"
+    ramp "koi-white"   "#5e6066" "#8e9096" "#c4c6ca" "#e8e9ec" "#ffffff"
+    ramp "koi-gold"    "#5a4010" "#8e6a18" "#c89a2a" "#f0c444" "#ffe682"
+    ramp "koi-black"   "#07070b" "#111117" "#1c1c24" "#2a2a34" "#3c3c48"
+    ramp "wood"        "#2a1a10" "#3e2818" "#563a22" "#70502e" "#8e683c"
+    ramp "lacquer"     "#4a1010" "#721818" "#a02420" "#c8382c" "#e85840"
+    ramp "petal"       "#c8708a" "#f0a0b4" "#ffd8e2"
+    ramp "lamp"        "#8a5a20" "#e0a040" "#ffe090" "#fff6d0"
+    ramp "frog"        "#1c3010" "#2e4a18" "#446a22" "#5e8c2e" "#86b03e"
+    ramp "dragonfly"   "#0a3a5a" "#1a6a9a" "#3aa0d0" "#a0e8ff"
+    ramp "ink"         "#04080a"
+}

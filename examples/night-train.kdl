@@ -1,0 +1,257 @@
+// A night train crossing a stone viaduct over a river. A steam engine pulls three lit
+// carriages, each hooked to the one before it with `attach`; its headlamp beam is a light
+// attached to the lamp inside the engine. Passengers read and doze behind the windows,
+// smoke trails back, the train and its windows are mirrored in the river, fireflies drift
+// over the reeds. The camera rides along with the middle carriage and zooms in until one
+// passenger fills the frame, turning a page, then pulls back out.
+//
+// Shows: placed scenes nested three deep (train → carriage → passenger, clipped to each
+// window), chains of `attach`, a light attached into a placed scene, colored light twins,
+// a reflection limited to the river, parallax layers with fog, particles, ropes as stone
+// arches, keyframes on timeline markers and a 4× zoom. Loops every 12 seconds.
+
+use "parts/train/train-palette.kdl"
+use "parts/train/locomotive.kdl"
+use "parts/train/carriage.kdl"
+
+scene "night-train" palette="night-train" width=320 height=180 fps=12 duration="12s" loop=#true seed=9 background="sky.base" {
+    ambient darkness=1 occlusion=1 key-light=250
+    wind strength=1 gust=0.5 speed=4
+
+    timeline {
+        marker "board" at="3s"
+        marker "window" at="5s"
+        marker "leave" at="8.5s"
+        marker "wide" at="10.5s"
+    }
+
+    // The train runs across once per loop; 0 shows the valley, 1 rides with a window
+    group "focus" {
+        anim x {
+            k "board" 0
+            k "window" 1 interp="ease-in-out"
+            k "leave" 1
+            k "wide" 0 interp="ease-in-out"
+        }
+    }
+    camera x="=(@engine.x - 169 - 160) * @focus.x" y="=(87 - 90) * @focus.x" zoom="=1 + 3 * @focus.x"
+
+    layer "sky" parallax=0 {
+        rect x=-60 y=-40 width=440 height=180 paint="sky.deep" gradient="down" gradient-steps=3
+        ellipse x=238 y=10 width=34 height=34 paint="sky.lit" emissive=#true
+        ellipse x=246 y=18 width=18 height=18 paint="moon.hi" emissive=#true
+        ellipse x=251 y=23 width=4 height=3 paint="moon.base" emissive=#true
+        rect x=211 y=61 width=1 height=1 paint="moon.hi" emissive=#true
+        rect x=211 y=55 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=74 y=55 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=28 y=47 width=1 height=1 paint="moon.base" emissive=#true visible="=1 - pulse(2s, 0.15)"
+        rect x=284 y=40 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=299 y=-9 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=10 y=-6 width=1 height=1 paint="moon.base" emissive=#true visible="=1 - pulse(3s, 0.15)"
+        rect x=217 y=31 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=245 y=19 width=1 height=1 paint="moon.hi" emissive=#true
+        rect x=-18 y=0 width=1 height=1 paint="moon.hi" emissive=#true
+        rect x=188 y=60 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=110 y=30 width=1 height=1 paint="moon.hi" emissive=#true
+        rect x=-5 y=-2 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=185 y=3 width=1 height=1 paint="moon.hi" emissive=#true
+        rect x=14 y=-8 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=89 y=16 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=220 y=38 width=1 height=1 paint="moon.hi" emissive=#true
+        rect x=194 y=-1 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=325 y=24 width=1 height=1 paint="moon.hi" emissive=#true visible="=1 - pulse(4s, 0.15)"
+        rect x=-13 y=42 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=48 y=21 width=1 height=1 paint="moon.base" emissive=#true
+        rect x=10 y=49 width=1 height=1 paint="moon.base" emissive=#true
+    }
+    layer "clouds" parallax=0.1 {
+        blob x="=40 + osc(12s, -6, 6)" y=34 circles="0,0,6 9,-3,8 19,0,6 28,2,4" smooth=4 paint="cloud.base" shading="dome"
+        blob x="=180 + osc(12s, 5, -5)" y=22 circles="0,0,4 8,-2,6 16,1,4" smooth=3 paint="cloud.shade" shading="dome"
+        blob x="=290 + osc(6s, -3, 3)" y=48 circles="0,0,5 8,-3,6 15,0,5" smooth=3 paint="cloud.base" shading="dome"
+    }
+    layer "mountains" parallax=0.25 fog="35%" fog-paint="sky.base" {
+        polygon x=-80 y=60 points="0,50 50,18 90,34 150,4 210,30 260,12 330,40 400,16 480,44 480,70 0,70" paint="mountain.base" shading="dome"
+    }
+    layer "forest" parallax=0.5 fog="15%" fog-paint="sky.shade" {
+        rect x=-80 y=110 width=480 height=30 paint="pine.base"
+        polygon x=-70 y=100 points="6,0 12,24 0,24" paint="pine.base"
+        polygon x=-62 y=102 points="4,0 9,22 0,22" paint="pine.lit"
+        polygon x=-56 y=104 points="6,0 13,20 0,20" paint="pine.shade"
+        polygon x=-51 y=104 points="5,0 11,20 0,20" paint="pine.base"
+        polygon x=-46 y=106 points="6,0 12,18 0,18" paint="pine.shade"
+        polygon x=-41 y=107 points="4,0 9,17 0,17" paint="pine.shade"
+        polygon x=-32 y=100 points="6,0 12,24 0,24" paint="pine.base"
+        polygon x=-27 y=108 points="4,0 9,16 0,16" paint="pine.shade"
+        polygon x=-20 y=110 points="6,0 12,14 0,14" paint="pine.shade"
+        polygon x=-13 y=104 points="4,0 8,20 0,20" paint="pine.base"
+        polygon x=-8 y=107 points="6,0 12,17 0,17" paint="pine.lit"
+        polygon x=-2 y=110 points="6,0 12,14 0,14" paint="pine.shade"
+        polygon x=5 y=101 points="5,0 11,23 0,23" paint="pine.base"
+        polygon x=14 y=103 points="6,0 12,21 0,21" paint="pine.base"
+        polygon x=22 y=108 points="6,0 13,16 0,16" paint="pine.base"
+        polygon x=29 y=96 points="4,0 9,28 0,28" paint="pine.lit"
+        polygon x=35 y=99 points="4,0 9,25 0,25" paint="pine.base"
+        polygon x=45 y=100 points="6,0 12,24 0,24" paint="pine.base"
+        polygon x=55 y=104 points="5,0 11,20 0,20" paint="pine.lit"
+        polygon x=60 y=104 points="4,0 8,20 0,20" paint="pine.base"
+        polygon x=65 y=110 points="6,0 12,14 0,14" paint="pine.shade"
+        polygon x=71 y=99 points="6,0 13,25 0,25" paint="pine.shade"
+        polygon x=78 y=104 points="6,0 12,20 0,20" paint="pine.shade"
+        polygon x=85 y=102 points="4,0 9,22 0,22" paint="pine.lit"
+        polygon x=90 y=108 points="4,0 9,16 0,16" paint="pine.shade"
+        polygon x=99 y=100 points="6,0 12,24 0,24" paint="pine.lit"
+        polygon x=104 y=106 points="4,0 9,18 0,18" paint="pine.base"
+        polygon x=114 y=110 points="4,0 8,14 0,14" paint="pine.shade"
+        polygon x=122 y=103 points="4,0 9,21 0,21" paint="pine.base"
+        polygon x=127 y=108 points="5,0 10,16 0,16" paint="pine.shade"
+        polygon x=136 y=101 points="4,0 9,23 0,23" paint="pine.base"
+        polygon x=143 y=108 points="5,0 11,16 0,16" paint="pine.shade"
+        polygon x=153 y=99 points="6,0 13,25 0,25" paint="pine.lit"
+        polygon x=162 y=108 points="6,0 12,16 0,16" paint="pine.base"
+        polygon x=167 y=103 points="5,0 10,21 0,21" paint="pine.lit"
+        polygon x=174 y=110 points="4,0 8,14 0,14" paint="pine.lit"
+        polygon x=184 y=109 points="5,0 11,15 0,15" paint="pine.base"
+        polygon x=194 y=106 points="5,0 10,18 0,18" paint="pine.base"
+        polygon x=199 y=109 points="5,0 11,15 0,15" paint="pine.lit"
+        polygon x=206 y=99 points="4,0 8,25 0,25" paint="pine.lit"
+        polygon x=216 y=99 points="4,0 9,25 0,25" paint="pine.shade"
+        polygon x=223 y=109 points="6,0 13,15 0,15" paint="pine.shade"
+        polygon x=228 y=97 points="5,0 11,27 0,27" paint="pine.base"
+        polygon x=236 y=101 points="4,0 8,23 0,23" paint="pine.lit"
+        polygon x=246 y=104 points="5,0 11,20 0,20" paint="pine.lit"
+        polygon x=251 y=101 points="4,0 8,23 0,23" paint="pine.base"
+        polygon x=256 y=100 points="4,0 8,24 0,24" paint="pine.shade"
+        polygon x=264 y=99 points="5,0 10,25 0,25" paint="pine.shade"
+        polygon x=274 y=99 points="6,0 12,25 0,25" paint="pine.shade"
+        polygon x=282 y=103 points="6,0 12,21 0,21" paint="pine.base"
+        polygon x=291 y=98 points="6,0 12,26 0,26" paint="pine.base"
+        polygon x=298 y=101 points="4,0 8,23 0,23" paint="pine.shade"
+        polygon x=303 y=107 points="6,0 13,17 0,17" paint="pine.base"
+        polygon x=311 y=98 points="6,0 12,26 0,26" paint="pine.lit"
+        polygon x=319 y=106 points="4,0 8,18 0,18" paint="pine.shade"
+        polygon x=326 y=108 points="6,0 13,16 0,16" paint="pine.lit"
+        polygon x=332 y=102 points="4,0 9,22 0,22" paint="pine.shade"
+        polygon x=342 y=96 points="5,0 11,28 0,28" paint="pine.shade"
+        polygon x=348 y=105 points="5,0 11,19 0,19" paint="pine.lit"
+        polygon x=355 y=107 points="6,0 13,17 0,17" paint="pine.shade"
+        polygon x=361 y=96 points="4,0 9,28 0,28" paint="pine.shade"
+        polygon x=367 y=101 points="5,0 10,23 0,23" paint="pine.base"
+        polygon x=373 y=108 points="5,0 11,16 0,16" paint="pine.shade"
+        polygon x=378 y=99 points="4,0 8,25 0,25" paint="pine.shade"
+        polygon x=384 y=109 points="5,0 11,15 0,15" paint="pine.shade"
+        polygon x=391 y=96 points="4,0 9,28 0,28" paint="pine.shade"
+        polygon x=399 y=100 points="6,0 12,24 0,24" paint="pine.shade"
+    }
+
+    // The river, with glints drifting downstream
+    rect "river" x=-60 y=132 width=440 height=60 paint="river.base" gradient="down" gradient-steps=-2
+    rect x="=151 + mod(t * 6, 40) - 20" y=175 width=6 height=1 paint="river.hi"
+    rect x="=28 + mod(t * 6, 40) - 20" y=138 width=10 height=1 paint="river.hi"
+    rect x="=301 + mod(t * 8, 40) - 20" y=138 width=9 height=1 paint="river.hi"
+    rect x="=133 + mod(t * 6, 40) - 20" y=172 width=6 height=1 paint="river.hi"
+    rect x="=278 + mod(t * 8, 40) - 20" y=137 width=5 height=1 paint="river.hi"
+    rect x="=197 + mod(t * 4, 40) - 20" y=165 width=4 height=1 paint="river.hi"
+    rect x="=126 + mod(t * 4, 40) - 20" y=151 width=10 height=1 paint="river.hi"
+    rect x="=14 + mod(t * 4, 40) - 20" y=176 width=7 height=1 paint="river.hi"
+
+    // The viaduct: piers, stone arches between them, the deck and its parapet
+    rect x=-40 y=112 width=12 height=26 paint="stone.base" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=-42 y=134 width=16 height=4 paint="stone.shade" outline="selective"
+    rope x1=-30 y1=116 x2=26 y2=116 sag=-9 width=5 paint="stone.base" texture=0.3 texture-scale=2
+    rect x=24 y=112 width=12 height=26 paint="stone.base" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=22 y=134 width=16 height=4 paint="stone.shade" outline="selective"
+    rope x1=34 y1=116 x2=90 y2=116 sag=-9 width=5 paint="stone.base" texture=0.3 texture-scale=2
+    rect x=88 y=112 width=12 height=26 paint="stone.base" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=86 y=134 width=16 height=4 paint="stone.shade" outline="selective"
+    rope x1=98 y1=116 x2=154 y2=116 sag=-9 width=5 paint="stone.base" texture=0.3 texture-scale=2
+    rect x=152 y=112 width=12 height=26 paint="stone.base" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=150 y=134 width=16 height=4 paint="stone.shade" outline="selective"
+    rope x1=162 y1=116 x2=218 y2=116 sag=-9 width=5 paint="stone.base" texture=0.3 texture-scale=2
+    rect x=216 y=112 width=12 height=26 paint="stone.base" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=214 y=134 width=16 height=4 paint="stone.shade" outline="selective"
+    rope x1=226 y1=116 x2=282 y2=116 sag=-9 width=5 paint="stone.base" texture=0.3 texture-scale=2
+    rect x=280 y=112 width=12 height=26 paint="stone.base" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=278 y=134 width=16 height=4 paint="stone.shade" outline="selective"
+    rope x1=290 y1=116 x2=346 y2=116 sag=-9 width=5 paint="stone.base" texture=0.3 texture-scale=2
+    rect x=344 y=112 width=12 height=26 paint="stone.base" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=342 y=134 width=16 height=4 paint="stone.shade" outline="selective"
+    rect x=-60 y=104 width=440 height=10 paint="stone.lit" texture=0.3 texture-scale=2 shading="dome" outline="selective" casts-shadow=#true
+    rect x=-60 y=103 width=440 height=1 paint="iron.lit"
+    rect x=-60 y=112 width=6 height=2 paint="stone.shade"
+    rect x=-50 y=112 width=6 height=2 paint="stone.shade"
+    rect x=-40 y=112 width=6 height=2 paint="stone.shade"
+    rect x=-30 y=112 width=6 height=2 paint="stone.shade"
+    rect x=-20 y=112 width=6 height=2 paint="stone.shade"
+    rect x=-10 y=112 width=6 height=2 paint="stone.shade"
+    rect x=0 y=112 width=6 height=2 paint="stone.shade"
+    rect x=10 y=112 width=6 height=2 paint="stone.shade"
+    rect x=20 y=112 width=6 height=2 paint="stone.shade"
+    rect x=30 y=112 width=6 height=2 paint="stone.shade"
+    rect x=40 y=112 width=6 height=2 paint="stone.shade"
+    rect x=50 y=112 width=6 height=2 paint="stone.shade"
+    rect x=60 y=112 width=6 height=2 paint="stone.shade"
+    rect x=70 y=112 width=6 height=2 paint="stone.shade"
+    rect x=80 y=112 width=6 height=2 paint="stone.shade"
+    rect x=90 y=112 width=6 height=2 paint="stone.shade"
+    rect x=100 y=112 width=6 height=2 paint="stone.shade"
+    rect x=110 y=112 width=6 height=2 paint="stone.shade"
+    rect x=120 y=112 width=6 height=2 paint="stone.shade"
+    rect x=130 y=112 width=6 height=2 paint="stone.shade"
+    rect x=140 y=112 width=6 height=2 paint="stone.shade"
+    rect x=150 y=112 width=6 height=2 paint="stone.shade"
+    rect x=160 y=112 width=6 height=2 paint="stone.shade"
+    rect x=170 y=112 width=6 height=2 paint="stone.shade"
+    rect x=180 y=112 width=6 height=2 paint="stone.shade"
+    rect x=190 y=112 width=6 height=2 paint="stone.shade"
+    rect x=200 y=112 width=6 height=2 paint="stone.shade"
+    rect x=210 y=112 width=6 height=2 paint="stone.shade"
+    rect x=220 y=112 width=6 height=2 paint="stone.shade"
+    rect x=230 y=112 width=6 height=2 paint="stone.shade"
+    rect x=240 y=112 width=6 height=2 paint="stone.shade"
+    rect x=250 y=112 width=6 height=2 paint="stone.shade"
+    rect x=260 y=112 width=6 height=2 paint="stone.shade"
+    rect x=270 y=112 width=6 height=2 paint="stone.shade"
+    rect x=280 y=112 width=6 height=2 paint="stone.shade"
+    rect x=290 y=112 width=6 height=2 paint="stone.shade"
+    rect x=300 y=112 width=6 height=2 paint="stone.shade"
+    rect x=310 y=112 width=6 height=2 paint="stone.shade"
+    rect x=320 y=112 width=6 height=2 paint="stone.shade"
+    rect x=330 y=112 width=6 height=2 paint="stone.shade"
+    rect x=340 y=112 width=6 height=2 paint="stone.shade"
+    rect x=350 y=112 width=6 height=2 paint="stone.shade"
+    rect x=360 y=112 width=6 height=2 paint="stone.shade"
+    rect x=370 y=112 width=6 height=2 paint="stone.shade"
+
+    // The train: an engine and three carriages, each hooked to the one in front
+    use-scene "locomotive" id="engine" y=104 {
+        anim x loop="repeat" { k "0s" -10; k "12s" 580 }
+    }
+    use-scene "carriage" id="car-1" attach="engine" x=-86
+    use-scene "carriage" id="car-2" attach="car-1" x=-62 sleepers=#true
+    use-scene "carriage" id="car-3" attach="car-2" x=-62 color="train"
+    light-cone attach="engine.lamp" x=4 y=2 angle="4deg" spread="30deg" reach=110 intensity=2.6 color="lamp"
+
+    // The river mirrors everything above it, rippling
+    reflection x=-60 y=132 width=440 height=60 axis=132 ripple=1 speed=3 tone-shift=-1 on="river"
+
+    // Reeds on the near bank, and fireflies drifting over them
+    layer "near" parallax=1.3 {
+        rope x1=25 y1=184 x2="=25 + wind(25) * 4 + osc(6s, -1, 1)" y2=164 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.base"
+        rope x1=9 y1=184 x2="=9 + wind(9) * 4 + osc(3s, -1, 1)" y2=164 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=213 y1=184 x2="=213 + wind(213) * 4 + osc(3s, -1, 1)" y2=170 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=211 y1=184 x2="=211 + wind(211) * 4 + osc(6s, -1, 1)" y2=166 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=61 y1=184 x2="=61 + wind(61) * 4 + osc(4s, -1, 1)" y2=171 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.base"
+        rope x1=246 y1=184 x2="=246 + wind(246) * 4 + osc(6s, -1, 1)" y2=166 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=171 y1=184 x2="=171 + wind(171) * 4 + osc(3s, -1, 1)" y2=171 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.base"
+        rope x1=339 y1=184 x2="=339 + wind(339) * 4 + osc(3s, -1, 1)" y2=168 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.base"
+        rope x1=202 y1=184 x2="=202 + wind(202) * 4 + osc(6s, -1, 1)" y2=171 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=162 y1=184 x2="=162 + wind(162) * 4 + osc(6s, -1, 1)" y2=166 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.base"
+        rope x1=207 y1=184 x2="=207 + wind(207) * 4 + osc(6s, -1, 1)" y2=169 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=20 y1=184 x2="=20 + wind(20) * 4 + osc(6s, -1, 1)" y2=164 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=79 y1=184 x2="=79 + wind(79) * 4 + osc(4s, -1, 1)" y2=171 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=128 y1=184 x2="=128 + wind(128) * 4 + osc(4s, -1, 1)" y2=166 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.base"
+        rope x1=337 y1=184 x2="=337 + wind(337) * 4 + osc(4s, -1, 1)" y2=174 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.deep"
+        rope x1=-11 y1=184 x2="=-11 + wind(-11) * 4 + osc(4s, -1, 1)" y2=167 sag=0 sway="=osc(4s, -1, 1)" width=2 paint="pine.base"
+    }
+    particles x=-20 y=118 width=360 height=60 count=26 vx=0 vy=-3 life="6s" size=1 wind=6 paint="firefly.hi" emissive=#true fade=#true
+}

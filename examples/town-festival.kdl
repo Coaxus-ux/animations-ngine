@@ -8,11 +8,11 @@
 // `--param crowd=100` adds people; `pxe bench --sweep crowd=10,100,1000` measures it.
 // Loops every 12 seconds.
 
-use "parts/festival-palette.kdl"
-use "parts/backdrop.kdl"
-use "parts/walker.kdl"
-use "parts/sky-lantern.kdl"
-use "parts/firework.kdl"
+use "parts/festival/festival-palette.kdl"
+use "parts/festival/backdrop.kdl"
+use "parts/festival/walker.kdl"
+use "parts/festival/sky-lantern.kdl"
+use "parts/festival/firework.kdl"
 
 scene "town-festival" palette="festival" width=320 height=180 fps=12 duration="12s" loop=#true seed=21 background="sky.base" {
     param crowd 4
