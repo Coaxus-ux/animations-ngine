@@ -17,11 +17,13 @@ pub(crate) fn run(command: &Command) -> Result<()> {
         Command::Render { input, frame, out } => render(input, Frame::new(*frame), out.as_deref()),
         Command::Export { input, out } => export(input, out.as_deref()),
         Command::Watch { input } => crate::watch::watch(input, scale(input)?),
+        Command::Timeline { input } => crate::timeline::print(input),
         Command::Bench {
             files,
             budget_ms,
             rounds,
-        } => crate::bench::bench(files, *budget_ms, *rounds),
+            sweep,
+        } => crate::bench::bench(files, *budget_ms, *rounds, sweep.as_ref()),
     }
 }
 

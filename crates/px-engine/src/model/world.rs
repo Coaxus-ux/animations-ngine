@@ -1,6 +1,7 @@
 use px_core::{LightColor, Paint, RampId};
 use px_expr::Wind;
 
+use super::instance::Instance;
 use super::param::Param;
 use super::shape::Bounds;
 
@@ -26,12 +27,25 @@ pub struct Clip {
     pub bounds: Bounds,
     pub round: bool,
     pub layer: usize,
+    pub instance: Option<usize>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Camera {
     pub x: Param,
     pub y: Param,
+    /// Scale about the canvas center; shapes are rasterized again at every zoom.
+    pub zoom: Param,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            x: Param::Fixed(0.0),
+            y: Param::Fixed(0.0),
+            zoom: Param::Fixed(1.0),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -50,6 +64,8 @@ pub struct Light {
     pub intensity: Param,
     pub color: Option<LightColor>,
     pub shadows: bool,
+    pub layer: usize,
+    pub instance: Option<usize>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -79,6 +95,7 @@ pub struct Reflection {
     pub opacity: Param,
     /// Only pixels of this ramp (the water) receive the reflection.
     pub surface: Option<RampId>,
+    pub instance: Option<usize>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -90,4 +107,6 @@ pub struct Environment {
     pub ambient: Ambient,
     pub reflections: Vec<Reflection>,
     pub wind: Wind,
+    /// Parents come before their children.
+    pub instances: Vec<Instance>,
 }

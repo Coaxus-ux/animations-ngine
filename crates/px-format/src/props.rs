@@ -74,6 +74,26 @@ impl<'a> Props<'a> {
         entry
     }
 
+    /// Every named entry not read so far, now counted as read.
+    pub(crate) fn rest(&mut self) -> Vec<&'a KdlEntry> {
+        let rest: Vec<&'a KdlEntry> = self
+            .node
+            .entries()
+            .iter()
+            .filter(|entry| {
+                entry
+                    .name()
+                    .is_some_and(|name| !self.used.contains(name.value()))
+            })
+            .collect();
+        for entry in &rest {
+            if let Some(name) = entry.name() {
+                self.used.insert(name.value());
+            }
+        }
+        rest
+    }
+
     pub(crate) fn finish(self, diags: &mut Diagnostics) {
         for entry in self.node.entries() {
             if let Some(name) = entry

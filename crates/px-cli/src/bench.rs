@@ -7,6 +7,7 @@ use anyhow::Result;
 use px_engine::{FrameBuffer, Scene};
 use px_format::LoadOptions;
 
+use crate::args::Sweep;
 use crate::source;
 
 #[derive(Debug)]
@@ -33,47 +34,78 @@ struct Timing {
     worst: Duration,
 }
 
-pub(crate) fn bench(files: &[PathBuf], budget_ms: f64, rounds: u32) -> Result<()> {
+pub(crate) fn bench(
+    files: &[PathBuf],
+    budget_ms: f64,
+    rounds: u32,
+    sweep: Option<&Sweep>,
+) -> Result<()> {
     let files = if files.is_empty() {
         default_files()
     } else {
         files.to_vec()
     };
     let budget = Duration::from_secs_f64(budget_ms.max(0.0) / 1000.0);
+    let runs: Vec<Option<(String, String)>> = match sweep {
+        Some(sweep) => sweep
+            .values
+            .iter()
+            .map(|value| Some((sweep.param.clone(), value.clone())))
+            .collect(),
+        None => vec![None],
+    };
     let mut over = Vec::new();
     println!(
-        "{:<36} {:>9} {:>7} {:>9} {:>9}",
-        "scene", "size", "frames", "mean ms", "worst ms"
+        "{:<44} {:>9} {:>6} {:>6} {:>5} {:>6} {:>8} {:>8}",
+        "scene", "size", "frames", "shapes", "inst", "lights", "mean ms", "worst ms"
     );
     for file in &files {
-        let scene = source::load_file(file, LoadOptions::default())?;
-        let timing = time_frames(&scene, rounds.max(1))?;
-        let verdict = if timing.worst > budget {
-            "over budget"
-        } else {
-            ""
-        };
-        let size = format!("{}x{}", scene.size().width(), scene.size().height());
-        println!(
-            "{:<36} {size:>9} {:>7} {:>9.3} {:>9.3} {verdict}",
-            file.display(),
-            scene.timing().duration.get(),
-            timing.mean.as_secs_f64() * 1000.0,
-            timing.worst.as_secs_f64() * 1000.0,
-        );
-        if timing.worst > budget {
-            over.push(file.display().to_string());
+        for run in &runs {
+            let label = match run {
+                Some((param, value)) => format!("{} [{param}={value}]", file.display()),
+                None => file.display().to_string(),
+            };
+            let params: Vec<(String, String)> = run.iter().cloned().collect();
+            let options = LoadOptions {
+                params: &params,
+                ..LoadOptions::default()
+            };
+            let scene = source::load_file(file, options).0?.scene;
+            let timing = time_frames(&scene, rounds.max(1))?;
+            let late = timing.worst > budget;
+            print_row(&label, &scene, &timing, late);
+            if late {
+                over.push(label);
+            }
         }
     }
-    if over.is_empty() {
-        Ok(())
-    } else {
-        Err(OverBudget {
+    match (over.first(), sweep) {
+        (None, _) => Ok(()),
+        (Some(first), Some(_)) => {
+            println!("first over the {budget_ms:.1} ms budget: {first}");
+            Ok(())
+        }
+        (Some(_), None) => Err(OverBudget {
             scenes: over,
             budget_ms,
         }
-        .into())
+        .into()),
     }
+}
+
+fn print_row(label: &str, scene: &Scene, timing: &Timing, late: bool) {
+    let stats = scene.stats();
+    let size = format!("{}x{}", scene.size().width(), scene.size().height());
+    let verdict = if late { "over budget" } else { "" };
+    println!(
+        "{label:<44} {size:>9} {:>6} {:>6} {:>5} {:>6} {:>8.3} {:>8.3} {verdict}",
+        scene.timing().duration.get(),
+        stats.shapes,
+        stats.instances,
+        stats.lights,
+        timing.mean.as_secs_f64() * 1000.0,
+        timing.worst.as_secs_f64() * 1000.0,
+    );
 }
 
 fn time_frames(scene: &Scene, rounds: u32) -> Result<Timing> {

@@ -1,0 +1,53 @@
+// A person walking in place, facing right: one full stride per second. The feet touch
+// (0, 0), so a host places a walker by where it stands, moves it with `x`, turns it around
+// with `flip` and sets its look with params. Can carry a paper lantern (a nested scene).
+
+use "festival-palette.kdl"
+use "paper-lantern.kdl"
+
+scene "walker" palette="festival" width=40 height=48 fps=12 duration="1s" loop=#true background="street.base" {
+    param coat "coat-blue"
+    param hair "hair-black"
+    param scarf "cloth"
+    param lantern #false
+    param ponytail #false
+    camera x=-20 y=-44
+
+    // The body rises a pixel each time the legs pass each other
+    group "bob" y="=round(abs(sin(tau * t))) - 1"
+
+    // Far side: back leg and arm
+    capsule "back-leg" x1=-1 y1="=-13 + @bob.y" x2="=-6 * sin(tau * t)" y2="=-2 - 2 * max(0, -cos(tau * t))" radius=1.6 paint="pants.shade"
+    ellipse x="=@back-leg.x2 - 2" y="=@back-leg.y2 - 1" width=5 height=3 paint="hair-black.shade"
+    capsule "back-arm" x1=0 y1="=-23 + @bob.y" x2="=4 * sin(tau * t)" y2="=-15 + @bob.y" radius=1.3 paint="$coat.shade"
+    ellipse x="=@back-arm.x2 - 1" y="=@back-arm.y2 - 1" width=3 height=3 paint="skin.shade"
+
+    // Near leg and the coat over both hips
+    capsule "front-leg" x1=1 y1="=-13 + @bob.y" x2="=6 * sin(tau * t)" y2="=-2 - 2 * max(0, cos(tau * t))" radius=1.6 paint="pants.base"
+    ellipse x="=@front-leg.x2 - 2" y="=@front-leg.y2 - 1" width=5 height=3 paint="hair-black.base" outline="selective"
+    rounded-rect "coat" x=-4 y="=-26 + @bob.y" width=9 height=14 radius=3 paint="$coat" shading="dome" outline="selective" casts-shadow=#true
+    polygon x=-5 y="=-14 + @bob.y" points="1,0 10,0 11,3 0,3" paint="$coat.shade" outline="selective"
+    rect x=-4 y="=-16 + @bob.y" width=9 height=1 paint="wood.shade"
+    rect x=2 y="=-23 + @bob.y" width=1 height=1 paint="lantern-gold.lit"
+    rect x=2 y="=-20 + @bob.y" width=1 height=1 paint="lantern-gold.lit"
+
+    // Head: hair behind, face, then the fringe in front
+    rope x1=-4 y1="=-34 + @bob.y" x2="=-9 + wind(0) * 1.5 - sin(tau * t)" y2="=-28 + @bob.y" sag=1 width=2 paint="$hair" visible="=$ponytail"
+    rect x=-1 y="=-28 + @bob.y" width=3 height=3 paint="skin.shade"
+    ellipse "head" x=-4 y="=-37 + @bob.y" width=10 height=10 paint="skin" shading="dome" outline="selective"
+    blob x=-4 y="=-37 + @bob.y" circles="3,2,3.5 1,4,2.5 6,1.5,2.5" smooth=1.5 paint="$hair" shading="dome" outline="selective"
+    polygon x=2 y="=-37 + @bob.y" points="0,1 5,2 6,4 2,3" paint="$hair.lit"
+    rect x=-1 y="=-32 + @bob.y" width=1 height=2 paint="skin.shade"
+    rect x=3 y="=-33 + @bob.y" width=1 height=2 paint="ink"
+    rect x=4 y="=-30 + @bob.y" width=1 height=1 paint="lantern.hi"
+    rect x=5 y="=-29 + @bob.y" width=1 height=1 paint="skin.shade"
+
+    // Scarf, trailing behind in the wind
+    rounded-rect x=-3 y="=-28 + @bob.y" width=8 height=3 radius=1 paint="$scarf" shading="dome"
+    rope x1=-2 y1="=-27 + @bob.y" x2="=-8 + wind(0) * 3" y2="=-23 + @bob.y + sin(tau * t)" sag=1 width=2 paint="$scarf.shade"
+
+    // Near arm, and the lantern hanging from that hand
+    capsule "front-arm" x1=1 y1="=-23 + @bob.y" x2="=1 - 4 * sin(tau * t)" y2="=-15 + @bob.y" radius=1.4 paint="$coat.lit" outline="selective"
+    ellipse "hand" x="=@front-arm.x2 - 1" y="=@front-arm.y2 - 1" width=3 height=3 paint="skin" outline="selective"
+    use-scene "paper-lantern" count="=$lantern" x="=@hand.x + 2" y="=@hand.y + 1" scale=0.6
+}

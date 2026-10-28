@@ -3,9 +3,10 @@ use px_core::{CanvasView, Frame, Paint, Size};
 use super::RenderError;
 use super::frame::render;
 use super::mask::Mask;
+use super::placement::Placed;
 use super::report::FrameReport;
-use super::surface::Surface;
-use crate::model::Scene;
+use super::surface::{Surface, Target};
+use crate::model::{MAX_INSTANCES, Scene};
 
 /// Every per-pixel buffer a frame needs, allocated once; `render` never allocates.
 #[derive(Clone, Debug)]
@@ -18,6 +19,7 @@ pub struct FrameBuffer {
     temp: Vec<u8>,
     distance: Vec<u16>,
     noise: Vec<i8>,
+    placed: Vec<Placed>,
     report: FrameReport,
 }
 
@@ -34,6 +36,7 @@ impl FrameBuffer {
             temp: vec![0; count],
             distance: vec![0; count],
             noise: vec![0; count],
+            placed: vec![Placed::root(px_expr::Env::default()); MAX_INSTANCES],
             report: FrameReport::default(),
         }
     }
@@ -65,7 +68,12 @@ impl FrameBuffer {
         };
         mask.coverage.fill(0);
         self.report = FrameReport::default();
-        render(scene, frame, &mut surface, &mut mask, &mut self.report)?;
+        let target = Target {
+            surface: &mut surface,
+            mask: &mut mask,
+            placed: &mut self.placed,
+        };
+        render(scene, frame, target, &mut self.report)?;
         CanvasView::new(self.size, &self.cells).map_err(|_| mismatch)
     }
 

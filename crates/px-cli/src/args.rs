@@ -38,6 +38,15 @@ pub(crate) enum Command {
         /// Times each frame is rendered; the fastest run counts.
         #[arg(long, default_value_t = 3)]
         rounds: u32,
+        /// Render each scene once per value of a scene param, e.g. `--sweep crowd=10,100,1000`,
+        /// to find where frames cross the budget.
+        #[arg(long, value_name = "NAME=V1,V2,…", value_parser = parse_sweep)]
+        sweep: Option<Sweep>,
+    },
+    /// Print what plays when: every placed scene on a time ruler, with the markers.
+    Timeline {
+        #[command(flatten)]
+        input: Input,
     },
     /// Render every frame to a looping GIF.
     Export {
@@ -62,6 +71,26 @@ pub(crate) struct Input {
     /// Override a scene param, e.g. `--param wind=0.8` (repeatable).
     #[arg(long = "param", value_name = "NAME=VALUE", value_parser = parse_param)]
     pub(crate) params: Vec<(String, String)>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct Sweep {
+    pub(crate) param: String,
+    pub(crate) values: Vec<String>,
+}
+
+fn parse_sweep(text: &str) -> Result<Sweep, String> {
+    let (param, values) = parse_param(text)?;
+    let values: Vec<String> = values
+        .split(',')
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+        .collect();
+    if values.is_empty() {
+        return Err(format!("expected NAME=V1,V2,…, found \"{text}\""));
+    }
+    Ok(Sweep { param, values })
 }
 
 fn parse_param(text: &str) -> Result<(String, String), String> {

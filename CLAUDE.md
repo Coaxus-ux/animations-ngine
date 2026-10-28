@@ -1,6 +1,6 @@
 # Pixel art animation engine
 
-A general-purpose engine that renders pixel art scenes, characters, animations and game assets from KDL descriptions. Rust core, palette-indexed CPU renderer, no AI inside the engine. Design docs: [docs/README.md](docs/README.md). Current milestone: **M0 walking skeleton** ([docs/ROADMAP.md](docs/ROADMAP.md)).
+A general-purpose engine that renders pixel art scenes, characters, animations and game assets from KDL descriptions. Rust core, palette-indexed CPU renderer, no AI inside the engine. Design docs: [docs/README.md](docs/README.md). Status: M1 done with parts of M2–M5 and M9 pulled forward ([docs/ROADMAP.md](docs/ROADMAP.md)); what the loader accepts today is [FORMAT.md appendix A](docs/FORMAT.md#appendix-a-what-the-loader-accepts-today).
 
 ## Rules (always)
 - **Code is always SOLID and DRY.** One responsibility per crate, module, type and function; one source of truth for every rule, limit and constant.
@@ -20,10 +20,10 @@ crates/
   px-expr     expression compiler (alloc) + evaluator (no heap)
   px-raster   no_std: shape rasterization into a canvas
   px-format   KDL loading and validation → compiled scene
-  px-engine   render_frame: scene + frame → indexed canvas (no alloc)
+  px-engine   FrameBuffer::render: scene + frame → indexed canvas (no alloc)
   px-export   indexed → RGB, upscale, PNG, GIF
   px-cli      the `pxe` binary
-examples/     sample scenes (hello.kdl)
+examples/     sample scenes; examples/parts/ holds scenes the examples place with `use-scene`
 tools/        repo tooling (file size guard)
 ```
 

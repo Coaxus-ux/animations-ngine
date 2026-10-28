@@ -1,5 +1,7 @@
 use px_core::{FrameRate, Size};
 
+use crate::timeline::Markers;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum Unit {
     None,
@@ -35,9 +37,23 @@ pub(crate) struct Literal {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub(crate) struct Measure {
+pub(crate) struct Measure<'m> {
     pub(crate) canvas: Size,
     pub(crate) fps: FrameRate,
+    pub(crate) markers: &'m Markers,
+}
+
+impl Measure<'_> {
+    /// A number with its unit, or the time of a timeline marker.
+    pub(crate) fn literal(&self, text: &str) -> Option<Literal> {
+        literal(text).or_else(|| {
+            self.markers.get(text.trim()).map(|seconds| Literal {
+                value: seconds,
+                unit: Unit::Seconds,
+                integer: false,
+            })
+        })
+    }
 }
 
 const SUFFIXES: [(&str, Unit); 8] = [
@@ -86,24 +102,22 @@ impl Unit {
 }
 
 impl Literal {
-    pub(crate) fn convert(self, quantity: Quantity, measure: Measure) -> Result<f64, String> {
+    pub(crate) fn convert(self, quantity: Quantity, measure: Measure<'_>) -> Result<f64, String> {
         match (quantity, self.unit) {
             (Quantity::Length(axis), unit) => self.length(axis, unit, measure),
             (Quantity::Number, Unit::None) | (Quantity::Angle, Unit::None | Unit::Degrees) => {
                 Ok(self.value)
             }
             (Quantity::Number, Unit::Percent) => Ok(self.value / 100.0),
-            (Quantity::Time, Unit::None | Unit::Seconds) => Ok(self.value),
             (Quantity::Time, _) => self
-                .frames(measure.fps)
-                .map(|frames| frames / f64::from(measure.fps.get()))
+                .seconds(measure.fps)
                 .ok_or_else(|| self.wrong("a time (use s, ms or f)")),
             (Quantity::Angle, _) => Err(self.wrong("an angle (use deg)")),
             (Quantity::Number, _) => Err(self.wrong("a plain number")),
         }
     }
 
-    fn length(self, axis: Axis, unit: Unit, measure: Measure) -> Result<f64, String> {
+    fn length(self, axis: Axis, unit: Unit, measure: Measure<'_>) -> Result<f64, String> {
         let side = match axis {
             Axis::Horizontal => measure.canvas.width(),
             Axis::Vertical => measure.canvas.height(),
@@ -119,6 +133,13 @@ impl Literal {
 
     fn wrong(self, expected: &str) -> String {
         format!("`{}` is not {expected}", self.unit.name())
+    }
+
+    pub(crate) fn seconds(self, fps: FrameRate) -> Option<f64> {
+        match self.unit {
+            Unit::None | Unit::Seconds => Some(self.value),
+            _ => self.frames(fps).map(|frames| frames / f64::from(fps.get())),
+        }
     }
 
     pub(crate) fn frames(self, fps: FrameRate) -> Option<f64> {

@@ -43,7 +43,7 @@ scene "neon-street" view="perspective" palette="neon-night" seed=7 duration="10s
 | Feature | Params | Notes |
 |---|---|---|
 | **Position** | `x`, `y` (keyframable) | Whole pixels only |
-| **Zoom** | `zoom` = 1, 2, 3, 4… | Integer only; a zoom change is a cut or a transition, never a smooth scale |
+| **Zoom** | `zoom` = any value > 0, keyframable | Shapes are drawn again at every zoom, never resampled: pixels stay crisp and on-palette, outlines stay 1 px and forms gain detail as they grow ([DECISIONS.md](engineering/DECISIONS.md) D-008). Integer zooms are plain enlargements of the same art |
 | **Follow** | `follow="hero" lead=8 deadzone="16,8" smooth=0.2` | Snapped to pixels |
 | **Path** | `path="dolly-1" speed=…` | Camera moves along a path |
 | **Shake** | `shake amp=2 freq=12 decay="0.5s"` | Integer offsets, seeded |

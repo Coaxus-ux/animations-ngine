@@ -7,6 +7,7 @@ mod file_watch;
 mod playback;
 mod preview;
 mod source;
+mod timeline;
 mod watch;
 
 use std::process::ExitCode;

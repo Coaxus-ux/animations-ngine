@@ -1,13 +1,17 @@
-use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use px_engine::Scene;
-use px_format::{LoadError, LoadOptions, load_scene};
+use px_format::{LoadError, LoadOptions, Loaded, SourceFile};
 
 use crate::args::Input;
 
 pub(crate) fn load(input: &Input) -> Result<Scene> {
+    Ok(load_tracked(input).0?.scene)
+}
+
+/// Loads the input's scene and also returns every file the load read, even when it failed.
+pub(crate) fn load_tracked(input: &Input) -> (Result<Loaded>, Vec<PathBuf>) {
     let options = LoadOptions {
         scene: input.scene.as_deref(),
         params: &input.params,
@@ -15,21 +19,25 @@ pub(crate) fn load(input: &Input) -> Result<Scene> {
     load_file(&input.file, options)
 }
 
-pub(crate) fn load_file(file: &Path, options: LoadOptions<'_>) -> Result<Scene> {
-    let path = file.display().to_string();
-    let source = fs::read_to_string(file).with_context(|| format!("cannot read {path}"))?;
-    match load_scene(&source, options) {
+pub(crate) fn load_file(file: &Path, options: LoadOptions<'_>) -> (Result<Loaded>, Vec<PathBuf>) {
+    match px_format::load_file(file, options) {
         Ok(loaded) => {
             for warning in &loaded.warnings {
-                eprintln!("{}", warning.render(&path, &source));
+                eprintln!("{}", warning.display(&loaded.files));
             }
-            Ok(loaded.scene)
+            let files = paths(&loaded.files);
+            (Ok(loaded), files)
         }
-        Err(LoadError { diagnostics }) => {
+        Err(LoadError { diagnostics, files }) => {
             for diagnostic in &diagnostics {
-                eprintln!("{}", diagnostic.render(&path, &source));
+                eprintln!("{}", diagnostic.display(&files));
             }
-            bail!("{path} could not be loaded")
+            let error = anyhow::anyhow!("{} could not be loaded", file.display());
+            (Err(error), paths(&files))
         }
     }
+}
+
+fn paths(files: &[SourceFile]) -> Vec<PathBuf> {
+    files.iter().map(|file| file.path.clone()).collect()
 }

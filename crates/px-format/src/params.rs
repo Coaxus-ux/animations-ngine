@@ -102,6 +102,41 @@ impl SceneParams {
         }
     }
 
+    /// Sets a param from a `use-scene` property; the value must have the param's type.
+    pub(crate) fn set(&mut self, name: &str, value: ParamValue) -> Result<(), String> {
+        let Some(param) = self.params.get_mut(name) else {
+            let hint = suggest::hint(name, self.params.keys().map(String::as_str));
+            return Err(format!("the placed scene has no param `{name}`.{hint}"));
+        };
+        let same_type = matches!(
+            (&param.value, &value),
+            (ParamValue::Number(_), ParamValue::Number(_))
+                | (ParamValue::Bool(_), ParamValue::Bool(_))
+                | (ParamValue::Text(_), ParamValue::Text(_))
+        );
+        if !same_type {
+            return Err(format!("param `{name}` has a different type"));
+        }
+        param
+            .check(&value)
+            .map_err(|message| format!("param `{name}`: {message}"))?;
+        param.value = value;
+        Ok(())
+    }
+
+    pub(crate) fn text(&self, name: &str) -> Result<&str, String> {
+        match self.params.get(name).map(|param| &param.value) {
+            Some(ParamValue::Text(text)) => Ok(text),
+            Some(_) => Err(format!(
+                "param `${name}` is not text, so it can't name a paint"
+            )),
+            None => {
+                let hint = suggest::hint(name, self.params.keys().map(String::as_str));
+                Err(format!("unknown param `${name}`.{hint}"))
+            }
+        }
+    }
+
     pub(crate) fn number(&self, name: &str) -> Result<f64, (ResolveError, String)> {
         match self.params.get(name).map(|param| &param.value) {
             Some(ParamValue::Number(value)) => Ok(*value),
@@ -147,7 +182,7 @@ impl Param {
     }
 }
 
-fn value_of(value: &KdlValue) -> Option<ParamValue> {
+pub(crate) fn value_of(value: &KdlValue) -> Option<ParamValue> {
     match value {
         KdlValue::Integer(number) => Some(ParamValue::Number(values::integer_to_f64(*number))),
         KdlValue::Float(number) if number.is_finite() => Some(ParamValue::Number(*number)),

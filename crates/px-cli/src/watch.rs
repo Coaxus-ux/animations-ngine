@@ -54,7 +54,7 @@ pub(crate) fn watch(input: &Input, scale: Scale) -> Result<()> {
         if now - last_poll >= POLL {
             last_poll = now;
             if file.changed() {
-                reload(input, &mut live, &mut preview, scale)?;
+                reload(input, &mut file, &mut live, &mut preview, scale)?;
             }
         }
         for control in preview.controls() {
@@ -77,8 +77,10 @@ pub(crate) fn watch(input: &Input, scale: Scale) -> Result<()> {
 fn wait_for_valid_scene(input: &Input, file: &mut FileWatch) -> Result<Live> {
     loop {
         if file.changed() {
-            match source::load(input) {
-                Ok(scene) => return Live::new(scene),
+            let (loaded, files) = source::load_tracked(input);
+            file.track(&files);
+            match loaded {
+                Ok(loaded) => return Live::new(loaded.scene),
                 Err(error) => eprintln!("{error:#}; waiting for the file to change…"),
             }
         }
@@ -86,10 +88,18 @@ fn wait_for_valid_scene(input: &Input, file: &mut FileWatch) -> Result<Live> {
     }
 }
 
-fn reload(input: &Input, live: &mut Live, preview: &mut Preview, scale: Scale) -> Result<()> {
-    match source::load(input) {
-        Ok(scene) => {
-            *live = Live::new(scene)?;
+fn reload(
+    input: &Input,
+    file: &mut FileWatch,
+    live: &mut Live,
+    preview: &mut Preview,
+    scale: Scale,
+) -> Result<()> {
+    let (loaded, files) = source::load_tracked(input);
+    file.track(&files);
+    match loaded {
+        Ok(loaded) => {
+            *live = Live::new(loaded.scene)?;
             if preview.size() != live.scene.size() {
                 *preview = Preview::open(live.scene.size(), scale, live.scene.name())?;
             }

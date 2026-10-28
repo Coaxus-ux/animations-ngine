@@ -7,14 +7,14 @@ use px_expr::Wind;
 use crate::diagnostic::Diagnostics;
 use crate::extras::{self, Extras};
 use crate::keyframes::Anim;
-use crate::palette::NamedPalette;
+use crate::paints::Paints;
 use crate::props::Props;
 use crate::schema::Kind;
 use crate::style::{self, Flags};
 use crate::suggest;
 use crate::values;
 
-const STRUCTURE: [&str; 2] = ["param", "wind"];
+const STRUCTURE: [&str; 3] = ["param", "wind", "timeline"];
 const MAX_CLIP_NESTING: usize = 8;
 
 pub(crate) struct Draft<'a> {
@@ -45,7 +45,7 @@ struct Context {
 
 pub(crate) fn collect<'a>(
     scene: &'a KdlNode,
-    palette: &NamedPalette,
+    palette: &Paints<'_>,
     diags: &mut Diagnostics,
 ) -> Tree<'a> {
     let mut tree = Tree::default();
@@ -69,7 +69,7 @@ fn children(node: &KdlNode) -> &[KdlNode] {
 fn walk<'a>(
     parent: &'a KdlNode,
     context: &Context,
-    palette: &NamedPalette,
+    palette: &Paints<'_>,
     tree: &mut Tree<'a>,
     diags: &mut Diagnostics,
 ) {
@@ -79,7 +79,8 @@ fn walk<'a>(
             tree.wind = wind(node, diags);
             continue;
         }
-        if STRUCTURE.contains(&name) {
+        // A group's or layer's own keyframes were read with its draft.
+        if STRUCTURE.contains(&name) || (name == "anim" && parent.name().value() != "scene") {
             continue;
         }
         let Some(kind) = Kind::parse(name) else {
@@ -136,14 +137,15 @@ fn draft<'a>(
     node: &'a KdlNode,
     kind: Kind,
     context: &Context,
-    palette: &NamedPalette,
+    palette: &Paints<'_>,
     diags: &mut Diagnostics,
 ) -> Draft<'a> {
     let mut props = Props::new(node);
-    let id = props
-        .args()
-        .next()
-        .and_then(|entry| values::string(entry, diags));
+    let id = match kind {
+        Kind::UseScene => props.get("id"),
+        _ => props.args().next(),
+    }
+    .and_then(|entry| values::string(entry, diags));
     let entries: Vec<Option<&KdlEntry>> = kind.props().map(|prop| props.get(prop.name)).collect();
     let anims = anims(node, kind, diags);
     let paint = match kind {

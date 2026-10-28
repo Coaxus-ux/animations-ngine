@@ -3,7 +3,7 @@ use px_expr::{Blend, Ease, Key, Program, Track, TrackLoop};
 
 use crate::diagnostic::Diagnostics;
 use crate::props::Props;
-use crate::units::{self, Measure, Quantity};
+use crate::units::{Measure, Quantity};
 use crate::values;
 
 const INTERPOLATIONS: [&str; 10] = [
@@ -59,7 +59,7 @@ fn choice<T: Copy>(
 pub(crate) fn parse(
     anim: Anim<'_>,
     quantity: Quantity,
-    measure: Measure,
+    measure: Measure<'_>,
     diags: &mut Diagnostics,
 ) -> Option<Animated> {
     let (looping, blend) = if anim.multi.is_some() {
@@ -133,7 +133,7 @@ fn key(
     multi: Option<&'static str>,
     previous: f64,
     quantity: Quantity,
-    measure: Measure,
+    measure: Measure<'_>,
     diags: &mut Diagnostics,
 ) -> Option<Key> {
     let mut props = Props::new(node);
@@ -172,12 +172,18 @@ fn key(
     })
 }
 
-fn time(entry: &KdlEntry, previous: f64, measure: Measure, diags: &mut Diagnostics) -> Option<f64> {
+fn time(
+    entry: &KdlEntry,
+    previous: f64,
+    measure: Measure<'_>,
+    diags: &mut Diagnostics,
+) -> Option<f64> {
     let text = values::string(entry, diags)?;
     let (relative, text) = text
         .strip_prefix('+')
         .map_or((false, text), |rest| (true, rest));
-    let seconds = units::literal(text)
+    let seconds = measure
+        .literal(text)
         .ok_or_else(|| format!("invalid key time \"{text}\""))
         .and_then(|literal| literal.convert(Quantity::Time, measure));
     match seconds {
@@ -199,13 +205,14 @@ fn time(entry: &KdlEntry, previous: f64, measure: Measure, diags: &mut Diagnosti
 fn value(
     entry: &KdlEntry,
     quantity: Quantity,
-    measure: Measure,
+    measure: Measure<'_>,
     diags: &mut Diagnostics,
 ) -> Option<f64> {
     let KdlValue::String(text) = entry.value() else {
         return values::number(entry, diags);
     };
-    let converted = units::literal(text)
+    let converted = measure
+        .literal(text)
         .ok_or_else(|| format!("expected a number like 10 or \"50%\", found \"{text}\""))
         .and_then(|literal| literal.convert(quantity, measure));
     converted

@@ -772,9 +772,11 @@ The sections above describe the full format. This appendix lists the subset `px-
 | `param` | | §7.6 | Top level of the scene only |
 | `wind` | | `strength` 1, `gust` 0.5, `speed` 16 | Field read by `wind(x)`, particles and `rope` |
 | `ambient` | `darkness` 0 | `occlusion` 0..4, `key-light` 225 (degrees) | Darkness lowers every non-emissive pixel by tone steps; occlusion darkens pixels next to closer shapes; `key-light` is the direction dome shading is lit from |
-| `camera` | `x` 0, `y` 0 | | Multi-property keys: `camera { k "0s" x=0; k "4s" x=24 }` |
+| `camera` | `x` 0, `y` 0, `zoom` 1 | | Multi-property keys: `camera { k "0s" x=0; k "4s" x=24 zoom=2 }`. `zoom` scales about the canvas center and can be any value: shapes are drawn again at the new size every frame (never resampled), outlines stay 1 px and textures stay anchored to the shapes |
 | `layer "name"` | `fog` 0 | `parallax` 1, `fog-paint` | Children are drawn in this layer; layers can't nest. Fog moves tones into the fog paint's ramp, toward its tone |
-| `group "name"` | `x y width height` 0 | `clip`, `round` | With `clip=#true`, children are clipped to the box (an ellipse if `round`). Clips nest up to 8 deep |
+| `group "name"` | `x y width height` 0 | `clip`, `round` | With `clip=#true`, children are clipped to the box (an ellipse if `round`). Clips nest up to 8 deep. A group can hold `anim` blocks, so an empty group works as a named, keyframed value others read with `@group.x` |
+| `use-scene "scene"` | `x y` 0, `scale` 1 | `id`, `flip`, `count`, `seed`, `start`, `end`, `offset`, `speed`, `loop`, params | Places another scene (A.6) |
+| `timeline` | | `marker "name" at="2s"` children | Named times; any time value can name a marker (A.6) |
 | `light-point` | `x y` (required), `reach` 40, `intensity` 1 | `color`, `shadows` | `intensity` is in tone steps at the center, falling off linearly to `reach` |
 | `light-cone` | as `light-point` + `angle` 90°, `spread` 60° | `color`, `shadows` | 0° points right, 90° down. The outer part of the spread fades out |
 | `light-rect` | `x y width height` (required), `reach` 40, `intensity` 1 | `color`, `shadows` | Windows, screens, signs |
@@ -825,4 +827,45 @@ A twin must have as many tones as its base ramp. Up to 8 light colors per palett
 
 ### A.5 Keyframes
 
-`anim <prop>` works on every animatable prop above, with everything in §8: interpolations, relative times, `loop`, `blend`. A `replace` track also satisfies a required prop. References (`@id.prop`) see the animated value.
+`anim <prop>` works on every animatable prop above, with everything in §8: interpolations, relative times, `loop`, `blend`. A `replace` track also satisfies a required prop. References (`@id.prop`) see the animated value. Key times can name timeline markers: `k "close-up" 1`.
+
+Numeric props also accept `#true` / `#false` (1 / 0), e.g. `flip=#true`, `visible=#false`.
+
+### A.6 Files, placed scenes and the timeline
+
+A file can start with `use "path.kdl"` nodes (paths relative to the file). The palettes and scenes of every used file are in scope; a file reached twice is read once, a `use` cycle is an error that shows the chain, and two definitions with the same name are an error. Diagnostics name the file they come from, and `pxe watch` reloads when any used file changes. The scene to load is the root file's only scene, or the one named with `--scene` (from any file).
+
+`use-scene` places a scene inside another one, at that spot in the drawing order:
+
+```kdl
+use "parts/walker.kdl"
+
+scene "street" palette="festival" width=320 height=180 duration="12s" loop=#true {
+    timeline { marker "in" at="2s" }
+    use-scene "walker" id="hero" x="=t * 20" y=160 coat="coat-red" lantern=#true
+    use-scene "walker" count=5 x="=40 + i * 50" y=150 scale=0.75 flip=#true seed="=i" start="in" speed=1.25
+    camera x="=@hero.x - 160" zoom=2
+}
+```
+
+| Prop | Meaning |
+|---|---|
+| `x`, `y`, `scale` | Where the placed scene's (0, 0) goes and how big it is drawn; animatable, in the host's time. `@id.x`, `@id.y`, `@id.scale` read them |
+| `flip` | Mirrors it on x around its (0, 0) |
+| `count` | How many copies; `i` (0 … n−1) and `n` are available in every prop of the `use-scene` and in every expression inside the copies |
+| `seed` | Root of the copy's randomness (textures, particles, `rand`). Copies with the same seed look the same; by default each copy gets its own |
+| `start`, `end` | Host times (or marker names) between which it shows; hidden before `start` and from `end` on |
+| `offset`, `speed` | Its local time is `offset + (t − start) × speed` |
+| `loop` | Defaults to the placed scene's `loop`. Looping wraps its local time at its duration; otherwise it holds its last frame |
+| any other prop | Sets the placed scene's param of that name; the value must have the param's type |
+
+`count`, `seed`, `flip`, `start`, `end`, `offset` and `speed` are read once per copy when the file loads: they can use `i`, `n` and `$params`, not `t`.
+
+- The placed scene must use the host's palette. A scene can't place itself, and scenes nest at most 8 deep.
+- Its layers become host layers. Its objects outside layers go into the layer the `use-scene` is in, inside the host's clip groups.
+- The host owns `camera`, `ambient` and `wind`; a placed scene's own are only used when it is previewed alone (which is how a part file is developed: `pxe watch parts/walker.kdl`).
+- In a looping host, a looping placed scene that plays through the whole loop must fit a whole number of its loops into it (`speed × host duration` a multiple of its duration). Otherwise the load warns that the loop will show a seam.
+
+**Text params in paints.** `paint="$coat"` or `paint="$coat.lit"` uses a text param as the ramp name, so one scene can be placed with different colors (`coat="coat-red"`). Works in every paint prop (`outline-paint`, `fog-paint` too).
+
+`pxe timeline <file>` prints the markers and every placed scene on a time ruler (CLI.md §3.11).

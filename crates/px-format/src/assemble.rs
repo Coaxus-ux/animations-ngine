@@ -1,14 +1,16 @@
 use px_core::LightColor;
+use px_engine::object_seed;
 use px_engine::{
     Ambient, Bounds, Camera, Clip, Environment, Geometry, Layer, Light, LightKind, Outline, Param,
     Particles, Reflection, Segment, Shading, Shape, Style,
 };
 use px_expr::{Blend, Program};
 
-use crate::extras::Extras;
+use crate::extras::{Extras, Placement};
 use crate::objects::Tree;
 use crate::schema::Kind;
 use crate::style::Flags;
+use crate::timeline::Track;
 
 /// Hands out a draft's compiled properties in schema order.
 struct Next(std::vec::IntoIter<Param>);
@@ -37,87 +39,206 @@ impl Next {
     }
 }
 
-pub(crate) fn assemble(tree: Tree<'_>, params: Vec<Vec<Param>>) -> (Vec<Shape>, Environment) {
-    let mut world = Environment {
-        wind: tree.wind,
-        ..Environment::default()
-    };
-    if !tree.layers.is_empty() {
-        world.layers.push(Layer::default());
+/// Everything a scene and the scenes it places add up to.
+#[derive(Debug, Default)]
+pub(crate) struct Output {
+    pub(crate) shapes: Vec<Shape>,
+    pub(crate) world: Environment,
+    pub(crate) tracks: Vec<Track>,
+}
+
+/// Where one scene's objects land: the instance that owns them (none for the root scene),
+/// the root of their seeds, and the host layer and clips they inherit.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Scope {
+    pub(crate) instance: Option<usize>,
+    pub(crate) seed: u64,
+    pub(crate) layer: usize,
+    pub(crate) clips: Vec<usize>,
+    /// The scene's loop length in seconds, when it loops.
+    pub(crate) loop_period: Option<f64>,
+}
+
+/// A `use-scene` met while assembling, with its compiled properties in schema order.
+pub(crate) struct Request {
+    pub(crate) placement: Box<Placement>,
+    pub(crate) params: Vec<Param>,
+    pub(crate) offset: usize,
+    /// Whether `seed` was written; otherwise each copy derives one.
+    pub(crate) seeded: bool,
+    /// Position of the `use-scene` among the scene's objects, for derived seeds.
+    pub(crate) order: usize,
+    pub(crate) id: Option<String>,
+    pub(crate) parent: Scope,
+}
+
+pub(crate) fn assemble(
+    tree: Tree<'_>,
+    params: Vec<Vec<Param>>,
+    scope: &Scope,
+    out: &mut Output,
+    place: &mut dyn FnMut(Request, &mut Output),
+) {
+    if scope.instance.is_none() {
+        out.world.wind = tree.wind;
     }
+    let mut layers = vec![scope.layer];
     let mut clip_ids = vec![None; tree.drafts.len()];
-    let mut shapes = Vec::new();
+    let mut shape_index = 0;
     for (index, (draft, params)) in tree.drafts.into_iter().zip(params).enumerate() {
         let mut next = Next(params.into_iter());
+        let layer = layers.get(draft.layer).copied().unwrap_or(scope.layer);
         match (draft.kind, draft.extras) {
-            (
-                _,
-                Extras::Layer {
-                    parallax,
-                    fog_paint,
-                },
-            ) => world.layers.push(Layer {
-                parallax,
-                fog: next.param(),
-                fog_paint,
-            }),
-            (_, Extras::Group { clip: true, round }) => {
-                clip_ids[index] = Some(world.clips.len());
-                world.clips.push(Clip {
-                    bounds: next.bounds(),
-                    round,
-                    layer: draft.layer,
-                });
-            }
-            (_, Extras::Group { .. }) => {}
-            (
-                _,
-                Extras::Ambient {
-                    occlusion,
-                    key_light,
-                },
-            ) => {
-                world.ambient = Ambient {
-                    darkness: next.param(),
-                    occlusion,
-                    key_light,
+            (_, Extras::Instance(placement)) => {
+                let request = Request {
+                    placement,
+                    params: next.0.collect(),
+                    offset: draft.node.span().offset(),
+                    seeded: Kind::UseScene
+                        .prop_index("seed")
+                        .and_then(|seed| draft.entries.get(seed))
+                        .is_some_and(Option::is_some),
+                    order: index,
+                    id: draft.id.map(str::to_owned),
+                    parent: Scope {
+                        layer,
+                        clips: clips(scope, &draft.clips, &clip_ids),
+                        ..scope.clone()
+                    },
                 };
+                place(request, out);
             }
-            (Kind::Camera, _) => {
-                world.camera = Camera {
-                    x: next.param(),
-                    y: next.param(),
-                }
-            }
-            (kind, Extras::Light { color, shadows }) => {
-                world.lights.push(light(kind, &mut next, color, shadows));
-            }
-            (_, Extras::Reflection { surface }) => world.reflections.push(Reflection {
-                bounds: next.bounds(),
-                axis: next.param(),
-                ripple: next.param(),
-                speed: next.param(),
-                tone_shift: next.param(),
-                opacity: next.param(),
-                surface,
-            }),
-            (kind, extras) => {
+            (kind, extras) if kind.is_shape() => {
                 let geometry = geometry(kind, extras, &mut next);
-                let clips = draft
-                    .clips
-                    .iter()
-                    .filter_map(|group| clip_ids[*group])
-                    .collect();
-                let style = style(&draft.flags, &mut next, draft.layer, clips);
-                shapes.extend(draft.paint.map(|paint| Shape {
+                let clips = clips(scope, &draft.clips, &clip_ids);
+                let style = Style {
+                    instance: scope.instance,
+                    seed: Some(object_seed(scope.seed, shape_index)),
+                    ..style(&draft.flags, &mut next, layer, clips)
+                };
+                shape_index += 1;
+                out.shapes.extend(draft.paint.map(|paint| Shape {
                     geometry,
                     paint,
                     style,
                 }));
             }
+            (kind, extras) => {
+                let node = SceneNode {
+                    kind,
+                    extras,
+                    layer,
+                };
+                match world_node(node, &mut next, scope, &mut out.world) {
+                    Added::Layer(added) => layers.push(added),
+                    Added::Clip(added) => clip_ids[index] = Some(added),
+                    Added::Other => {}
+                }
+            }
         }
     }
-    (shapes, world)
+}
+
+/// A node that adds to the scene's environment rather than drawing.
+struct SceneNode {
+    kind: Kind,
+    extras: Extras,
+    layer: usize,
+}
+
+enum Added {
+    Layer(usize),
+    Clip(usize),
+    Other,
+}
+
+/// Camera, ambient light and wind belong to the root scene; a placed scene's own are only
+/// for previewing it alone.
+fn world_node(node: SceneNode, next: &mut Next, scope: &Scope, world: &mut Environment) -> Added {
+    let root = scope.instance.is_none();
+    match (node.kind, node.extras) {
+        (
+            _,
+            Extras::Layer {
+                parallax,
+                fog_paint,
+            },
+        ) => {
+            let layer = Layer {
+                parallax,
+                fog: next.param(),
+                fog_paint,
+            };
+            return Added::Layer(push_layer(world, layer));
+        }
+        (_, Extras::Group { clip: true, round }) => {
+            world.clips.push(Clip {
+                bounds: next.bounds(),
+                round,
+                layer: node.layer,
+                instance: scope.instance,
+            });
+            return Added::Clip(world.clips.len() - 1);
+        }
+        (
+            _,
+            Extras::Ambient {
+                occlusion,
+                key_light,
+            },
+        ) if root => {
+            world.ambient = Ambient {
+                darkness: next.param(),
+                occlusion,
+                key_light,
+            };
+        }
+        (Kind::Camera, _) if root => {
+            world.camera = Camera {
+                x: next.param(),
+                y: next.param(),
+                zoom: next.param(),
+            };
+        }
+        (kind, Extras::Light { color, shadows }) => {
+            world.lights.push(Light {
+                layer: node.layer,
+                instance: scope.instance,
+                ..light(kind, next, color, shadows)
+            });
+        }
+        (_, Extras::Reflection { surface }) => world.reflections.push(Reflection {
+            bounds: next.bounds(),
+            axis: next.param(),
+            ripple: next.param(),
+            speed: next.param(),
+            tone_shift: next.param(),
+            opacity: next.param(),
+            surface,
+            instance: scope.instance,
+        }),
+        _ => {}
+    }
+    Added::Other
+}
+
+/// Adds a layer after the implicit root layer every layered scene starts with.
+fn push_layer(world: &mut Environment, layer: Layer) -> usize {
+    if world.layers.is_empty() {
+        world.layers.push(Layer::default());
+    }
+    world.layers.push(layer);
+    world.layers.len() - 1
+}
+
+/// The host's clips followed by the scene's own, as indices into the host's clip list.
+fn clips(scope: &Scope, groups: &[usize], clip_ids: &[Option<usize>]) -> Vec<usize> {
+    scope
+        .clips
+        .iter()
+        .copied()
+        .chain(groups.iter().filter_map(|group| clip_ids[*group]))
+        .collect()
 }
 
 fn light(kind: Kind, next: &mut Next, color: Option<LightColor>, shadows: bool) -> Light {
@@ -146,6 +267,8 @@ fn light(kind: Kind, next: &mut Next, color: Option<LightColor>, shadows: bool) 
         intensity,
         color,
         shadows,
+        layer: 0,
+        instance: None,
     }
 }
 
@@ -164,6 +287,8 @@ fn style(flags: &Flags, next: &mut Next, layer: usize, clips: Vec<usize>) -> Sty
         gradient: flags.gradient,
         layer,
         clips,
+        instance: None,
+        seed: None,
     }
 }
 

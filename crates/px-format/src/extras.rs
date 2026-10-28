@@ -2,7 +2,8 @@ use px_core::{LightColor, Paint, RampId};
 use px_engine::MAX_PARTICLES;
 
 use crate::diagnostic::Diagnostics;
-use crate::palette::NamedPalette;
+use crate::paints::Paints;
+use crate::params::{ParamValue, value_of};
 use crate::props::Props;
 use crate::schema::Kind;
 use crate::values;
@@ -40,6 +41,22 @@ pub(crate) enum Extras {
     Reflection {
         surface: Option<RampId>,
     },
+    Instance(Box<Placement>),
+}
+
+/// What a `use-scene` places: the scene, whether it loops, and its param overrides.
+#[derive(Clone, Debug)]
+pub(crate) struct Placement {
+    pub(crate) scene: String,
+    pub(crate) looping: Option<bool>,
+    pub(crate) overrides: Vec<Override>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct Override {
+    pub(crate) name: String,
+    pub(crate) value: ParamValue,
+    pub(crate) offset: usize,
 }
 
 pub(crate) fn number(
@@ -64,7 +81,7 @@ pub(crate) fn flag(props: &mut Props<'_>, key: &'static str, diags: &mut Diagnos
 fn paint(
     props: &mut Props<'_>,
     key: &'static str,
-    palette: &NamedPalette,
+    palette: &Paints<'_>,
     diags: &mut Diagnostics,
 ) -> Option<Paint> {
     let entry = props.get(key)?;
@@ -75,7 +92,7 @@ fn paint(
 pub(crate) fn parse(
     props: &mut Props<'_>,
     kind: Kind,
-    palette: &NamedPalette,
+    palette: &Paints<'_>,
     diags: &mut Diagnostics,
 ) -> Extras {
     match kind {
@@ -116,6 +133,7 @@ pub(crate) fn parse(
                 palette.ramp(name, entry.span().offset(), diags)
             }),
         },
+        Kind::UseScene => placement(props, diags),
         _ => Extras::None,
     }
 }
@@ -154,4 +172,36 @@ fn tuples<const N: usize>(
             Vec::new()
         }
     }
+}
+
+fn placement(props: &mut Props<'_>, diags: &mut Diagnostics) -> Extras {
+    let scene = props.name_arg(diags).unwrap_or_default().to_owned();
+    props.get("id");
+    let looping = props
+        .get("loop")
+        .and_then(|entry| values::boolean(entry, diags));
+    let overrides = props
+        .rest()
+        .into_iter()
+        .filter_map(|entry| {
+            let name = entry.name()?.value().to_owned();
+            let value = value_of(entry.value());
+            if value.is_none() {
+                diags.error(
+                    entry.span().offset(),
+                    format!("param `{name}` needs a number, a bool or text"),
+                );
+            }
+            Some(Override {
+                name,
+                value: value?,
+                offset: entry.span().offset(),
+            })
+        })
+        .collect();
+    Extras::Instance(Box::new(Placement {
+        scene,
+        looping,
+        overrides,
+    }))
 }

@@ -37,6 +37,8 @@ fn lamp(x: f64, y: f64, shadows: bool) -> Light {
         intensity: fixed(2.0),
         color: None,
         shadows,
+        layer: 0,
+        instance: None,
     }
 }
 
@@ -178,10 +180,12 @@ fn clips_layers_and_parallax() {
             bounds: bounds(2.0, 0.0, 3.0, 1.0),
             round: false,
             layer: 0,
+            instance: None,
         }],
         camera: px_engine::Camera {
             x: fixed(4.0),
             y: fixed(0.0),
+            zoom: fixed(1.0),
         },
         ..Environment::default()
     };
@@ -218,6 +222,7 @@ fn visibility_and_reflections() {
             tone_shift: fixed(0.0),
             opacity: fixed(1.0),
             surface: None,
+            instance: None,
         }],
         ..Environment::default()
     };

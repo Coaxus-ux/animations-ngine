@@ -20,7 +20,8 @@ The binary's working name is **`pxe`** (to be renamed with the project). All com
 | `pxe bake <scene> <node>` | Bake a node to explicit KDL ([EDITOR.md](EDITOR.md) §3.1) |
 | `pxe pack <sub>` | Manage packs |
 | `pxe palette import <file>` | Import a palette from Lospec `.hex`/`.gpl` |
-| `pxe bench` | Time benchmark scenes (today); golden-image tests (planned) |
+| `pxe bench` | Time benchmark scenes and measure how they scale (today); golden-image tests (planned) |
+| `pxe timeline <file>` | Print the markers and placed scenes of a scene on a time ruler |
 | `pxe migrate` | Upgrade project files to the current format version, preserving formatting ([ARCHITECTURE.md](ARCHITECTURE.md)) |
 
 ---
@@ -101,7 +102,7 @@ MP4/WebM need `ffmpeg` (see §5).
 ```bash
 pxe watch examples/sunset-walk.kdl --scale 5 --param stride=6
 ```
-Opens a window that plays the scene at its fps and reloads within a quarter second of the file being saved. If the file has errors, they are printed and the last valid version keeps playing. The title shows the frame, fps and average render time per frame.
+Opens a window that plays the scene at its fps and reloads within a quarter second of the file, or any file it `use`s, being saved. If the file has errors, they are printed and the last valid version keeps playing. The title shows the frame, fps and average render time per frame.
 
 | Key | Action |
 |---|---|
@@ -110,7 +111,7 @@ Opens a window that plays the scene at its fps and reloads within a quarter seco
 | R / Home | Restart from frame 0 |
 | Esc / Q | Quit |
 
-Flags: `--scene`, `--scale`, `--param` (as in `export`). Planned: also reloading on changes to packs, palettes and scripts the scene uses, and `--export` to re-export on every change.
+Flags: `--scene`, `--scale`, `--param` (as in `export`). Planned: also reloading on changes to packs and scripts the scene uses, and `--export` to re-export on every change.
 
 ### 3.5 `check`
 ```bash
@@ -150,13 +151,19 @@ pxe bench                 # render and compare all
 pxe bench B3 --update     # accept new output as golden
 ```
 
-> **Today (2026-10-28):** `pxe bench [FILES…] [--budget-ms 33.3] [--rounds 3]` times every frame of `examples/*.kdl` and `benchmarks/*/*.kdl` (or the given files), prints the mean and worst frame time per scene, and exits with code 4 when a worst frame is over budget. `tools/check.sh` runs it in release mode. Golden comparison runs as indexed-buffer hashes in `cargo test` (`crates/px-cli/tests/golden.rs`); the flags below are not implemented yet.
+> **Today (2026-10-28):** `pxe bench [FILES…] [--budget-ms 33.3] [--rounds 3] [--sweep NAME=V1,V2,…]` times every frame of `examples/*.kdl` and `benchmarks/*/*.kdl` (or the given files), prints each scene's size, frame count, shapes, placed scenes (`inst`) and lights with the mean and worst frame time, and exits with code 4 when a worst frame is over budget. `--sweep` renders each scene once per value of a scene param and reports the first value over budget instead of failing, e.g. `pxe bench examples/town-festival.kdl --sweep crowd=10,100,300,1000`. `tools/check.sh` runs it in release mode. Golden comparison runs as indexed-buffer hashes in `cargo test` (`crates/px-cli/tests/golden.rs`); the flags below are not implemented yet.
 | Flag | Meaning |
 |---|---|
 | `--update` | Overwrite golden images |
 | `--frames <list>` | Frames to compare (default: those listed in the scene's `golden` node) |
 | `--threshold <n>` | Allowed differing pixels (default 0, since rendering is deterministic) |
 | `--report <dir>` | Write diff images and an HTML summary |
+
+### 3.11 `timeline`
+```bash
+pxe timeline examples/town-festival.kdl
+```
+Prints the scene's duration, a ruler, its `timeline` markers and one row per `use-scene`, nested ones indented. A bar shows when the placed scene is visible (`=`) or hidden (`.`), then whether it loops, its own duration, `speed` and `offset`. `count` copies share one row (`×n`). Flags: `--scene`, `--param`.
 
 ---
 

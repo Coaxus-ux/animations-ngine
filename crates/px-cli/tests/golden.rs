@@ -89,8 +89,7 @@ fn every_example_and_benchmark_matches_its_golden_hashes() {
     let files = scene_files(root);
     assert_ne!(files.len(), 0, "no example scenes found");
     for (name, file) in files {
-        let source = std::fs::read_to_string(&file).unwrap();
-        let scene = px_format::load_scene(&source, LoadOptions::default())
+        let scene = px_format::load_file(&file, LoadOptions::default())
             .unwrap()
             .scene;
         let actual = frame_hashes(&scene);

@@ -67,6 +67,7 @@ pub(crate) enum Kind {
     Group,
     Layer,
     Ambient,
+    UseScene,
 }
 
 pub(crate) const SHAPE_NAMES: [(&str, Kind); 10] = [
@@ -82,7 +83,7 @@ pub(crate) const SHAPE_NAMES: [(&str, Kind); 10] = [
     ("shade", Kind::Shade),
 ];
 
-const OTHER_NAMES: [(&str, Kind); 8] = [
+const OTHER_NAMES: [(&str, Kind); 9] = [
     ("layer", Kind::Layer),
     ("ambient", Kind::Ambient),
     ("light-point", Kind::LightPoint),
@@ -91,6 +92,7 @@ const OTHER_NAMES: [(&str, Kind); 8] = [
     ("reflection", Kind::Reflection),
     ("camera", Kind::Camera),
     ("group", Kind::Group),
+    ("use-scene", Kind::UseScene),
 ];
 
 impl Kind {
@@ -120,6 +122,7 @@ impl Kind {
                 | Self::Group
                 | Self::Layer
                 | Self::Ambient
+                | Self::UseScene
         )
     }
 
@@ -170,6 +173,20 @@ impl Kind {
         ];
         const LAYER: [Prop; 1] = [optional("fog", N, 0.0)];
         const AMBIENT: [Prop; 1] = [optional("darkness", N, 0.0)];
+        const CAMERA: [Prop; 3] = [ORIGIN[0], ORIGIN[1], optional("zoom", N, 1.0)];
+        // Everything but x, y and scale is read once per copy when the file loads.
+        const USE_SCENE: [Prop; 10] = [
+            ORIGIN[0],
+            ORIGIN[1],
+            optional("scale", N, 1.0),
+            optional("flip", N, 0.0),
+            optional("seed", N, 0.0),
+            optional("count", N, 1.0),
+            optional("start", Quantity::Time, 0.0),
+            optional("end", Quantity::Time, f64::INFINITY),
+            optional("offset", Quantity::Time, 0.0),
+            optional("speed", N, 1.0),
+        ];
         const SHADE: [Prop; 5] = [BOX[0], BOX[1], BOX[2], BOX[3], optional("steps", N, -1.0)];
         match self {
             Self::Rect | Self::Ellipse => &BOX,
@@ -177,13 +194,15 @@ impl Kind {
             Self::RoundedRect => &ROUNDED,
             Self::Line => &LINE,
             Self::Capsule => &CAPSULE,
-            Self::Polygon | Self::Camera => &ORIGIN,
+            Self::Polygon => &ORIGIN,
+            Self::Camera => &CAMERA,
             Self::Blob => &BLOB,
             Self::Rope => &ROPE,
             Self::Particles => &PARTICLES,
             Self::Shade => &SHADE,
             Self::Layer => &LAYER,
             Self::Ambient => &AMBIENT,
+            Self::UseScene => &USE_SCENE,
             Self::LightPoint | Self::LightCone | Self::LightRect | Self::Reflection => {
                 self.extras()
             }

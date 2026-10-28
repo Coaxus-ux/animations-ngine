@@ -1,0 +1,52 @@
+// A lantern festival at night, built from parts: the sky and the street are their own
+// scenes, every person is the same `walker` scene placed with its own coat, size, direction
+// and timing, and every lantern is a placed scene too. The camera follows the girl with the
+// hand lantern and zooms in on her, then back out; shapes are drawn again at each zoom, so
+// the close-up stays crisp. Shows: `use`, `use-scene` (count, flip, scale, seed, speed,
+// offset, params), a timeline with markers, keyframes on markers, and camera zoom.
+// `--param crowd=100` adds people; `pxe bench --sweep crowd=10,100,1000` measures it.
+// Loops every 12 seconds.
+
+use "parts/festival-palette.kdl"
+use "parts/backdrop.kdl"
+use "parts/walker.kdl"
+use "parts/sky-lantern.kdl"
+use "parts/firework.kdl"
+
+scene "town-festival" palette="festival" width=320 height=180 fps=12 duration="12s" loop=#true seed=21 background="sky.base" {
+    param crowd 4
+    ambient darkness=1 occlusion=1 key-light=270
+    wind strength=1 gust=0.5 speed=6
+
+    timeline {
+        marker "zoom-in" at="2s"
+        marker "close-up" at="4s"
+        marker "zoom-out" at="8s"
+        marker "wide" at="10s"
+    }
+
+    // 0 shows the whole street, 1 is the close-up on the girl
+    group "focus" {
+        anim x {
+            k "zoom-in" 0
+            k "close-up" 1 interp="ease-in-out"
+            k "zoom-out" 1
+            k "wide" 0 interp="ease-in-out"
+        }
+    }
+    camera x="=(@hero.x - 160) * @focus.x" y="=(@hero.y - 22 - 90) * @focus.x" zoom="=1 + 1.6 * @focus.x"
+
+    use-scene "festival-sky"
+    layer "lanterns" parallax=0.6 {
+        use-scene "sky-lantern" count=8 x="=24 + i * 38" y=118 offset="=i * 1.5" scale="=0.55 + 0.15 * (i % 3)"
+        use-scene "firework" count=3 x="=110 + i * 52" y="=40 - (i % 2) * 14" start="=0.4 + i * 0.6" end="=1.9 + i * 0.6"
+    }
+    use-scene "festival-street"
+
+    // People further back walk smaller; one lap of the street per loop at 1.25 strides a second
+    use-scene "walker" count="=$crowd" x="=mod(t * 100 / 3 + 60 + i * 97, 400) - 40" y=150 scale=0.75 seed="=i" speed=1.25 offset="=i * 0.3" coat="coat-green" hair="hair-brown"
+    use-scene "walker" count=3 flip=#true x="=360 - mod(t * 100 / 3 + 70 + i * 131, 400)" y=154 scale=0.85 speed=1.25 offset="=i * 0.45" coat="coat-gold" scarf="coat-red" ponytail=#true
+    use-scene "walker" id="hero" x="=mod(t * 100 / 3, 400) - 40" y=164 speed=1.25 coat="coat-red" hair="hair-brown" scarf="cloth" ponytail=#true lantern=#true
+    light-point x="=@hero.x + 4" y="=@hero.y - 12" reach=20 intensity=1.3 color="warm"
+    use-scene "walker" flip=#true x="=360 - mod(t * 100 / 3 + 210, 400)" y=178 scale=1.2 speed=1.25 offset="0.5s" coat="coat-blue" scarf="lantern-gold"
+}

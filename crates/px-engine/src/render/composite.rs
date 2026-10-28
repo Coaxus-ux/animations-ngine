@@ -3,7 +3,9 @@ use px_raster::{Plot, Rect, fill_ellipse};
 
 use super::mask::{FULL, Mask};
 use super::surface::{CASTS_SHADOW, EMISSIVE, Region, Surface};
-use crate::model::{Gradient, GradientDirection, Outline, Shading, Shape, Texture};
+use super::texture::{clustered_noise, sample_texture};
+use super::transform::Transform;
+use crate::model::{Gradient, GradientDirection, Outline, Shading, Shape};
 
 /// Everything about one shape that was evaluated for this frame.
 pub(crate) struct Evaluated<'c> {
@@ -17,6 +19,8 @@ pub(crate) struct Evaluated<'c> {
     pub(crate) fog_paint: Option<Paint>,
     pub(crate) clips: &'c [Region],
     pub(crate) light: [f64; 3],
+    /// Maps local coordinates to the canvas; textures are anchored to the local side.
+    pub(crate) transform: Transform,
 }
 
 pub(crate) fn composite(
@@ -37,12 +41,13 @@ pub(crate) fn composite(
         shade(frame, palette, mask, surface);
         return;
     }
-    let max_distance = match style.shading {
-        Shading::Dome { .. } => f64::from(mask.distance_field()),
-        Shading::Flat => 1.0,
+    // Selective outlines read the field too: it tells which edges face the light.
+    let max_distance = match (style.shading, style.outline) {
+        (Shading::Dome { .. }, _) | (_, Outline::Selective(_)) => f64::from(mask.distance_field()),
+        _ => 1.0,
     };
     if let Some(texture) = style.texture {
-        sample_texture(texture, frame.seed, mask);
+        sample_texture(texture, frame.seed, &frame.transform, mask);
     }
     let ramp_len = palette.ramp(shape.paint.ramp).map_or(1, px_core::Ramp::len);
     let flags = if style.emissive { EMISSIVE } else { 0 }
@@ -250,41 +255,6 @@ fn gradient_value(gradient: Gradient, [x0, y0, x1, y1]: [i32; 4], x: i32, y: i32
         }
     };
     k.clamp(0.0, 1.0) * f64::from(gradient.steps)
-}
-
-fn sample_texture(texture: Texture, seed: u64, mask: &mut Mask<'_>) {
-    let scale = texture.scale.max(1.0);
-    for (x, y) in mask.pixels() {
-        if let Some(index) = mask.index(x, y) {
-            let n = px_expr::value_noise(seed, f64::from(x) / scale, f64::from(y) / scale);
-            mask.noise[index] = if n > 1.0 - texture.amount / 2.0 {
-                1
-            } else if n < texture.amount / 2.0 {
-                -1
-            } else {
-                0
-            };
-        }
-    }
-}
-
-// A 3×3 majority vote groups noise into clumps instead of static (RENDERING §7.4).
-fn clustered_noise(mask: &Mask<'_>, x: i32, y: i32) -> i8 {
-    let raw = |dx: i32, dy: i32| {
-        mask.index(x + dx, y + dy)
-            .filter(|_| mask.covered(x + dx, y + dy))
-            .map_or(0, |i| mask.noise[i])
-    };
-    let mut counts = [0u8; 3];
-    for dy in -1..=1 {
-        for dx in -1..=1 {
-            counts[usize::try_from(raw(dx, dy) + 1).unwrap_or(1)] += 1;
-        }
-    }
-    match counts.iter().position(|count| *count >= 5) {
-        Some(winner) => i8::try_from(winner).unwrap_or(1) - 1,
-        None => raw(0, 0),
-    }
 }
 
 fn shade(frame: &Evaluated<'_>, palette: &Palette, mask: &Mask<'_>, surface: &mut Surface<'_>) {

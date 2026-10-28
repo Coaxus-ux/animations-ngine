@@ -2,7 +2,7 @@ use px_core::Paint;
 use px_engine::{Gradient, GradientDirection, Outline, Shading, Texture};
 
 use crate::diagnostic::Diagnostics;
-use crate::palette::NamedPalette;
+use crate::paints::Paints;
 use crate::props::Props;
 use crate::values;
 
@@ -53,11 +53,7 @@ fn steps(props: &mut Props<'_>, key: &'static str, default: i8, diags: &mut Diag
         .unwrap_or(default)
 }
 
-pub(crate) fn parse(
-    props: &mut Props<'_>,
-    palette: &NamedPalette,
-    diags: &mut Diagnostics,
-) -> Flags {
+pub(crate) fn parse(props: &mut Props<'_>, palette: &Paints<'_>, diags: &mut Diagnostics) -> Flags {
     let shading_steps = u8::try_from(steps(props, "shading-steps", 1, diags).max(1)).unwrap_or(1);
     let shading = choice(
         props,

@@ -4,9 +4,12 @@ mod frame;
 mod geometry;
 mod lighting;
 mod mask;
+mod placement;
 mod reflection;
 mod report;
 mod surface;
+mod texture;
+mod transform;
 mod values;
 
 use std::fmt;

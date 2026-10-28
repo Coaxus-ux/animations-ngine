@@ -1,21 +1,19 @@
 use core::f64::consts::PI;
 
-use px_core::{Frame, hash_seed, snap_coord, snap_extent};
+use px_core::{Frame, hash_seed};
 use px_expr::Env;
-use px_raster::Rect;
 
 use super::RenderError;
 use super::composite::{Evaluated, composite};
-use super::geometry::rasterize;
+use super::geometry::{rasterize, rect, rect_of};
 use super::lighting::{self, Lit};
-use super::mask::Mask;
+use super::placement::{Placed, place};
 use super::reflection::{Mirror, reflect};
 use super::report::FrameReport;
-use super::surface::{Region, Surface};
+use super::surface::{Region, Surface, Target};
+use super::transform::Transform;
 use super::values::Values;
-use crate::model::{
-    Bounds, Geometry, LightKind, Looping, MAX_CLIPS, MAX_LAYERS, MAX_LIGHTS, Param, Scene,
-};
+use crate::model::{Geometry, LightKind, Looping, MAX_CLIPS, MAX_LAYERS, MAX_LIGHTS, Param, Scene};
 
 const MAX_NESTED_CLIPS: usize = 8;
 
@@ -26,68 +24,104 @@ pub fn object_seed(scene_seed: u64, index: usize) -> u64 {
 
 pub(crate) struct Pass<'s, 'r> {
     pub(crate) scene: &'s Scene,
-    pub(crate) env: Env,
+    pub(crate) root: Placed,
+    pub(crate) placed: &'r [Placed],
+    pub(crate) layers: [Transform; MAX_LAYERS],
     pub(crate) report: &'r mut FrameReport,
 }
 
 impl Pass<'_, '_> {
-    fn values(&mut self, object: usize, offset: [f64; 2]) -> Values<'_> {
-        let env = Env {
-            seed: object_seed(self.scene.seed(), object),
-            ..self.env
-        };
-        Values {
-            env,
-            report: self.report,
+    /// Values for one object of `owner` (an instance, or the scene itself) drawn in `layer`,
+    /// or `None` while that instance is hidden.
+    fn values(
+        &mut self,
+        object: usize,
+        seed: u64,
+        owner: Option<usize>,
+        layer: usize,
+    ) -> Option<Values<'_>> {
+        let placed = owner
+            .and_then(|instance| self.placed.get(instance))
+            .copied()
+            .unwrap_or(self.root);
+        let layer = self.layers.get(layer).copied().unwrap_or(self.layers[0]);
+        placed.visible.then(|| Values {
+            env: Env { seed, ..placed.env },
+            report: &mut *self.report,
             object,
-            offset,
-        }
+            transform: placed.transform.then(&layer),
+        })
+    }
+
+    /// The seed of an object that isn't a shape (a clip, a light, a reflection).
+    fn object_seed(&self, owner: Option<usize>) -> u64 {
+        let root = owner
+            .and_then(|instance| self.scene.environment().instances.get(instance))
+            .map_or(self.scene.seed(), |instance| instance.seed);
+        object_seed(root, usize::MAX)
     }
 
     fn eval(&mut self, param: &Param) -> Result<f64, RenderError> {
-        self.values(usize::MAX, [0.0, 0.0]).of(param)
+        Values {
+            env: Env {
+                seed: object_seed(self.scene.seed(), usize::MAX),
+                ..self.root.env
+            },
+            report: &mut *self.report,
+            object: usize::MAX,
+            transform: Transform::IDENTITY,
+        }
+        .of(param)
     }
 }
 
 pub(crate) fn render(
     scene: &Scene,
     frame: Frame,
-    surface: &mut Surface<'_>,
-    mask: &mut Mask<'_>,
+    target: Target<'_, '_>,
     report: &mut FrameReport,
 ) -> Result<(), RenderError> {
+    let Target {
+        surface,
+        mask,
+        placed,
+    } = target;
     surface.cells.fill(scene.background());
     surface.depth.fill(0);
     surface.flags.fill(0);
+    let world = scene.environment();
+    let root = Placed::root(env_at(scene, frame));
+    place(&world.instances, root, scene.seed(), placed, report)?;
     let mut pass = Pass {
         scene,
-        env: env_at(scene, frame),
+        root,
+        placed,
+        layers: [Transform::IDENTITY; MAX_LAYERS],
         report,
     };
-    let world = scene.environment();
-    let camera = [pass.eval(&world.camera.x)?, pass.eval(&world.camera.y)?];
-    let mut offsets = [[0.0; 2]; MAX_LAYERS];
-    for (offset, layer) in offsets.iter_mut().zip(&world.layers) {
-        *offset = [-camera[0] * layer.parallax, -camera[1] * layer.parallax];
-    }
-    let layer_offset = |layer: usize| {
-        offsets
-            .get(layer)
-            .copied()
-            .unwrap_or([-camera[0], -camera[1]])
+    let view = View {
+        x: pass.eval(&world.camera.x)?,
+        y: pass.eval(&world.camera.y)?,
+        zoom: pass.eval(&world.camera.zoom)?,
+        center: [
+            f64::from(surface.width) / 2.0,
+            f64::from(surface.height) / 2.0,
+        ],
     };
-    let mut regions = [Region::default(); MAX_CLIPS];
-    for (region, clip) in regions.iter_mut().zip(&world.clips) {
-        let mut values = pass.values(usize::MAX, layer_offset(clip.layer));
-        *region = Region {
-            rect: rect_of(&clip.bounds, &mut values)?,
-            round: clip.round,
-        };
+    pass.layers = [view.through(1.0); MAX_LAYERS];
+    for (transform, layer) in pass.layers.iter_mut().zip(&world.layers) {
+        *transform = view.through(layer.parallax);
     }
+    let regions = clip_regions(&mut pass)?;
     let light_direction = key_light(world.ambient.key_light);
     for (index, shape) in scene.shapes().iter().enumerate() {
         let style = &shape.style;
-        let mut values = pass.values(index, layer_offset(style.layer));
+        let seed = style
+            .seed
+            .unwrap_or_else(|| object_seed(scene.seed(), index));
+        let Some(mut values) = pass.values(index, seed, style.instance, style.layer) else {
+            continue;
+        };
         if values.of(&style.visible)? <= 0.5 {
             continue;
         }
@@ -107,7 +141,7 @@ pub(crate) fn render(
         }
         let evaluated = Evaluated {
             depth: u16::try_from(index + 1).unwrap_or(u16::MAX),
-            seed: values.env.seed,
+            seed,
             opacity: values.of(&style.opacity)?,
             tone_shift: values.of(&style.tone_shift)?,
             contact_shadow: values.of(&style.contact_shadow)?,
@@ -116,19 +150,42 @@ pub(crate) fn render(
             fog_paint: layer.and_then(|layer| layer.fog_paint),
             clips: &clips[..used],
             light: light_direction,
+            transform: values.transform,
         };
         mask.clear();
         rasterize(&shape.geometry, &mut values, mask)?;
         composite(shape, &evaluated, scene.palette(), mask, surface);
     }
-    light_scene(&mut pass, surface, layer_offset(0))?;
-    for reflection in &world.reflections {
-        let mut values = pass.values(usize::MAX, layer_offset(0));
+    light_scene(&mut pass, surface)?;
+    reflect_scene(&mut pass, surface)
+}
+
+fn clip_regions(pass: &mut Pass<'_, '_>) -> Result<[Region; MAX_CLIPS], RenderError> {
+    let mut regions = [Region::default(); MAX_CLIPS];
+    for (region, clip) in regions.iter_mut().zip(&pass.scene.environment().clips) {
+        let owner_seed = pass.object_seed(clip.instance);
+        if let Some(mut values) = pass.values(usize::MAX, owner_seed, clip.instance, clip.layer) {
+            *region = Region {
+                rect: rect(&clip.bounds, &mut values)?,
+                round: clip.round,
+            };
+        }
+    }
+    Ok(regions)
+}
+
+fn reflect_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(), RenderError> {
+    let scene = pass.scene;
+    for reflection in &scene.environment().reflections {
+        let owner_seed = pass.object_seed(reflection.instance);
+        let Some(mut values) = pass.values(usize::MAX, owner_seed, reflection.instance, 0) else {
+            continue;
+        };
         let (env, speed) = (values.env, values.of(&reflection.speed)?);
         let mirror = Mirror {
-            rect: rect_of(&reflection.bounds, &mut values)?,
+            rect: rect(&reflection.bounds, &mut values)?,
             axis: values.y(&reflection.axis)?,
-            ripple: values.of(&reflection.ripple)?,
+            ripple: values.extent(&reflection.ripple)?,
             phase: loop_phase(&env, speed),
             tone_shift: values.of(&reflection.tone_shift)?,
             opacity: values.of(&reflection.opacity)?,
@@ -139,11 +196,7 @@ pub(crate) fn render(
     Ok(())
 }
 
-fn light_scene(
-    pass: &mut Pass<'_, '_>,
-    surface: &mut Surface<'_>,
-    offset: [f64; 2],
-) -> Result<(), RenderError> {
+fn light_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(), RenderError> {
     let world = pass.scene.environment();
     let ambient = lighting::Ambient {
         darkness: pass.eval(&world.ambient.darkness)?,
@@ -158,44 +211,62 @@ fn light_scene(
         color: None,
         shadows: false,
     }; MAX_LIGHTS];
-    for (lit, lamp) in lits.iter_mut().zip(&world.lights) {
-        let mut values = pass.values(usize::MAX, offset);
-        let (x, y) = (values.x(&lamp.x)?, values.y(&lamp.y)?);
+    let mut count = 0;
+    for lamp in &world.lights {
+        let owner_seed = pass.object_seed(lamp.instance);
+        let Some(mut values) = pass.values(usize::MAX, owner_seed, lamp.instance, lamp.layer)
+        else {
+            continue;
+        };
+        let transform = values.transform;
+        let [x, y] = values.point(&lamp.x, &lamp.y)?;
         let shape = match &lamp.kind {
             LightKind::Point => lighting::Shape::Point,
             LightKind::Cone { angle, spread } => lighting::Shape::Cone {
-                direction: values.of(angle)? * PI / 180.0,
+                direction: transform.angle(values.of(angle)? * PI / 180.0),
                 half_spread: values.of(spread)? * PI / 360.0,
             },
-            LightKind::Rect { width, height } => lighting::Shape::Rect(Rect {
-                x: snap_coord(x),
-                y: snap_coord(y),
-                width: snap_extent(values.of(width)?),
-                height: snap_extent(values.of(height)?),
-            }),
+            LightKind::Rect { width, height } => {
+                lighting::Shape::Rect(rect_of([&lamp.x, &lamp.y, width, height], &mut values)?)
+            }
         };
+        let Some(lit) = lits.get_mut(count) else {
+            break;
+        };
+        count += 1;
         *lit = Lit {
             shape,
             x,
             y,
-            reach: values.of(&lamp.reach)?,
+            reach: values.extent(&lamp.reach)?,
             intensity: values.of(&lamp.intensity)?,
             color: lamp.color,
             shadows: lamp.shadows,
         };
     }
-    let count = world.lights.len().min(MAX_LIGHTS);
     lighting::light(surface, pass.scene.palette(), &ambient, &lits[..count]);
     Ok(())
 }
 
-fn rect_of(bounds: &Bounds, values: &mut Values<'_>) -> Result<Rect, RenderError> {
-    Ok(Rect {
-        x: snap_coord(values.x(&bounds.x)?),
-        y: snap_coord(values.y(&bounds.y)?),
-        width: snap_extent(values.of(&bounds.width)?),
-        height: snap_extent(values.of(&bounds.height)?),
-    })
+/// The camera: a pan scaled by each layer's parallax, then a zoom about the canvas center.
+struct View {
+    x: f64,
+    y: f64,
+    zoom: f64,
+    center: [f64; 2],
+}
+
+impl View {
+    fn through(&self, parallax: f64) -> Transform {
+        let along =
+            |pan: f64, center: f64| -pan * parallax * self.zoom + center * (1.0 - self.zoom);
+        Transform {
+            scale: self.zoom,
+            flip: false,
+            dx: along(self.x, self.center[0]),
+            dy: along(self.y, self.center[1]),
+        }
+    }
 }
 
 /// `time * speed` radians, with the speed rounded to whole turns per loop so looping

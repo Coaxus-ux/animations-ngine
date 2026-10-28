@@ -1,0 +1,19 @@
+// A hanging paper lantern with a flickering candle. The hang point is (0, 0), so a host
+// places it by where its string is tied. Used on the festival strings and in a walker's hand.
+
+use "festival-palette.kdl"
+
+scene "paper-lantern" palette="festival" width=16 height=20 fps=12 duration="1s" loop=#true background="sky.base" {
+    param color "lantern"
+    camera x=-8 y=-2
+
+    line x1=0 y1=0 x2=0 y2=2 paint="ink"
+    rect x=-2 y=2 width=5 height=1 paint="wood.shade"
+    ellipse "body" x=-4 y=3 width=9 height=8 paint="$color" shading="dome" outline="selective" outline-paint="$color.deep" emissive=#true
+    ellipse x=-2 y=4 width=5 height=6 paint="$color.hi" emissive=#true tone-shift="=-round(wiggle(0.5, 3))"
+    line x1=-3 y1=5 x2=-3 y2=8 paint="$color.shade"
+    line x1=3 y1=5 x2=3 y2=8 paint="$color.shade"
+    rect x=0 y=6 width=1 height=2 paint="flame.hi" emissive=#true visible="=0.5 + wiggle(0.6, 6)"
+    rect x=-2 y=11 width=5 height=1 paint="wood.shade"
+    rope x1=0 y1=12 x2="=wiggle(0.6, 2)" y2=15 sag=0 sway="=osc(1s, -0.5, 0.5)" paint="lantern-gold.lit"
+}

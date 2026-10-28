@@ -18,8 +18,8 @@ use common::{Kit, bounds, expr, fixed, kit, rect, shape, world};
 use px_core::{Frame, Paint};
 use px_engine::{
     Ambient, Bounds, Camera, Clip, Environment, FrameBuffer, Geometry, Gradient, GradientDirection,
-    Layer, Light, LightKind, Outline, Particles, Reflection, Segment, Shading, Shape, Style,
-    Texture,
+    Instance, Layer, Light, LightKind, Outline, Particles, Reflection, Segment, Shading, Shape,
+    Style, Texture, Window,
 };
 use px_expr::Wind;
 
@@ -196,10 +196,12 @@ fn environment(kit: &Kit) -> Environment {
             bounds: bounds(12.0, 12.0, 10.0, 10.0),
             round: true,
             layer: 0,
+            instance: None,
         }],
         camera: Camera {
             x: expr("t * 2"),
             y: fixed(0.0),
+            zoom: expr("1 + t * 0.25"),
         },
         lights: vec![
             Light {
@@ -210,6 +212,8 @@ fn environment(kit: &Kit) -> Environment {
                 intensity: fixed(1.0),
                 color: Some(kit.warm),
                 shadows: true,
+                layer: 0,
+                instance: None,
             },
             Light {
                 kind: LightKind::Cone {
@@ -222,6 +226,8 @@ fn environment(kit: &Kit) -> Environment {
                 intensity: fixed(1.0),
                 color: None,
                 shadows: false,
+                layer: 0,
+                instance: None,
             },
             Light {
                 kind: LightKind::Rect {
@@ -234,6 +240,8 @@ fn environment(kit: &Kit) -> Environment {
                 intensity: fixed(1.0),
                 color: None,
                 shadows: false,
+                layer: 0,
+                instance: None,
             },
         ],
         ambient: Ambient {
@@ -249,19 +257,52 @@ fn environment(kit: &Kit) -> Environment {
             tone_shift: fixed(-1.0),
             opacity: fixed(0.8),
             surface: None,
+            instance: None,
         }],
         wind: Wind {
             strength: 1.0,
             gust: 0.5,
             speed: 16.0,
         },
+        instances: instances(),
     }
+}
+
+/// A flipped, scaled, time-shifted instance with a nested child that holds its last frame.
+fn instances() -> Vec<Instance> {
+    vec![
+        Instance {
+            x: expr("4 + t"),
+            scale: expr("1 + 0.5 * sin(t * tau)"),
+            flip: true,
+            window: Window {
+                start: 0.25,
+                end: 3.0,
+                offset: 0.1,
+                speed: 1.5,
+            },
+            duration: 1.0,
+            ..Instance::default()
+        },
+        Instance {
+            parent: Some(0),
+            y: fixed(2.0),
+            looping: false,
+            duration: 0.5,
+            ..Instance::default()
+        },
+    ]
 }
 
 #[test]
 fn rendering_performs_no_heap_activity() {
     let kit = kit();
-    let scene = world(&kit, (32, 32), 24, shapes(&kit), environment(&kit));
+    let mut shapes = shapes(&kit);
+    shapes[0].style.instance = Some(1);
+    shapes[1].style.instance = Some(0);
+    let mut environment = environment(&kit);
+    environment.lights[1].instance = Some(0);
+    let scene = world(&kit, (32, 32), 24, shapes, environment);
     let mut buffer = FrameBuffer::new(&scene);
 
     let allocations = ALLOCATIONS.load(Ordering::Relaxed);

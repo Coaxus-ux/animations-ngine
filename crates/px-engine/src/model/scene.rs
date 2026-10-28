@@ -5,7 +5,9 @@ use px_core::{FrameCount, FrameRate, Paint, Palette, PaletteError, Size};
 use super::shape::{Geometry, Outline, Shape};
 use super::world::Environment;
 
-pub const MAX_SHAPES: usize = 4096;
+/// Draw order doubles as depth, which is stored as a `u16` with 0 for the background.
+pub const MAX_SHAPES: usize = u16::MAX as usize - 1;
+pub const MAX_INSTANCES: usize = 4096;
 pub const MAX_LAYERS: usize = 16;
 pub const MAX_CLIPS: usize = 64;
 pub const MAX_LIGHTS: usize = 16;
@@ -60,6 +62,20 @@ pub enum ModelError {
     UnknownClip {
         shape: usize,
     },
+    UnknownInstance {
+        what: &'static str,
+        index: usize,
+    },
+}
+
+/// How much a scene asks of the renderer.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct Stats {
+    pub shapes: usize,
+    pub instances: usize,
+    pub lights: usize,
+    pub layers: usize,
+    pub pixels: usize,
 }
 
 impl Scene {
@@ -71,6 +87,7 @@ impl Scene {
             ("clips", world.clips.len(), MAX_CLIPS),
             ("lights", world.lights.len(), MAX_LIGHTS),
             ("reflections", world.reflections.len(), MAX_REFLECTIONS),
+            ("instances", world.instances.len(), MAX_INSTANCES),
         ];
         for (what, count, max) in limits {
             if count > max {
@@ -83,7 +100,20 @@ impl Scene {
         for (index, shape) in spec.shapes.iter().enumerate() {
             validate_shape(&spec, index, shape)?;
         }
+        validate_instances(world)?;
         Ok(Self { spec })
+    }
+
+    #[must_use]
+    pub fn stats(&self) -> Stats {
+        let world = &self.spec.environment;
+        Stats {
+            shapes: self.spec.shapes.len(),
+            instances: world.instances.len(),
+            lights: world.lights.len(),
+            layers: world.layers.len().max(1),
+            pixels: self.spec.size.cell_count(),
+        }
     }
 
     #[must_use]
@@ -147,6 +177,16 @@ fn validate_shape(spec: &SceneSpec, index: usize, shape: &Shape) -> Result<(), M
     {
         return Err(ModelError::UnknownClip { shape: index });
     }
+    if shape
+        .style
+        .instance
+        .is_some_and(|instance| instance >= spec.environment.instances.len())
+    {
+        return Err(ModelError::UnknownInstance {
+            what: "shape",
+            index,
+        });
+    }
     if let Geometry::Particles(particles) = &shape.geometry
         && particles.count > MAX_PARTICLES
     {
@@ -158,6 +198,46 @@ fn validate_shape(spec: &SceneSpec, index: usize, shape: &Shape) -> Result<(), M
         });
     }
     Ok(())
+}
+
+/// Every instance reference points at an existing instance, and parents come first.
+fn validate_instances(world: &Environment) -> Result<(), ModelError> {
+    let count = world.instances.len();
+    let check = |what: &'static str, owners: Vec<Option<usize>>| match owners
+        .iter()
+        .position(|owner| owner.is_some_and(|owner| owner >= count))
+    {
+        Some(index) => Err(ModelError::UnknownInstance { what, index }),
+        None => Ok(()),
+    };
+    check(
+        "clip",
+        world.clips.iter().map(|clip| clip.instance).collect(),
+    )?;
+    check(
+        "light",
+        world.lights.iter().map(|light| light.instance).collect(),
+    )?;
+    check(
+        "reflection",
+        world
+            .reflections
+            .iter()
+            .map(|mirror| mirror.instance)
+            .collect(),
+    )?;
+    match world
+        .instances
+        .iter()
+        .enumerate()
+        .position(|(index, instance)| instance.parent.is_some_and(|parent| parent >= index))
+    {
+        Some(index) => Err(ModelError::UnknownInstance {
+            what: "instance",
+            index,
+        }),
+        None => Ok(()),
+    }
 }
 
 impl fmt::Display for ModelError {
@@ -172,6 +252,9 @@ impl fmt::Display for ModelError {
             }
             Self::UnknownLayer { shape } => write!(f, "shape #{shape} is in an unknown layer"),
             Self::UnknownClip { shape } => write!(f, "shape #{shape} uses an unknown clip"),
+            Self::UnknownInstance { what, index } => {
+                write!(f, "{what} #{index} belongs to an unknown instance")
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ pub(crate) struct Compiler<'a, 'd> {
     drafts: &'a [Draft<'a>],
     seeds: Vec<u64>,
     params: &'a SceneParams,
-    measure: Measure,
+    measure: Measure<'a>,
     states: Vec<Vec<State>>,
     chain: Vec<Key>,
     diags: &'d mut Diagnostics,
@@ -42,7 +42,7 @@ impl<'a, 'd> Compiler<'a, 'd> {
     pub(crate) fn new(
         drafts: &'a [Draft<'a>],
         params: &'a SceneParams,
-        measure: Measure,
+        measure: Measure<'a>,
         scene_seed: u64,
         diags: &'d mut Diagnostics,
     ) -> Self {
@@ -151,6 +151,7 @@ impl<'a, 'd> Compiler<'a, 'd> {
         let (name, quantity) = (prop.name, prop.quantity);
         let text = match entry.value() {
             KdlValue::String(text) => text.as_str(),
+            KdlValue::Bool(flag) => return Some(Param::Fixed(if *flag { 1.0 } else { 0.0 })),
             _ => return values::number(entry, self.diags).map(Param::Fixed),
         };
         if let Some(source) = text.strip_prefix('=') {
@@ -158,7 +159,9 @@ impl<'a, 'd> Compiler<'a, 'd> {
         }
         let result = match text.split_once("..") {
             Some((low, high)) => self.range(low, high, quantity, name),
-            None => units::literal(text)
+            None => self
+                .measure
+                .literal(text)
                 .ok_or_else(|| {
                     format!("expected a number, \"=expression\" or \"a..b\", found \"{text}\"")
                 })

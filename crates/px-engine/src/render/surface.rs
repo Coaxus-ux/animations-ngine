@@ -1,6 +1,9 @@
 use px_core::Paint;
 use px_raster::Rect;
 
+use super::mask::Mask;
+use super::placement::Placed;
+
 pub(crate) const EMISSIVE: u8 = 1;
 pub(crate) const CASTS_SHADOW: u8 = 2;
 
@@ -45,4 +48,11 @@ impl Region {
         let dy = 2 * i64::from(y) + 1 - (2 * i64::from(top) + h);
         dx * dx * h * h + dy * dy * w * w <= (w * h) * (w * h)
     }
+}
+
+/// Everything a frame renders into.
+pub(crate) struct Target<'b, 'c> {
+    pub(crate) surface: &'b mut Surface<'c>,
+    pub(crate) mask: &'b mut Mask<'c>,
+    pub(crate) placed: &'b mut [Placed],
 }

@@ -119,6 +119,10 @@ pub struct Style {
     pub gradient: Option<Gradient>,
     pub layer: usize,
     pub clips: Vec<usize>,
+    pub instance: Option<usize>,
+    /// Root of the shape's randomness; when `None`, derived from the scene seed and the
+    /// shape's index.
+    pub seed: Option<u64>,
 }
 
 impl Default for Style {
@@ -137,6 +141,8 @@ impl Default for Style {
             gradient: None,
             layer: 0,
             clips: Vec::new(),
+            instance: None,
+            seed: None,
         }
     }
 }
