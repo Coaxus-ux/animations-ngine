@@ -1,9 +1,9 @@
 use std::io::Write;
 
-use px_core::{CanvasView, Palette};
+use px_core::{CanvasView, Palette, Rgb, Size};
 
 use crate::error::ExportError;
-use crate::resolve::{indexed_len, resolve_rgb};
+use crate::resolve::{resolve_rgb, scaled_len, upscale};
 use crate::scale::Scale;
 
 pub fn write_png(
@@ -12,9 +12,27 @@ pub fn write_png(
     palette: &Palette,
     scale: Scale,
 ) -> Result<(), ExportError> {
-    let mut rgb = vec![0; indexed_len(view, scale, 3)?];
+    let mut rgb = vec![0; scaled_len(view.size(), scale, 3)?];
     resolve_rgb(view, palette, scale, &mut rgb)?;
-    let size = view.size();
+    encode(writer, view.size(), scale, &rgb)
+}
+
+/// A PNG of a frame whose pixels already carry their colors, such as a sequence frame.
+pub fn write_png_colors(
+    writer: impl Write,
+    size: Size,
+    colors: &[Rgb],
+    scale: Scale,
+) -> Result<(), ExportError> {
+    let mut rgb = vec![0; scaled_len(size, scale, 3)?];
+    upscale(size, colors, scale, 3, &mut rgb, |color, pixel| {
+        pixel.copy_from_slice(&[color.r, color.g, color.b]);
+        Ok(())
+    })?;
+    encode(writer, size, scale, &rgb)
+}
+
+fn encode(writer: impl Write, size: Size, scale: Scale, rgb: &[u8]) -> Result<(), ExportError> {
     let width = scale.apply(size.width()).ok_or(ExportError::TooLarge)?;
     let height = scale.apply(size.height()).ok_or(ExportError::TooLarge)?;
     let mut encoder = png::Encoder::new(writer, u32::from(width), u32::from(height));
@@ -22,6 +40,6 @@ pub fn write_png(
     encoder.set_depth(png::BitDepth::Eight);
     let encoding = |error: png::EncodingError| ExportError::Encoding(error.to_string());
     let mut image = encoder.write_header().map_err(encoding)?;
-    image.write_image_data(&rgb).map_err(encoding)?;
+    image.write_image_data(rgb).map_err(encoding)?;
     image.finish().map_err(encoding)
 }

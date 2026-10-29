@@ -4,11 +4,17 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use anyhow::Result;
+use px_core::Frame;
+use px_director::{Player, Sequence};
 use px_engine::{FrameBuffer, Scene};
-use px_format::LoadOptions;
+use px_format::{LoadOptions, Work};
 
 use crate::args::Sweep;
 use crate::source;
+
+mod table;
+
+use table::Table;
 
 #[derive(Debug)]
 pub(crate) struct OverBudget {
@@ -31,7 +37,43 @@ impl std::error::Error for OverBudget {}
 
 struct Timing {
     mean: Duration,
+    p95: Duration,
     worst: Duration,
+    total: Duration,
+}
+
+/// What a bench row reports about a scene, or about the largest shot of a sequence.
+struct Counts {
+    size: String,
+    frames: u32,
+    shapes: usize,
+    instances: usize,
+    lights: usize,
+}
+
+impl Counts {
+    fn of(scene: &Scene, frames: u32) -> Self {
+        let stats = scene.stats();
+        Self {
+            size: format!("{}x{}", scene.size().width(), scene.size().height()),
+            frames,
+            shapes: stats.shapes,
+            instances: stats.instances,
+            lights: stats.lights,
+        }
+    }
+
+    fn of_sequence(sequence: &Sequence) -> Self {
+        let frames = sequence.duration().get();
+        let mut counts = Self::of(&sequence.shots()[0].scene, frames);
+        for shot in sequence.shots() {
+            let shot = Self::of(&shot.scene, frames);
+            counts.shapes = counts.shapes.max(shot.shapes);
+            counts.instances = counts.instances.max(shot.instances);
+            counts.lights = counts.lights.max(shot.lights);
+        }
+        counts
+    }
 }
 
 pub(crate) fn bench(
@@ -54,31 +96,45 @@ pub(crate) fn bench(
             .collect(),
         None => vec![None],
     };
+    let jobs: Vec<_> = files
+        .iter()
+        .flat_map(|file| {
+            runs.iter()
+                .map(move |run| (file, run, label(file, run.as_ref())))
+        })
+        .collect();
+    let mut table = Table::new(jobs.iter().map(|(_, _, label)| label.as_str()), budget);
     let mut over = Vec::new();
-    println!(
-        "{:<44} {:>9} {:>6} {:>6} {:>5} {:>6} {:>8} {:>8}",
-        "scene", "size", "frames", "shapes", "inst", "lights", "mean ms", "worst ms"
-    );
-    for file in &files {
-        for run in &runs {
-            let label = match run {
-                Some((param, value)) => format!("{} [{param}={value}]", file.display()),
-                None => file.display().to_string(),
-            };
-            let params: Vec<(String, String)> = run.iter().cloned().collect();
-            let options = LoadOptions {
-                params: &params,
-                ..LoadOptions::default()
-            };
-            let scene = source::load_file(file, options).0?.scene;
-            let timing = time_frames(&scene, rounds.max(1))?;
-            let late = timing.worst > budget;
-            print_row(&label, &scene, &timing, late);
-            if late {
-                over.push(label);
+    for (file, run, label) in jobs {
+        let params: Vec<(String, String)> = run.iter().cloned().collect();
+        let options = LoadOptions {
+            params: &params,
+            ..LoadOptions::default()
+        };
+        let (counts, timing) = match source::load_work_file(file, options)? {
+            Work::Scene(loaded) => {
+                let scene = &loaded.scene;
+                let mut buffer = FrameBuffer::new(scene);
+                let timing = time_frames(scene.timing().duration.get(), rounds, |frame| {
+                    buffer.render(scene, frame).map(drop)
+                })?;
+                (Counts::of(scene, scene.timing().duration.get()), timing)
             }
+            Work::Sequence(loaded) => {
+                let sequence = &loaded.sequence;
+                let mut player = Player::new(sequence);
+                let timing = time_frames(sequence.duration().get(), rounds, |frame| {
+                    player.render(sequence, frame).map(drop)
+                })?;
+                (Counts::of_sequence(sequence), timing)
+            }
+        };
+        table.row(&label, &counts, &timing);
+        if timing.worst > budget {
+            over.push(label);
         }
     }
+    table.finish();
     match (over.first(), sweep) {
         (None, _) => Ok(()),
         (Some(first), Some(_)) => {
@@ -93,38 +149,46 @@ pub(crate) fn bench(
     }
 }
 
-fn print_row(label: &str, scene: &Scene, timing: &Timing, late: bool) {
-    let stats = scene.stats();
-    let size = format!("{}x{}", scene.size().width(), scene.size().height());
-    let verdict = if late { "over budget" } else { "" };
-    println!(
-        "{label:<44} {size:>9} {:>6} {:>6} {:>5} {:>6} {:>8.3} {:>8.3} {verdict}",
-        scene.timing().duration.get(),
-        stats.shapes,
-        stats.instances,
-        stats.lights,
-        timing.mean.as_secs_f64() * 1000.0,
-        timing.worst.as_secs_f64() * 1000.0,
-    );
+fn label(file: &Path, run: Option<&(String, String)>) -> String {
+    match run {
+        Some((param, value)) => format!("{} [{param}={value}]", file.display()),
+        None => file.display().to_string(),
+    }
 }
 
-fn time_frames(scene: &Scene, rounds: u32) -> Result<Timing> {
-    let mut buffer = FrameBuffer::new(scene);
-    let (mut total, mut worst) = (Duration::ZERO, Duration::ZERO);
-    let frames = scene.timing().duration;
-    for frame in frames.frames() {
+/// Times every frame, keeping each frame's best of `rounds` renders.
+fn time_frames<E>(
+    frames: u32,
+    rounds: u32,
+    mut render: impl FnMut(Frame) -> Result<(), E>,
+) -> Result<Timing>
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
+    let mut times = Vec::with_capacity(usize::try_from(frames).unwrap_or(0));
+    for frame in (0..frames).map(Frame::new) {
         let mut best = Duration::MAX;
-        for _ in 0..rounds {
+        for _ in 0..rounds.max(1) {
             let start = Instant::now();
-            buffer.render(scene, frame)?;
+            render(frame)?;
             best = best.min(start.elapsed());
         }
-        total += best;
-        worst = worst.max(best);
+        times.push(best);
     }
+    let total: Duration = times.iter().sum();
+    times.sort_unstable();
+    let rank = |share: usize| {
+        times
+            .len()
+            .saturating_mul(share)
+            .div_ceil(100)
+            .saturating_sub(1)
+    };
     Ok(Timing {
-        mean: total / frames.get(),
-        worst,
+        mean: total / frames.max(1),
+        p95: times.get(rank(95)).copied().unwrap_or_default(),
+        worst: times.last().copied().unwrap_or_default(),
+        total,
     })
 }
 

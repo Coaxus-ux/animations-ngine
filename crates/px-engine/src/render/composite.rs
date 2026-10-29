@@ -2,6 +2,7 @@ use px_core::{Paint, Palette, Tone, ToneName, dither_keep, dither_steps};
 use px_raster::{Plot, Rect, fill_ellipse};
 
 use super::mask::{FULL, Mask};
+use super::stamp::Write;
 use super::surface::{CASTS_SHADOW, EMISSIVE, Region, Surface};
 use super::texture::{clustered_noise, sample_texture};
 use super::transform::Transform;
@@ -23,12 +24,14 @@ pub(crate) struct Evaluated<'c> {
     pub(crate) transform: Transform,
 }
 
+/// Draws the rasterized shape; every pixel it writes is also pushed to `writes`, if given.
 pub(crate) fn composite(
     shape: &Shape,
     frame: &Evaluated<'_>,
     palette: &Palette,
     mask: &mut Mask<'_>,
     surface: &mut Surface<'_>,
+    mut writes: Option<&mut Vec<Write>>,
 ) {
     let style = &shape.style;
     if style.cleanup {
@@ -83,6 +86,13 @@ pub(crate) fn composite(
         surface.cells[index] = paint;
         surface.depth[index] = frame.depth;
         surface.flags[index] = flags;
+        if let Some(writes) = writes.as_deref_mut() {
+            writes.push(Write {
+                index: u32::try_from(index).unwrap_or(u32::MAX),
+                paint,
+                flags,
+            });
+        }
     }
 }
 

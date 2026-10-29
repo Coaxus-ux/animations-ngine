@@ -1,11 +1,13 @@
 use std::fs::{self, File};
 use std::io::BufWriter;
+use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use px_core::Frame;
-use px_engine::{FrameBuffer, FrameReport, Scene};
-use px_export::{GifWriter, MAX_SCALE, Scale, write_png};
+use px_engine::{FrameBuffer, FrameReport};
+use px_export::{MAX_SCALE, Scale, write_png};
+use px_format::Work;
 
 use crate::args::{Command, Input};
 use crate::source;
@@ -15,7 +17,11 @@ const OUTPUT_DIR: &str = "out";
 pub(crate) fn run(command: &Command) -> Result<()> {
     match command {
         Command::Render { input, frame, out } => render(input, Frame::new(*frame), out.as_deref()),
-        Command::Export { input, out } => export(input, out.as_deref()),
+        Command::Export { input, out, jobs } => export(
+            input,
+            out.as_deref(),
+            jobs.unwrap_or_else(crate::parallel::default_jobs),
+        ),
         Command::Watch { input } => crate::watch::watch(input, scale(input)?),
         Command::Timeline { input } => crate::timeline::print(input),
         Command::Bench {
@@ -28,52 +34,48 @@ pub(crate) fn run(command: &Command) -> Result<()> {
 }
 
 fn render(input: &Input, frame: Frame, out: Option<&Path>) -> Result<()> {
-    let scene = source::load(input)?;
     let scale = scale(input)?;
-    let path = output_path(out, &format!("{}-{}.png", scene.name(), frame.index()))?;
-    let mut buffer = FrameBuffer::new(&scene);
-    let view = buffer.render(&scene, frame)?;
-    write_png(
-        BufWriter::new(create(&path)?),
-        &view,
-        scene.palette(),
-        scale,
-    )?;
-    warn_non_finite(buffer.report());
-    println!("wrote {}", path.display());
+    let (name, path) = match source::load_work(input)? {
+        Work::Scene(loaded) => {
+            let scene = loaded.scene;
+            let path = output_path(out, &format!("{}-{}.png", scene.name(), frame.index()))?;
+            let mut buffer = FrameBuffer::new(&scene);
+            let view = buffer.render(&scene, frame)?;
+            write_png(
+                BufWriter::new(create(&path)?),
+                &view,
+                scene.palette(),
+                scale,
+            )?;
+            warn_non_finite(buffer.report());
+            (scene.name().to_owned(), path)
+        }
+        Work::Sequence(loaded) => {
+            let sequence = loaded.sequence;
+            let path = output_path(out, &format!("{}-{}.png", sequence.name(), frame.index()))?;
+            crate::sequence::write_png(&sequence, frame, scale, &path)?;
+            (sequence.name().to_owned(), path)
+        }
+    };
+    println!("wrote {} ({name})", path.display());
     Ok(())
 }
 
-fn export(input: &Input, out: Option<&Path>) -> Result<()> {
-    let scene = source::load(input)?;
+fn export(input: &Input, out: Option<&Path>, jobs: NonZeroUsize) -> Result<()> {
     let scale = scale(input)?;
-    let path = output_path(out, &format!("{}.gif", scene.name()))?;
-    write_gif(&scene, scale, &path)?;
-    println!(
-        "wrote {} ({} frames)",
-        path.display(),
-        scene.timing().duration.get()
-    );
-    Ok(())
-}
-
-fn write_gif(scene: &Scene, scale: Scale, path: &Path) -> Result<()> {
-    let timing = scene.timing();
-    let file = BufWriter::new(create(path)?);
-    let mut gif = GifWriter::new(file, scene.size(), scene.palette(), scale, timing.fps)?;
-    let mut buffer = FrameBuffer::new(scene);
-    let mut total = FrameReport::default();
-    for frame in timing.duration.frames() {
-        gif.add_frame(&buffer.render(scene, frame)?)?;
-        let report = buffer.report();
-        total.non_finite_values = total
-            .non_finite_values
-            .saturating_add(report.non_finite_values);
-        total.first_non_finite_shape = total
-            .first_non_finite_shape
-            .or(report.first_non_finite_shape);
-    }
-    warn_non_finite(total);
+    let (frames, path) = match source::load_work(input)? {
+        Work::Scene(loaded) => {
+            let path = output_path(out, &format!("{}.gif", loaded.scene.name()))?;
+            warn_non_finite(crate::gif::write_scene(&loaded.scene, scale, jobs, &path)?);
+            (loaded.scene.timing().duration.get(), path)
+        }
+        Work::Sequence(loaded) => {
+            let path = output_path(out, &format!("{}.gif", loaded.sequence.name()))?;
+            crate::gif::write_sequence(&loaded.sequence, scale, jobs, &path)?;
+            (loaded.sequence.duration().get(), path)
+        }
+    };
+    println!("wrote {} ({frames} frames)", path.display());
     Ok(())
 }
 
@@ -105,6 +107,6 @@ fn output_path(out: Option<&Path>, default_name: &str) -> Result<PathBuf> {
     Ok(path)
 }
 
-fn create(path: &Path) -> Result<File> {
+pub(crate) fn create(path: &Path) -> Result<File> {
     File::create(path).with_context(|| format!("cannot create {}", path.display()))
 }

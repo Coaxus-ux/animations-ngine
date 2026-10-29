@@ -9,8 +9,12 @@ publish.workspace = true
 [dependencies]
 kdl.workspace = true
 px-core.workspace = true
+px-director.workspace = true
 px-engine.workspace = true
 px-expr.workspace = true
+
+[dev-dependencies]
+px-director.workspace = true
 
 [lints]
 workspace = true

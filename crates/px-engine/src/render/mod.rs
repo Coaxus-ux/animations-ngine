@@ -1,5 +1,6 @@
 mod buffer;
 mod composite;
+mod draw;
 mod frame;
 mod geometry;
 mod lighting;
@@ -7,7 +8,9 @@ mod mask;
 mod placement;
 mod reflection;
 mod report;
+mod stamp;
 mod surface;
+mod text;
 mod texture;
 mod transform;
 mod values;
@@ -20,6 +23,7 @@ use px_expr::EvalError;
 pub use buffer::FrameBuffer;
 pub use frame::object_seed;
 pub use report::FrameReport;
+pub(crate) use stamp::Stamps;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RenderError {

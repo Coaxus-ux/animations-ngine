@@ -74,7 +74,7 @@ impl Track {
         );
         let time = if from.hold > 1 && fps > 0.0 {
             let step = f64::from(from.hold) / fps;
-            from.time + libm::floor((time - from.time) / step) * step
+            from.time + px_core::floor((time - from.time) / step) * step
         } else {
             time
         };

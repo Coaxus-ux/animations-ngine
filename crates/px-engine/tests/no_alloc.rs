@@ -10,54 +10,18 @@
 )]
 
 mod common;
-
-use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicUsize, Ordering};
+#[path = "support/counting_alloc.rs"]
+mod counting_alloc;
 
 use common::{Kit, bounds, expr, fixed, kit, rect, shape, world};
+use counting_alloc::assert_no_heap_activity;
 use px_core::{Frame, Paint};
 use px_engine::{
     Ambient, Anchor, Bounds, Camera, Clip, Environment, FrameBuffer, Geometry, Gradient,
     GradientDirection, Instance, Layer, Light, LightKind, Outline, Particles, Reflection, Segment,
-    Shading, Shape, Style, Texture, Window,
+    Shading, Shape, Style, Text, TextCell, Texture, Window,
 };
 use px_expr::Wind;
-
-struct CountingAllocator;
-
-static ALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
-static DEALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
-
-// SAFETY: every method forwards to `System` with the caller's arguments unchanged; the
-// counters are atomics and do not touch the allocated memory.
-unsafe impl GlobalAlloc for CountingAllocator {
-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        ALLOCATIONS.fetch_add(1, Ordering::Relaxed);
-        // SAFETY: same contract as `GlobalAlloc::alloc`, forwarded verbatim.
-        unsafe { System.alloc(layout) }
-    }
-
-    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-        ALLOCATIONS.fetch_add(1, Ordering::Relaxed);
-        // SAFETY: same contract as `GlobalAlloc::alloc_zeroed`, forwarded verbatim.
-        unsafe { System.alloc_zeroed(layout) }
-    }
-
-    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        DEALLOCATIONS.fetch_add(1, Ordering::Relaxed);
-        // SAFETY: `ptr` and `layout` come from a matching `alloc` on `System`.
-        unsafe { System.dealloc(ptr, layout) }
-    }
-
-    unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
-        ALLOCATIONS.fetch_add(1, Ordering::Relaxed);
-        // SAFETY: same contract as `GlobalAlloc::realloc`, forwarded verbatim.
-        unsafe { System.realloc(ptr, layout, new_size) }
-    }
-}
-
-#[global_allocator]
-static GLOBAL: CountingAllocator = CountingAllocator;
 
 fn styled(geometry: Geometry, paint: Paint, style: Style) -> Shape {
     Shape {
@@ -171,6 +135,7 @@ fn shapes(kit: &Kit) -> Vec<Shape> {
             })),
             kit.mid,
         ),
+        text(kit),
         shape(
             Geometry::Shade {
                 bounds: bounds(0.0, 24.0, 32.0, 8.0),
@@ -180,6 +145,27 @@ fn shapes(kit: &Kit) -> Vec<Shape> {
             kit.blank,
         ),
     ]
+}
+
+fn text(kit: &Kit) -> Shape {
+    shape(
+        Geometry::Text(Box::new(Text {
+            x: fixed(4.0),
+            y: fixed(4.0),
+            size: expr("2 + t"),
+            reveal: expr("t * 8"),
+            scatter: expr("max(0, 6 - t * 12)"),
+            cells: (0..12)
+                .map(|i| TextCell {
+                    x: i,
+                    y: i % 3,
+                    glyph: i.unsigned_abs() / 2,
+                    scale: 1 + u8::from(i > 8),
+                })
+                .collect(),
+        })),
+        kit.ink,
+    )
 }
 
 fn environment(kit: &Kit) -> Environment {
@@ -318,19 +304,9 @@ fn rendering_performs_no_heap_activity() {
     let scene = world(&kit, (32, 32), 24, shapes, environment);
     let mut buffer = FrameBuffer::new(&scene);
 
-    let allocations = ALLOCATIONS.load(Ordering::Relaxed);
-    let deallocations = DEALLOCATIONS.load(Ordering::Relaxed);
-    for frame in 0..48 {
-        buffer.render(&scene, Frame::new(frame)).unwrap();
-    }
-    assert_eq!(
-        ALLOCATIONS.load(Ordering::Relaxed),
-        allocations,
-        "render allocated"
-    );
-    assert_eq!(
-        DEALLOCATIONS.load(Ordering::Relaxed),
-        deallocations,
-        "render freed memory"
-    );
+    assert_no_heap_activity(|| {
+        for frame in 0..48 {
+            buffer.render(&scene, Frame::new(frame)).unwrap();
+        }
+    });
 }

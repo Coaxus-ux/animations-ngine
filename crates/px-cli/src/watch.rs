@@ -13,24 +13,31 @@ use crate::playback::Playback;
 use crate::preview::{Control, Preview};
 use crate::source;
 
-const POLL: Duration = Duration::from_millis(250);
-const TIMING_SAMPLE_FRAMES: u32 = 120;
+const POLL: Duration = Duration::from_millis(100);
 
 struct Live {
     scene: Scene,
     buffer: FrameBuffer,
-    frame_ms: f64,
+    /// The frame on screen; the window refreshes faster than scenes play, and a paused
+    /// scene doesn't change, so a frame is rendered only when it changes.
+    shown: Option<Frame>,
+    rendering: Duration,
+    rendered: u32,
 }
 
 impl Live {
-    fn new(scene: Scene) -> Result<Self> {
-        let mut buffer = FrameBuffer::new(&scene);
-        let frame_ms = average_frame_ms(&scene, &mut buffer)?;
-        Ok(Self {
+    fn new(scene: Scene) -> Self {
+        Self {
+            buffer: FrameBuffer::new(&scene),
             scene,
-            buffer,
-            frame_ms,
-        })
+            shown: None,
+            rendering: Duration::ZERO,
+            rendered: 0,
+        }
+    }
+
+    fn frame_ms(&self) -> f64 {
+        self.rendering.as_secs_f64() * 1000.0 / f64::from(self.rendered.max(1))
     }
 }
 
@@ -67,8 +74,16 @@ pub(crate) fn watch(input: &Input, scale: Scale) -> Result<()> {
             }
         }
         let frame = playback.frame(live.scene.timing());
-        let view = live.buffer.render(&live.scene, frame)?;
-        preview.show(&view, live.scene.palette())?;
+        if live.shown == Some(frame) {
+            preview.idle_with_current()?;
+        } else {
+            let started = Instant::now();
+            let view = live.buffer.render(&live.scene, frame)?;
+            live.rendering += started.elapsed();
+            live.rendered += 1;
+            preview.show(&view, live.scene.palette())?;
+            live.shown = Some(frame);
+        }
         preview.set_title(&title(&live, frame, playback.is_paused()));
     }
     Ok(())
@@ -80,7 +95,7 @@ fn wait_for_valid_scene(input: &Input, file: &mut FileWatch) -> Result<Live> {
             let (loaded, files) = source::load_tracked(input);
             file.track(&files);
             match loaded {
-                Ok(loaded) => return Live::new(loaded.scene),
+                Ok(loaded) => return Ok(Live::new(loaded.scene)),
                 Err(error) => eprintln!("{error:#}; waiting for the file to change…"),
             }
         }
@@ -95,33 +110,25 @@ fn reload(
     preview: &mut Preview,
     scale: Scale,
 ) -> Result<()> {
+    let started = Instant::now();
     let (loaded, files) = source::load_tracked(input);
     file.track(&files);
     match loaded {
         Ok(loaded) => {
-            *live = Live::new(loaded.scene)?;
+            *live = Live::new(loaded.scene);
             if preview.size() != live.scene.size() {
                 *preview = Preview::open(live.scene.size(), scale, live.scene.name())?;
             }
             println!(
-                "reloaded {} ({} shapes, {:.2} ms/frame)",
+                "reloaded {} ({} shapes) in {:.0} ms",
                 input.file.display(),
                 live.scene.shapes().len(),
-                live.frame_ms
+                started.elapsed().as_secs_f64() * 1000.0
             );
         }
         Err(error) => eprintln!("{error:#}; keeping the last valid version"),
     }
     Ok(())
-}
-
-fn average_frame_ms(scene: &Scene, buffer: &mut FrameBuffer) -> Result<f64> {
-    let frames = scene.timing().duration.get().min(TIMING_SAMPLE_FRAMES);
-    let started = Instant::now();
-    for index in 0..frames {
-        buffer.render(scene, Frame::new(index))?;
-    }
-    Ok(started.elapsed().as_secs_f64() * 1000.0 / f64::from(frames))
 }
 
 fn title(live: &Live, frame: Frame, paused: bool) -> String {
@@ -132,7 +139,7 @@ fn title(live: &Live, frame: Frame, paused: bool) -> String {
         frame.index() + 1,
         timing.duration.get(),
         timing.fps.get(),
-        live.frame_ms
+        live.frame_ms()
     );
     if paused {
         let _ = write!(title, " — paused");

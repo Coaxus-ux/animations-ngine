@@ -96,3 +96,63 @@ fn gif_rejects_palettes_over_256_colors() {
         })
     ));
 }
+
+/// Each frame as the screen shows it, with every delta drawn over the frames before it.
+fn decoded_frames(bytes: &[u8]) -> Vec<Vec<u8>> {
+    let mut options = gif::DecodeOptions::new();
+    options.set_color_output(gif::ColorOutput::RGBA);
+    let mut decoder = options.read_info(bytes).unwrap();
+    let width = usize::from(decoder.width());
+    let mut screen = vec![0; width * usize::from(decoder.height()) * 3];
+    let mut frames = Vec::new();
+    while let Some(frame) = decoder.read_next_frame().unwrap() {
+        let (left, top, columns) = (
+            usize::from(frame.left),
+            usize::from(frame.top),
+            usize::from(frame.width),
+        );
+        for (i, pixel) in frame.buffer.as_chunks::<4>().0.iter().enumerate() {
+            if pixel[3] != 0 {
+                let at = ((top + i / columns) * width + left + i % columns) * 3;
+                screen[at..at + 3].copy_from_slice(&pixel[..3]);
+            }
+        }
+        frames.push(screen.clone());
+    }
+    frames
+}
+
+#[test]
+fn color_frames_round_trip_through_deltas_and_a_full_table() {
+    let gray = |value: u8| Rgb::new(value, value, value);
+    let first: Vec<Rgb> = (0..=255).map(|_| gray(0)).collect();
+    // Every pixel changes to its own color: 256 colors leave no slot for transparency.
+    let all: Vec<Rgb> = (0..=255).map(gray).collect();
+    let mut one = all.clone();
+    one[200] = Rgb::new(1, 2, 3);
+    let frames = [first, all.clone(), all, one];
+    let mut bytes = Vec::new();
+    let mut gif = GifWriter::with_frame_palettes(
+        &mut bytes,
+        Size::new(16, 16).unwrap(),
+        Scale::new(2).unwrap(),
+        FrameRate::new(12).unwrap(),
+    )
+    .unwrap();
+    for frame in &frames {
+        gif.add_color_frame(frame).unwrap();
+    }
+    drop(gif);
+    let decoded = decoded_frames(&bytes);
+    assert_eq!(decoded.len(), frames.len());
+    for (frame, screen) in frames.iter().zip(&decoded) {
+        let mut expected = vec![0; 32 * 32 * 3];
+        for (i, color) in frame.iter().enumerate() {
+            for (dy, dx) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
+                let at = ((i / 16 * 2 + dy) * 32 + i % 16 * 2 + dx) * 3;
+                expected[at..at + 3].copy_from_slice(&[color.r, color.g, color.b]);
+            }
+        }
+        assert_eq!(*screen, expected);
+    }
+}

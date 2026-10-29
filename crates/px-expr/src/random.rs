@@ -1,6 +1,6 @@
 use core::f64::consts::TAU;
 
-use px_core::{hash_seed as hash, mix};
+use px_core::{absorb, floor, hash_seed as hash, mix, seeded};
 
 use crate::program::Wind;
 
@@ -23,11 +23,7 @@ pub(crate) fn rand(seed: u64, key: f64) -> f64 {
     reason = "lattice coordinates are floored and clamped to i64 range"
 )]
 fn cell(value: f64) -> i64 {
-    libm::floor(value).clamp(-9.0e15, 9.0e15) as i64
-}
-
-fn lattice(seed: u64, cell: [i64; 3]) -> f64 {
-    unit(hash(seed, &cell.map(i64::cast_unsigned)))
+    floor(value).clamp(-9.0e15, 9.0e15) as i64
 }
 
 fn smooth(t: f64) -> f64 {
@@ -40,14 +36,22 @@ fn lerp(a: f64, b: f64, t: f64) -> f64 {
 
 pub(crate) fn noise(seed: u64, p: [f64; 3]) -> f64 {
     let base = p.map(cell);
-    let frac = [0, 1, 2].map(|axis| smooth(p[axis] - libm::floor(p[axis])));
-    let corner =
-        |dx: i64, dy: i64, dz: i64| lattice(seed, [base[0] + dx, base[1] + dy, base[2] + dz]);
+    let frac = [0, 1, 2].map(|axis| smooth(p[axis] - floor(p[axis])));
+    // Lattice corners hash (seed, x, y, z) in that order, so each x column is hashed once.
+    let root = seeded(seed);
+    let columns = [0, 1].map(|dx| absorb(root, (base[0] + dx).cast_unsigned()));
     let face = |dz: i64| {
-        let bottom = lerp(corner(0, 0, dz), corner(1, 0, dz), frac[0]);
-        let top = lerp(corner(0, 1, dz), corner(1, 1, dz), frac[0]);
+        let z = (base[2] + dz).cast_unsigned();
+        let corner =
+            |column: u64, dy: i64| unit(absorb(absorb(column, (base[1] + dy).cast_unsigned()), z));
+        let bottom = lerp(corner(columns[0], 0), corner(columns[1], 0), frac[0]);
+        let top = lerp(corner(columns[0], 1), corner(columns[1], 1), frac[0]);
         lerp(bottom, top, frac[1])
     };
+    // `lerp(a, b, 0.0)` is exactly `a`: integral z (every 2D caller) needs only one face.
+    if frac[2] == 0.0 {
+        return face(0);
+    }
     lerp(face(0), face(1), frac[2])
 }
 
@@ -66,12 +70,13 @@ pub(crate) fn fbm(seed: u64, x: f64, y: f64, octaves: f64) -> f64 {
 
 pub(crate) fn cells(seed: u64, x: f64, y: f64) -> f64 {
     let (cx, cy) = (cell(x), cell(y));
+    let root = seeded(seed);
     let mut nearest = f64::MAX;
     for dy in -1..=1 {
         for dx in -1..=1 {
-            let bits = hash(
-                seed,
-                &[(cx + dx).cast_unsigned(), (cy + dy).cast_unsigned()],
+            let bits = absorb(
+                absorb(root, (cx + dx).cast_unsigned()),
+                (cy + dy).cast_unsigned(),
             );
             let px = f64::from(i32::try_from(cx + dx).unwrap_or(0)) + unit(bits);
             let py = f64::from(i32::try_from(cy + dy).unwrap_or(0)) + unit(mix(bits));

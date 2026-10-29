@@ -137,7 +137,7 @@ impl Clock {
         };
         match scope {
             Scope::Loop if value > 0.0 => {
-                let time = self.time - value * libm::floor(self.time / value);
+                let time = self.time - value * px_core::floor(self.time / value);
                 Self {
                     time,
                     frame: time * env.fps,
@@ -149,7 +149,7 @@ impl Clock {
             Scope::Stagger => delay(env.index * value),
             Scope::Hold => {
                 let step = libm::round(value).max(1.0);
-                let frame = libm::floor(self.frame / step) * step;
+                let frame = px_core::floor(self.frame / step) * step;
                 Self {
                     time: frame / env.fps,
                     frame,
@@ -164,6 +164,7 @@ impl Clock {
 pub struct Program {
     ops: Vec<Op>,
     tracks: Vec<Track>,
+    timeless: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -175,7 +176,31 @@ pub enum Blend {
 
 impl Program {
     pub(crate) fn new(ops: Vec<Op>, tracks: Vec<Track>) -> Self {
-        Self { ops, tracks }
+        let timeless = ops.iter().all(|op| match op {
+            Op::Var(var) => !matches!(var, Var::Time | Var::Frame),
+            Op::Call(func, _) => !func.reads_time(),
+            Op::Track(_) => false,
+            Op::Const(_)
+            | Op::Unary(_)
+            | Op::Binary(_)
+            | Op::Select
+            | Op::Ease(_)
+            | Op::Enter(_)
+            | Op::Seed(_)
+            | Op::Leave => true,
+        });
+        Self {
+            ops,
+            tracks,
+            timeless,
+        }
+    }
+
+    /// The same value in every frame for a given environment: no time, frame, keyframes or
+    /// time-driven function. Scopes only shift time, so they don't count.
+    #[must_use]
+    pub const fn is_timeless(&self) -> bool {
+        self.timeless
     }
 
     #[must_use]

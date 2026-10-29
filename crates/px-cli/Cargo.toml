@@ -15,9 +15,13 @@ anyhow.workspace = true
 clap.workspace = true
 minifb.workspace = true
 px-core.workspace = true
+px-director.workspace = true
 px-engine.workspace = true
 px-export.workspace = true
 px-format.workspace = true
+
+[dev-dependencies]
+gif.workspace = true
 
 [lints]
 workspace = true

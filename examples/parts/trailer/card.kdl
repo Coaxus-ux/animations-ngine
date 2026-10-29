@@ -1,0 +1,28 @@
+// A title card: a small kicker over a big title that types in, a frame of corner marks in
+// the accent color, and the title blowing apart into pixels as the card ends.
+
+use "studio-palette.kdl"
+
+scene "card" palette="studio" width=320 height=180 fps=12 duration="2s" seed=8 background="ink.deep" {
+    param title "TITLE"
+    param kicker "KICKER"
+    param accent "teal"
+
+    particles x=0 y=0 width=320 height=180 vx=6 count=40 life="2s" fade=#true paint="ink.lit"
+    group "open" x="=min(1, t * 4)"
+    group "leave" x="=max(0, t - 1.55) / 0.45"
+
+    line x1="=160 - 130 * @open.x" y1=56 x2="=160 - 130 * @open.x + 10" y2=56 paint="$accent.base"
+    line x1="=160 - 130 * @open.x" y1=56 x2="=160 - 130 * @open.x" y2=64 paint="$accent.base"
+    line x1="=160 + 130 * @open.x" y1=56 x2="=160 + 130 * @open.x - 10" y2=56 paint="$accent.base"
+    line x1="=160 + 130 * @open.x" y1=56 x2="=160 + 130 * @open.x" y2=64 paint="$accent.base"
+    line x1="=160 - 130 * @open.x" y1=124 x2="=160 - 130 * @open.x + 10" y2=124 paint="$accent.base"
+    line x1="=160 - 130 * @open.x" y1=124 x2="=160 - 130 * @open.x" y2=116 paint="$accent.base"
+    line x1="=160 + 130 * @open.x" y1=124 x2="=160 + 130 * @open.x - 10" y2=124 paint="$accent.base"
+    line x1="=160 + 130 * @open.x" y1=124 x2="=160 + 130 * @open.x" y2=116 paint="$accent.base"
+
+    text "$kicker" x=160 y=66 align="center" paint="$accent.lit" reveal="=t * 40" scatter="=@leave.x * 60"
+    text "$title" x=161 y=82 size=2 align="center" paint="$accent.shade" reveal="=(t - 0.15) * 32" scatter="=@leave.x * @leave.x * 160"
+    text "$title" x=160 y=81 size=2 align="center" paint="paper.hi" reveal="=(t - 0.15) * 32" scatter="=@leave.x * @leave.x * 140"
+    rect x="=160 - 90 * @open.x * (1 - @leave.x)" y=106 width="=180 * @open.x * (1 - @leave.x)" height=2 paint="$accent.base"
+}

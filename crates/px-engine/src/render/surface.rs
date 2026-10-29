@@ -23,7 +23,7 @@ impl Surface<'_> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub(crate) struct Region {
     pub(crate) rect: Rect,
     pub(crate) round: bool,

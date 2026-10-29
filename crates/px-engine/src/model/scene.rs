@@ -4,6 +4,7 @@ use px_core::{FrameCount, FrameRate, Paint, Palette, PaletteError, Size};
 
 use super::shape::{Geometry, Outline, Shape};
 use super::world::Environment;
+use crate::render::{FrameBuffer, Stamps};
 
 /// Draw order doubles as depth, which is stored as a `u16` with 0 for the background.
 pub const MAX_SHAPES: usize = u16::MAX as usize - 1;
@@ -13,6 +14,7 @@ pub const MAX_CLIPS: usize = 64;
 pub const MAX_LIGHTS: usize = 16;
 pub const MAX_REFLECTIONS: usize = 8;
 pub const MAX_PARTICLES: u16 = 1024;
+pub const MAX_TEXT_CELLS: usize = 1 << 16;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Looping {
@@ -42,6 +44,7 @@ pub struct SceneSpec {
 #[derive(Clone, Debug)]
 pub struct Scene {
     spec: SceneSpec,
+    stamps: Stamps,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -101,7 +104,16 @@ impl Scene {
             validate_shape(&spec, index, shape)?;
         }
         validate_instances(world)?;
-        Ok(Self { spec })
+        let mut scene = Self {
+            spec,
+            stamps: Stamps::default(),
+        };
+        scene.stamps = FrameBuffer::capture(&scene);
+        Ok(scene)
+    }
+
+    pub(crate) const fn stamps(&self) -> &Stamps {
+        &self.stamps
     }
 
     #[must_use]
@@ -197,6 +209,15 @@ fn validate_shape(spec: &SceneSpec, index: usize, shape: &Shape) -> Result<(), M
             what: "particles",
             count,
             max: usize::from(MAX_PARTICLES),
+        });
+    }
+    if let Geometry::Text(text) = &shape.geometry
+        && text.cells.len() > MAX_TEXT_CELLS
+    {
+        return Err(ModelError::TooMany {
+            what: "text pixels",
+            count: text.cells.len(),
+            max: MAX_TEXT_CELLS,
         });
     }
     Ok(())

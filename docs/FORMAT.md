@@ -763,7 +763,7 @@ scene "street" view="perspective" palette="neon-night" warmup="2s" loop-blend="6
 
 ## Appendix A. What the loader accepts today
 
-The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-28). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes.
+The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes.
 
 ### A.1 Scene children
 
@@ -799,6 +799,7 @@ Every shape takes `paint` (`"ramp"` or `"ramp.tone"`), except `shade`, and the s
 | `rope` | `x1 y1 x2 y2`, `sag` 0, `sway` 0, `width` 1 | Sags like a cable and bulges sideways by `sway` |
 | `particles` | `x y width height` (spawn area), `vx vy gravity` 0, `life` 1s, `size` 1, `wind` 0, `streak` 0s (trail length in seconds of travel: rain, sparks) | `count` 20 (≤ 1024), `fade`. Stateless: each particle cycles through its life, so loops stay seamless when `life` divides the duration |
 | `shade` | `x y width height`, `steps` -1 | `round`. Shifts the tones of whatever is below it |
+| `text` | `x y` (required), `size` 1, `reveal` (all), `scatter` 0 | the words first (`text "Hello"`), `font` (built-in `5x7`), `bold`, `italic`, `align` `left` \| `center` \| `right`, `id`. Pixel-font text (A.7): `size` is canvas pixels per glyph pixel, `reveal` how many characters show (typing), `scatter` pushes every glyph pixel out by up to that many pixels in a seeded direction (animate it to 0 to assemble the text) |
 
 ### A.3 Style props (any shape)
 
@@ -878,3 +879,61 @@ An object can only attach to something written before it, and not to a `use-scen
 **Text params in paints.** `paint="$coat"` or `paint="$coat.lit"` uses a text param as the ramp name, so one scene can be placed with different colors (`coat="coat-red"`). Works in every paint prop (`outline-paint`, `fog-paint` too).
 
 `pxe timeline <file>` prints the markers and every placed scene on a time ruler (CLI.md §3.11).
+
+### A.7 Fonts and text
+
+The words come first; everything else is optional but the position and paint:
+
+```kdl
+text "Hello" x=10 y=10 paint="ink.hi"
+text "HELLO\nWORLD" x=160 y=80 size=2 align="center" bold=#true paint="ink.hi" reveal="=t * 20"
+text "plain, [b]bold[/b], [i]italic[/i] and [size=2]big[/size]" x=8 y=40 paint="ink.hi"
+```
+
+- **Font.** Without `font`, text uses the built-in `5x7` font (printable ASCII; capitals 7 pixels tall, 2 rows below for descenders), so a scene needs no `use` to show text.
+- **Whole-text style.** `bold=#true` thickens every glyph one pixel to the right; `italic=#true` leans it one pixel for every 5 rows above the font's bottom row. `size` scales the whole text and can be animated.
+- **Inline tags** style part of the words: `[b]…[/b]`, `[i]…[/i]` and `[size=N]…[/size]` (N from 1 to 16, glyph pixels per font pixel). Tags nest and may span lines. On a line that mixes sizes, every character sits on the same bottom, and the line is as tall as its biggest size. `[[` writes a `[`; any other bracketed text is drawn as it is.
+- **Lines.** `\n` starts a new line; lines stack down from `y`, and `align` places each line on `x`.
+- **Params.** `text "$title"` reads a text param, so one card scene can be shot with different words.
+- **Naming.** The first argument is the words, so a text object is named with `id="title"`.
+- Text is laid out when the scene loads. Every glyph pixel is drawn edge to edge at any `size` and camera zoom; it takes the style props (A.3), so `gradient`, `opacity` or `emissive` work as on any shape. A full `outline` on big text hollows its strokes (outlines are drawn inside a shape); an offset copy in a darker paint makes a cleaner shadow.
+- A character the font has no glyph for draws as a hollow box, and the load warns.
+
+A `font` is a top-level node in any file (PIECES.md §10). Every glyph has the font's `height` in rows; widths can differ. `#` is ink and `.` is empty; rows go one per line in a `"""` string, or on one line separated by spaces. A glyph with no ink takes a `width`. A font named `5x7` replaces the built-in one.
+
+```kdl
+font "blocky" height=9 spacing=1 line-height=11 {
+    glyph " " width=3
+    glyph "I" "### .#. .#. .#. .#. .#. ### ... ..."
+}
+
+text "IIII" font="blocky" x=0 y=0 paint="ink.hi"
+```
+
+- `spacing` (default 1) is the gap between glyphs; `line-height` (default `height + 2`) the distance between lines. Both scale with `[size=N]`.
+
+### A.8 Sequences
+
+A `sequence` (top level) is ordered `shot`s of scenes joined by `transition`s (DIRECTOR.md §4). Each shot keeps its scene's own palette and camera.
+
+```kdl
+use "parts/card.kdl"
+use "koi-pond.kdl"
+
+sequence "trailer" {
+    shot "card" duration="2s" title="ZOOM WITHOUT BLUR"
+    transition "dither" duration="0.5s"
+    shot "koi-pond" duration="5s" from="dive"
+}
+```
+
+| Node | Props |
+|---|---|
+| `shot "scene"` | `duration` (required), `from` (scene time or one of the scene's markers; 0), `speed` 1; any other prop sets the scene's param of that name |
+| `transition "kind"` | `duration` (required except for `cut`); `from` `left` \| `right` \| `top` \| `bottom` for `wipe` |
+
+- Transition kinds: `cut`; `dither` (pixels switch from one shot to the next in an ordered-dither pattern); `black` and `white` (every tone steps down to the palette's darkest color, or up to its lightest, and the next shot comes back up from it); `wipe` (the next shot slides over with a stepped, dithered edge). A transition overlaps the end of one shot with the start of the next and never blends colors: each pixel is a color of one shot or the other. Shots side by side without a transition are cut together.
+- A shot's scene time is `from + (t − shot start) × speed`; a looping scene wraps, any other holds its last frame.
+- Every shot needs the first shot's size and fps, and must show alone for at least a frame between its transitions.
+- The file's only scene or sequence loads by default; `--scene NAME` picks one by name. `pxe export` writes a GIF in which every frame carries the colors of the shots it shows; `pxe render` and `pxe bench` take sequences too.
+

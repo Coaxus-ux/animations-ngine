@@ -1,21 +1,19 @@
-use std::borrow::Cow;
 use std::io::Write;
 
-use px_core::{CanvasView, FrameRate, Paint, Palette, PaletteError, Size};
+use px_core::{CanvasView, FrameRate, Paint, Palette, Rgb, Size};
 
 use crate::error::ExportError;
-use crate::resolve::{indexed_len, upscale};
+use crate::gif_frame::{EncodedFrame, GifFrameEncoder, GifScratch};
 use crate::scale::Scale;
 
-const GIF_MAX_COLORS: usize = 256;
-
+/// Writes a looping GIF. Frames come either pre-encoded (`frame_encoder` on worker threads,
+/// then `write` in order) or one at a time through `add_frame` / `add_color_frame`.
 pub struct GifWriter<W: Write> {
     encoder: gif::Encoder<W>,
-    ramp_spans: Vec<RampSpan>,
-    size: Size,
-    scale: Scale,
-    delay: u16,
-    indices: Vec<u8>,
+    frames: GifFrameEncoder,
+    scratch: GifScratch,
+    previous_paints: Vec<Paint>,
+    previous_colors: Vec<Rgb>,
 }
 
 impl<W: Write> GifWriter<W> {
@@ -26,100 +24,88 @@ impl<W: Write> GifWriter<W> {
         scale: Scale,
         fps: FrameRate,
     ) -> Result<Self, ExportError> {
-        let (table, ramp_spans) = color_table(palette)?;
-        let width = scale.apply(size.width()).ok_or(ExportError::TooLarge)?;
-        let height = scale.apply(size.height()).ok_or(ExportError::TooLarge)?;
-        let encoding = |error: gif::EncodingError| ExportError::Encoding(error.to_string());
-        let mut encoder = gif::Encoder::new(writer, width, height, &table).map_err(encoding)?;
+        let (frames, table) = GifFrameEncoder::with_palette(size, scale, fps, palette)?;
+        Self::open(writer, frames, &table)
+    }
+
+    /// A GIF whose frames each carry their own color table (`encode_colors`), for frames
+    /// mixing palettes, such as a sequence's.
+    pub fn with_frame_palettes(
+        writer: W,
+        size: Size,
+        scale: Scale,
+        fps: FrameRate,
+    ) -> Result<Self, ExportError> {
+        Self::open(
+            writer,
+            GifFrameEncoder::with_frame_palettes(size, scale, fps),
+            &[],
+        )
+    }
+
+    fn open(writer: W, frames: GifFrameEncoder, table: &[u8]) -> Result<Self, ExportError> {
+        let size = frames.size();
+        let width = frames
+            .scale()
+            .apply(size.width())
+            .ok_or(ExportError::TooLarge)?;
+        let height = frames
+            .scale()
+            .apply(size.height())
+            .ok_or(ExportError::TooLarge)?;
+        let mut encoder =
+            gif::Encoder::new(writer, width, height, table).map_err(|error| encoding(&error))?;
         encoder
             .set_repeat(gif::Repeat::Infinite)
-            .map_err(encoding)?;
-        // GIF delays are whole centiseconds: 12 fps plays at 8 cs (≈ 12.5 fps).
-        let delay = (100 + fps.get() / 2) / fps.get();
+            .map_err(|error| encoding(&error))?;
         Ok(Self {
             encoder,
-            ramp_spans,
-            size,
-            scale,
-            delay,
-            indices: Vec::new(),
+            frames,
+            scratch: GifScratch::default(),
+            previous_paints: Vec::new(),
+            previous_colors: Vec::new(),
         })
     }
 
+    /// Encodes frames for this GIF; each frame must be encoded against the one before it.
+    #[must_use]
+    pub fn frame_encoder(&self) -> &GifFrameEncoder {
+        &self.frames
+    }
+
+    pub fn write(&mut self, frame: &EncodedFrame) -> Result<(), ExportError> {
+        self.encoder
+            .write_lzw_pre_encoded_frame(&frame.0)
+            .map_err(|error| encoding(&error))
+    }
+
     pub fn add_frame(&mut self, view: &CanvasView<'_>) -> Result<(), ExportError> {
-        if view.size() != self.size {
+        if view.size() != self.frames.size() {
             return Err(ExportError::TooLarge);
         }
-        self.indices.resize(indexed_len(view, self.scale, 1)?, 0);
-        let spans = &self.ramp_spans;
-        upscale(view, self.scale, 1, &mut self.indices, |paint, pixel| {
-            pixel[0] = table_index(spans, paint)?;
-            Ok(())
-        })?;
-        let frame = gif::Frame {
-            width: self
-                .scale
-                .apply(self.size.width())
-                .ok_or(ExportError::TooLarge)?,
-            height: self
-                .scale
-                .apply(self.size.height())
-                .ok_or(ExportError::TooLarge)?,
-            delay: self.delay,
-            buffer: Cow::Borrowed(&self.indices),
-            ..gif::Frame::default()
-        };
-        self.encoder
-            .write_frame(&frame)
-            .map_err(|error| ExportError::Encoding(error.to_string()))
+        let previous = (!self.previous_paints.is_empty()).then_some(&self.previous_paints[..]);
+        let frame = self
+            .frames
+            .encode(view.cells(), previous, &mut self.scratch)?;
+        self.write(&frame)?;
+        self.previous_paints.clear();
+        self.previous_paints.extend_from_slice(view.cells());
+        Ok(())
+    }
+
+    /// A frame of exact colors, given its own table of the colors it uses (at most 256).
+    pub fn add_color_frame(&mut self, colors: &[Rgb]) -> Result<(), ExportError> {
+        let previous = (!self.previous_colors.is_empty()).then_some(&self.previous_colors[..]);
+        let frame = self
+            .frames
+            .encode_colors(colors, previous, &mut self.scratch)?;
+        self.write(&frame)?;
+        self.previous_colors.clear();
+        self.previous_colors.extend_from_slice(colors);
+        Ok(())
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-struct RampSpan {
-    start: u8,
-    len: u8,
-}
-
-fn color_table(palette: &Palette) -> Result<(Vec<u8>, Vec<RampSpan>), ExportError> {
-    let count: usize = palette.ramps().iter().map(|ramp| ramp.colors().len()).sum();
-    let too_many = ExportError::TooManyColors {
-        count,
-        max: GIF_MAX_COLORS,
-    };
-    if count > GIF_MAX_COLORS {
-        return Err(too_many);
-    }
-    let mut table = Vec::with_capacity(count * 3);
-    let mut spans = Vec::with_capacity(palette.ramps().len());
-    for ramp in palette.ramps() {
-        let Ok(start) = u8::try_from(table.len() / 3) else {
-            return Err(too_many);
-        };
-        spans.push(RampSpan {
-            start,
-            len: ramp.len(),
-        });
-        for color in ramp.colors() {
-            table.extend_from_slice(&[color.r, color.g, color.b]);
-        }
-    }
-    Ok((table, spans))
-}
-
-fn table_index(spans: &[RampSpan], paint: Paint) -> Result<u8, ExportError> {
-    let span = spans
-        .get(paint.ramp.index())
-        .ok_or(PaletteError::UnknownRamp { ramp: paint.ramp })?;
-    let tone = paint.tone;
-    if tone.index() >= span.len {
-        return Err(PaletteError::ToneOutOfRange {
-            ramp: paint.ramp,
-            tone,
-            len: span.len,
-        }
-        .into());
-    }
-    // `start + len` never exceeds 256 because the table holds at most 256 colors.
-    Ok(span.start + tone.index())
+fn encoding(error: &gif::EncodingError) -> ExportError {
+    ExportError::Encoding(error.to_string())
 }

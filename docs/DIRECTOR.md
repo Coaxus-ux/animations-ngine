@@ -65,6 +65,8 @@ camera {
 
 ## 4. Shots and sequences
 
+> **Today (2026-10-29):** `sequence` with `shot` (`duration`, `from`, `speed`, param overrides) and the `cut`, `dither`, `black`, `white` and `wipe` transitions load, render and export as GIF (FORMAT.md appendix A.8, crate `px-director`). Not yet: named cameras, per-shot palette or camera overrides, `hold`, `iris`, `pixelate`, `slide`, `palette-swap`, markers as sequence events.
+
 ```kdl
 sequence "forest-short" fps=12 {
     shot "forest-dusk" camera="wide" duration="6s"

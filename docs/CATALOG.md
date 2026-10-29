@@ -259,7 +259,7 @@ Exports to Tiled-compatible JSON (see [DIRECTOR.md](DIRECTOR.md)).
 
 | Prefab | Key params | Notes |
 |---|---|---|
-| `text` | `content`, `font` (`3x5` \| `5x7` \| `tall` \| custom piece font), `align`, `spacing` | Built-in pixel fonts; fonts are piece sets |
+| `text` | words first, `font` (`3x5` \| `5x7` \| `tall` \| custom piece font), `align`, `spacing`, `bold`, `italic`, inline `[b]` `[i]` `[size=N]` | Built-in pixel fonts; fonts are piece sets. Today: `5x7` only (FORMAT.md A.7) |
 | `sign` | `content`, `shape` (`board` \| `plaque` \| `banner` \| `hanging`), `border` | Wood, metal, paper |
 | `neon-text` | `content`, `font`, `tube` (1–2 px), `flicker` 0..1, `broken-letters` list, `glow` | Emissive; casts colored light |
 

@@ -7,24 +7,31 @@ mod compiler;
 mod diagnostic;
 mod document;
 mod extras;
+mod font;
 mod instances;
 mod keyframes;
 mod library;
+mod markup;
+mod names;
 mod objects;
-mod paints;
 mod palette;
 mod params;
 mod props;
 mod scene;
 mod schema;
+mod sequence;
 mod sources;
 mod style;
 mod suggest;
+mod text;
 mod timeline;
 mod units;
 mod values;
 
 pub use diagnostic::{Diagnostic, LoadError, Severity};
-pub use document::{LoadOptions, Loaded, load, load_file, load_scene};
+pub use document::{
+    LoadOptions, Loaded, LoadedSequence, Work, load, load_file, load_scene, load_work,
+    load_work_file,
+};
 pub use sources::{FsSources, MemorySources, SourceFile, Sources};
 pub use timeline::{Marker, Timeline, Track};

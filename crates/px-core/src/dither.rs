@@ -22,7 +22,7 @@ pub fn dither_steps(value: f64, x: i32, y: i32) -> i32 {
     if !value.is_finite() {
         return 0;
     }
-    let whole = libm::floor(value);
+    let whole = crate::floor(value);
     let fraction = ((value - whole - (1.0 - SEAM) / 2.0) / SEAM).clamp(0.0, 1.0);
     #[expect(
         clippy::cast_possible_truncation,

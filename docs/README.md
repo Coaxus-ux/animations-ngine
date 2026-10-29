@@ -1,6 +1,6 @@
 # Pixel Art Animation Engine — Documentation
 
-> Status: M1 is built, with parts of M2–M5 and M9 (scene composition, timeline, zoom) pulled forward; see [ROADMAP.md](ROADMAP.md) and [FORMAT.md appendix A](FORMAT.md#appendix-a-what-the-loader-accepts-today) for what works today.
+> Status: M1 is built, with parts of M2–M5 and M9 (scene composition, timeline, zoom, text, sequences of shots) pulled forward; see [ROADMAP.md](ROADMAP.md) and [FORMAT.md appendix A](FORMAT.md#appendix-a-what-the-loader-accepts-today) for what works today.
 
 A general-purpose engine to create pixel art scenes, characters, animations and game assets **entirely from code and data**: no drawing skills required and no AI inside the engine. Scenes are written in KDL, behaviors in TypeScript, and everything renders through a palette-indexed Rust core.
 

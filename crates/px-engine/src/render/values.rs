@@ -11,10 +11,13 @@ pub(crate) struct Values<'a> {
     pub(crate) report: &'a mut FrameReport,
     pub(crate) object: usize,
     pub(crate) transform: Transform,
+    /// Whether any value evaluated so far changes over time.
+    pub(crate) timed: bool,
 }
 
 impl Values<'_> {
     pub(crate) fn of(&mut self, param: &Param) -> Result<f64, RenderError> {
+        self.timed |= !param.is_timeless();
         match param.value(&self.env) {
             Ok(value) => Ok(value),
             Err(EvalError::NonFinite) => {

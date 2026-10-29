@@ -5,6 +5,7 @@ use super::frame::render;
 use super::mask::Mask;
 use super::placement::Placed;
 use super::report::FrameReport;
+use super::stamp::{Capture, Stamps};
 use super::surface::{Surface, Target};
 use crate::model::{MAX_INSTANCES, Scene};
 
@@ -42,12 +43,33 @@ impl FrameBuffer {
     }
 
     pub fn render(&mut self, scene: &Scene, frame: Frame) -> Result<CanvasView<'_>, RenderError> {
-        let mismatch = RenderError::CanvasSize {
+        self.draw(scene, frame, None)?;
+        CanvasView::new(self.size, &self.cells).map_err(|_| RenderError::CanvasSize {
             expected: scene.size(),
             actual: self.size,
-        };
+        })
+    }
+
+    /// The stamps of the shapes of `scene` that never change, or none if a frame fails.
+    pub(crate) fn capture(scene: &Scene) -> Stamps {
+        let mut capture = Capture::new(scene.shapes().len());
+        match Self::new(scene).draw(scene, Frame::new(0), Some(&mut capture)) {
+            Ok(()) => capture.into_stamps(),
+            Err(_) => Stamps::default(),
+        }
+    }
+
+    fn draw(
+        &mut self,
+        scene: &Scene,
+        frame: Frame,
+        capture: Option<&mut Capture>,
+    ) -> Result<(), RenderError> {
         if scene.size() != self.size {
-            return Err(mismatch);
+            return Err(RenderError::CanvasSize {
+                expected: scene.size(),
+                actual: self.size,
+            });
         }
         let (width, height) = (i32::from(self.size.width()), i32::from(self.size.height()));
         let mut surface = Surface {
@@ -73,8 +95,7 @@ impl FrameBuffer {
             mask: &mut mask,
             placed: &mut self.placed,
         };
-        render(scene, frame, target, &mut self.report)?;
-        CanvasView::new(self.size, &self.cells).map_err(|_| mismatch)
+        render(scene, frame, target, &mut self.report, capture)
     }
 
     #[must_use]

@@ -2,7 +2,7 @@ use px_core::LightColor;
 use px_engine::object_seed;
 use px_engine::{
     Ambient, Anchor, Bounds, Camera, Clip, Environment, Geometry, Layer, Light, LightKind, Outline,
-    Param, Particles, Reflection, Segment, Shading, Shape, Style,
+    Param, Particles, Reflection, Segment, Shading, Shape, Style, Text,
 };
 use px_expr::{Blend, Program};
 
@@ -367,6 +367,14 @@ fn geometry(kind: Kind, extras: Extras, next: &mut Next) -> Geometry {
             streak: next.param(),
             count,
             fade,
+        })),
+        (_, Extras::Text(cells)) => Geometry::Text(Box::new(Text {
+            x: next.param(),
+            y: next.param(),
+            size: next.param(),
+            reveal: next.param(),
+            scatter: next.param(),
+            cells,
         })),
         (_, Extras::Shade { round }) => Geometry::Shade {
             bounds: next.bounds(),

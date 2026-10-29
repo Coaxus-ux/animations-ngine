@@ -1,0 +1,18 @@
+[package]
+name = "px-director"
+description = "Sequences: shots of scenes joined by transitions, composed into frames."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+libm.workspace = true
+px-core.workspace = true
+px-engine.workspace = true
+
+[dev-dependencies]
+px-expr.workspace = true
+
+[lints]
+workspace = true

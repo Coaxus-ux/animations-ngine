@@ -21,9 +21,10 @@ crates/
   px-raster   no_std: shape rasterization into a canvas
   px-format   KDL loading and validation → compiled scene
   px-engine   FrameBuffer::render: scene + frame → indexed canvas (no alloc)
+  px-director sequences: shots + transitions → frames of (shot, paint) cells (no alloc)
   px-export   indexed → RGB, upscale, PNG, GIF
   px-cli      the `pxe` binary
-examples/     sample scenes; examples/parts/<example>/ holds the scenes each example places with `use-scene`
+examples/     sample scenes and the trailer sequence; examples/parts/<example>/ holds the scenes each example places or shoots
 tools/        repo tooling (file size guard)
 ```
 
@@ -36,7 +37,7 @@ cargo fmt --all
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo test --workspace --profile release-assertions --locked
-cargo run -p px-cli -- export examples/hello.kdl --out out/hello.gif
+cargo pxe export examples/hello.kdl --out out/hello.gif   # alias for `cargo run --release -p px-cli --`
 python3 tools/file_size_guard.py check $(git ls-files)
 python3 tools/commit_guard.py history HEAD
 ```

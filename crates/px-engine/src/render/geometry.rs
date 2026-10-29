@@ -79,6 +79,7 @@ pub(crate) fn rasterize(
             mask,
         )?,
         Geometry::Particles(particles) => self::particles(particles, values, mask)?,
+        Geometry::Text(spec) => super::text::text(spec, values, mask)?,
     }
     Ok(())
 }
@@ -159,7 +160,7 @@ fn rope(
     clippy::cast_precision_loss,
     reason = "53 high bits fit an f64 mantissa exactly"
 )]
-fn unit(bits: u64) -> f64 {
+pub(crate) fn unit(bits: u64) -> f64 {
     (bits >> 11) as f64 / (1u64 << 53) as f64
 }
 

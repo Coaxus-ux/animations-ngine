@@ -217,6 +217,8 @@ fish "parrotfish" { pattern "scales-small" on="body" }              // B5
 
 ## 10. Fonts (`font` and `kind="glyph"`)
 
+> **Today (2026-10-29):** `font` with `glyph` children and the `text` shape load and render (FORMAT.md appendix A.7). Glyphs use `#` and `.` only (no legend or slots yet), and a glyph's rows can also be written on one line, separated by spaces. `core-kit` doesn't exist yet; the built-in `5x7` font (`crates/px-format/fonts/5x7.kdl`) covers printable ASCII and is the default, and `bold`, `italic` and inline `[b]` `[i]` `[size=N]` tags style text.
+
 Pixel text is just pieces. A font is a piece set where each glyph is a piece:
 ```kdl
 font "tiny-3x5" height=5 spacing=1 baseline=5 {

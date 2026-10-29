@@ -4,20 +4,17 @@ use px_core::{Frame, hash_seed};
 use px_expr::Env;
 
 use super::RenderError;
-use super::composite::{Evaluated, composite};
-use super::geometry::{rasterize, rect, rect_of};
+use super::draw::{Context, draw_shapes};
+use super::geometry::{rect, rect_of};
 use super::lighting::{self, Lit};
 use super::placement::{Placed, anchored, place};
 use super::reflection::{Mirror, reflect};
 use super::report::FrameReport;
+use super::stamp::Capture;
 use super::surface::{Region, Surface, Target};
 use super::transform::Transform;
 use super::values::Values;
-use crate::model::{
-    Anchor, Geometry, LightKind, Looping, MAX_CLIPS, MAX_LAYERS, MAX_LIGHTS, Param, Scene,
-};
-
-const MAX_NESTED_CLIPS: usize = 8;
+use crate::model::{Anchor, LightKind, Looping, MAX_CLIPS, MAX_LAYERS, MAX_LIGHTS, Param, Scene};
 
 #[must_use]
 pub fn object_seed(scene_seed: u64, index: usize) -> u64 {
@@ -35,7 +32,7 @@ pub(crate) struct Pass<'s, 'r> {
 impl Pass<'_, '_> {
     /// Values for one object of `owner` (an instance, or the scene itself) drawn in `layer`,
     /// positioned from `anchor` when it is hooked to one, or `None` while hidden.
-    fn values(
+    pub(super) fn values(
         &mut self,
         object: usize,
         seed: u64,
@@ -63,6 +60,7 @@ impl Pass<'_, '_> {
             report: &mut *self.report,
             object,
             transform: origin.then(&layer),
+            timed: false,
         }))
     }
 
@@ -86,16 +84,19 @@ impl Pass<'_, '_> {
             report: &mut *self.report,
             object: usize::MAX,
             transform: Transform::IDENTITY,
+            timed: false,
         }
         .of(param)
     }
 }
 
+/// Draws `frame`; with `capture`, also records the stamps of shapes that never change.
 pub(crate) fn render(
     scene: &Scene,
     frame: Frame,
     target: Target<'_, '_>,
     report: &mut FrameReport,
+    capture: Option<&mut Capture>,
 ) -> Result<(), RenderError> {
     let Target {
         surface,
@@ -128,53 +129,13 @@ pub(crate) fn render(
     for (transform, layer) in pass.layers.iter_mut().zip(&world.layers) {
         *transform = view.through(layer.parallax);
     }
-    let regions = clip_regions(&mut pass)?;
-    let light_direction = key_light(world.ambient.key_light);
-    for (index, shape) in scene.shapes().iter().enumerate() {
-        let style = &shape.style;
-        let seed = style
-            .seed
-            .unwrap_or_else(|| object_seed(scene.seed(), index));
-        let anchor = style.anchor.as_ref();
-        let Some(mut values) = pass.values(index, seed, style.instance, style.layer, anchor)?
-        else {
-            continue;
-        };
-        if values.of(&style.visible)? <= 0.5 {
-            continue;
-        }
-        let layer = world.layers.get(style.layer);
-        let fog = match layer {
-            Some(layer) => values.of(&layer.fog)?,
-            None => 0.0,
-        };
-        let shade_steps = match &shape.geometry {
-            Geometry::Shade { steps, .. } => values.of(steps)?,
-            _ => 0.0,
-        };
-        let mut clips = [Region::default(); MAX_NESTED_CLIPS];
-        let used = style.clips.len().min(MAX_NESTED_CLIPS);
-        for (target, clip) in clips.iter_mut().zip(&style.clips) {
-            *target = regions.get(*clip).copied().unwrap_or_default();
-        }
-        let evaluated = Evaluated {
-            depth: u16::try_from(index + 1).unwrap_or(u16::MAX),
-            seed,
-            opacity: values.of(&style.opacity)?,
-            tone_shift: values.of(&style.tone_shift)?,
-            contact_shadow: values.of(&style.contact_shadow)?,
-            shade_steps,
-            fog,
-            fog_paint: layer.and_then(|layer| layer.fog_paint),
-            clips: &clips[..used],
-            light: light_direction,
-            transform: values.transform,
-        };
-        mask.clear();
-        rasterize(&shape.geometry, &mut values, mask)?;
-        composite(shape, &evaluated, scene.palette(), mask, surface);
-    }
-    light_scene(&mut pass, surface)?;
+    let clips = clip_regions(&mut pass)?;
+    let context = Context {
+        clips: &clips,
+        light: key_light(world.ambient.key_light),
+    };
+    draw_shapes(&mut pass, &context, mask, surface, capture)?;
+    light_scene(&mut pass, surface, mask.distance)?;
     reflect_scene(&mut pass, surface)
 }
 
@@ -217,7 +178,11 @@ fn reflect_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(
     Ok(())
 }
 
-fn light_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(), RenderError> {
+fn light_scene(
+    pass: &mut Pass<'_, '_>,
+    surface: &mut Surface<'_>,
+    scratch: &mut [u16],
+) -> Result<(), RenderError> {
     let world = pass.scene.environment();
     let ambient = lighting::Ambient {
         darkness: pass.eval(&world.ambient.darkness)?,
@@ -267,7 +232,13 @@ fn light_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(),
             shadows: lamp.shadows,
         };
     }
-    lighting::light(surface, pass.scene.palette(), &ambient, &lits[..count]);
+    lighting::light(
+        surface,
+        pass.scene.palette(),
+        &ambient,
+        &lits[..count],
+        scratch,
+    );
     Ok(())
 }
 

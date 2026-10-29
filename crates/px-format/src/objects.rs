@@ -7,7 +7,7 @@ use px_expr::Wind;
 use crate::diagnostic::Diagnostics;
 use crate::extras::{self, Extras};
 use crate::keyframes::Anim;
-use crate::paints::Paints;
+use crate::names::Names;
 use crate::props::Props;
 use crate::schema::Kind;
 use crate::style::{self, Flags};
@@ -47,7 +47,7 @@ struct Context {
 
 pub(crate) fn collect<'a>(
     scene: &'a KdlNode,
-    palette: &Paints<'_>,
+    palette: &Names<'_>,
     diags: &mut Diagnostics,
 ) -> Tree<'a> {
     let mut tree = Tree::default();
@@ -71,7 +71,7 @@ fn children(node: &KdlNode) -> &[KdlNode] {
 fn walk<'a>(
     parent: &'a KdlNode,
     context: &Context,
-    palette: &Paints<'_>,
+    palette: &Names<'_>,
     tree: &mut Tree<'a>,
     diags: &mut Diagnostics,
 ) {
@@ -139,12 +139,12 @@ fn draft<'a>(
     node: &'a KdlNode,
     kind: Kind,
     context: &Context,
-    palette: &Paints<'_>,
+    palette: &Names<'_>,
     diags: &mut Diagnostics,
 ) -> Draft<'a> {
     let mut props = Props::new(node);
     let id = match kind {
-        Kind::UseScene => props.get("id"),
+        Kind::UseScene | Kind::Text => props.get("id"),
         _ => props.args().next(),
     }
     .and_then(|entry| values::string(entry, diags));

@@ -15,6 +15,7 @@ px-raster = { path = "crates/px-raster" }
 px-format = { path = "crates/px-format" }
 px-engine = { path = "crates/px-engine" }
 px-export = { path = "crates/px-export" }
+px-director = { path = "crates/px-director" }
 anyhow = "1"
 clap = { version = "4.6", features = ["derive"] }
 gif = "0.14"
@@ -46,8 +47,17 @@ disallowed_types = "allow"
 
 [profile.release]
 overflow-checks = true
+lto = "fat"
+codegen-units = 1
+
+# Unoptimized LZW and libm made debug exports and golden tests ~20× slower.
+[profile.dev.package."*"]
+opt-level = 3
 
 [profile.release-assertions]
 inherits = "release"
 debug-assertions = true
 overflow-checks = true
+# Tests don't need the last 20 % of speed; skipping LTO halves rebuilds in tools/check.sh.
+lto = false
+codegen-units = 16

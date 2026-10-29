@@ -8,8 +8,8 @@ use crate::diagnostic::Diagnostics;
 use crate::document::Catalog;
 use crate::extras::Override;
 use crate::instances;
+use crate::names::Names;
 use crate::objects;
-use crate::paints::Paints;
 use crate::palette::NamedPalette;
 use crate::params::SceneParams;
 use crate::props::Props;
@@ -95,7 +95,7 @@ pub(crate) fn header<'c>(
 pub(crate) fn parse(
     node: &KdlNode,
     catalog: &Catalog<'_>,
-    overrides: &[(String, String)],
+    overrides: Overrides<'_>,
     diags: &mut Diagnostics,
 ) -> Option<(SceneSpec, Timeline)> {
     let header = header(node, catalog, diags);
@@ -116,14 +116,7 @@ pub(crate) fn parse(
         loop_period: looping.then(|| seconds(timing)),
         ..Scope::default()
     };
-    let markers = builder.build(
-        node,
-        canvas,
-        &scope,
-        Overrides::Cli(overrides),
-        &mut out,
-        diags,
-    );
+    let markers = builder.build(node, canvas, &scope, overrides, &mut out, diags);
     if diags.has_errors() {
         return None;
     }
@@ -184,9 +177,10 @@ impl Builder<'_, '_> {
             markers: &markers,
         };
         let params = params(node, overrides, diags);
-        let paints = Paints {
+        let paints = Names {
             palette: self.palette,
             params: &params,
+            fonts: &self.catalog.fonts,
         };
         let tree = objects::collect(node, &paints, diags);
         let compiled =

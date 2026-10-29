@@ -20,6 +20,12 @@ impl Rgb {
         Self { r, g, b }
     }
 
+    /// Perceived brightness with Rec. 601 weights, scaled by 1000.
+    #[must_use]
+    pub fn luma(self) -> u32 {
+        299 * u32::from(self.r) + 587 * u32::from(self.g) + 114 * u32::from(self.b)
+    }
+
     pub fn parse_hex(text: &str) -> Result<Self, ColorParseError> {
         let digits = text.strip_prefix('#').ok_or(ColorParseError::MissingHash)?;
         let bytes = digits.as_bytes();

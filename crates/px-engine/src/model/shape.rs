@@ -2,6 +2,7 @@ use px_core::Paint;
 
 use super::instance::Anchor;
 use super::param::Param;
+use super::text::Text;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Bounds {
@@ -64,6 +65,7 @@ pub enum Geometry {
         width: Param,
     },
     Particles(Box<Particles>),
+    Text(Box<Text>),
     Shade {
         bounds: Bounds,
         steps: Param,

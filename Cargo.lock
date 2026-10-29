@@ -576,8 +576,10 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "clap",
+ "gif",
  "minifb",
  "px-core",
+ "px-director",
  "px-engine",
  "px-export",
  "px-format",
@@ -588,6 +590,16 @@ name = "px-core"
 version = "0.0.1"
 dependencies = [
  "libm",
+]
+
+[[package]]
+name = "px-director"
+version = "0.0.1"
+dependencies = [
+ "libm",
+ "px-core",
+ "px-engine",
+ "px-expr",
 ]
 
 [[package]]
@@ -623,6 +635,7 @@ version = "0.0.1"
 dependencies = [
  "kdl",
  "px-core",
+ "px-director",
  "px-engine",
  "px-expr",
 ]

@@ -82,6 +82,7 @@ pub(crate) fn anchored(
         report,
         object: usize::MAX,
         transform: Transform::IDENTITY,
+        timed: false,
     };
     let point = Transform {
         dx: values.of(&anchor.x)?,
@@ -127,6 +128,7 @@ fn place_one(
         report,
         object: usize::MAX,
         transform: Transform::IDENTITY,
+        timed: false,
     };
     let local = Transform {
         scale: values.of(&instance.scale)?,

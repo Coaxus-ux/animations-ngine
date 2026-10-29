@@ -58,6 +58,7 @@ pub(crate) enum Kind {
     Blob,
     Rope,
     Particles,
+    Text,
     Shade,
     LightPoint,
     LightCone,
@@ -70,7 +71,7 @@ pub(crate) enum Kind {
     UseScene,
 }
 
-pub(crate) const SHAPE_NAMES: [(&str, Kind); 10] = [
+pub(crate) const SHAPE_NAMES: [(&str, Kind); 11] = [
     ("rect", Kind::Rect),
     ("ellipse", Kind::Ellipse),
     ("rounded-rect", Kind::RoundedRect),
@@ -80,6 +81,7 @@ pub(crate) const SHAPE_NAMES: [(&str, Kind); 10] = [
     ("blob", Kind::Blob),
     ("rope", Kind::Rope),
     ("particles", Kind::Particles),
+    ("text", Kind::Text),
     ("shade", Kind::Shade),
 ];
 
@@ -171,6 +173,13 @@ impl Kind {
             optional("wind", N, 0.0),
             optional("streak", Quantity::Time, 0.0),
         ];
+        const TEXT: [Prop; 5] = [
+            required("x", H),
+            required("y", V),
+            optional("size", N, 1.0),
+            optional("reveal", N, f64::INFINITY),
+            optional("scatter", N, 0.0),
+        ];
         const LAYER: [Prop; 1] = [optional("fog", N, 0.0)];
         const AMBIENT: [Prop; 1] = [optional("darkness", N, 0.0)];
         const CAMERA: [Prop; 3] = [ORIGIN[0], ORIGIN[1], optional("zoom", N, 1.0)];
@@ -199,6 +208,7 @@ impl Kind {
             Self::Blob => &BLOB,
             Self::Rope => &ROPE,
             Self::Particles => &PARTICLES,
+            Self::Text => &TEXT,
             Self::Shade => &SHADE,
             Self::Layer => &LAYER,
             Self::Ambient => &AMBIENT,

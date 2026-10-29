@@ -1,5 +1,5 @@
-//! Golden-hash test for every scene in `examples/` and `benchmarks/*/`: indexed-buffer
-//! hashes per frame must match `tests/golden/<name>.txt` on every platform (benchmark
+//! Golden-hash test for every scene and sequence in `examples/` and `benchmarks/*/`:
+//! indexed-buffer hashes per frame must match `tests/golden/<name>.txt` on every platform (benchmark
 //! names are prefixed with their folder). Set `PX_BLESS=1` to rewrite the files after an
 //! intended change, and review the diff.
 #![allow(
@@ -11,8 +11,9 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use px_core::{Frame, hash_cells};
+use px_director::{Player, Sequence};
 use px_engine::{FrameBuffer, Looping, Scene};
-use px_format::LoadOptions;
+use px_format::{LoadOptions, Work};
 
 fn entries(dir: &Path) -> Vec<PathBuf> {
     std::fs::read_dir(dir).map_or_else(
@@ -83,16 +84,32 @@ fn frame_hashes(scene: &Scene) -> String {
     hashes
 }
 
+fn sequence_hashes(sequence: &Sequence) -> String {
+    let mut player = Player::new(sequence);
+    let mut hashes = String::new();
+    for frame in sequence.duration().frames() {
+        let view = player.render(sequence, frame).unwrap();
+        assert!(
+            (0..view.paints().len()).all(|index| view.resolve(index).is_ok()),
+            "{}: frame {} leaves its shots' palettes",
+            sequence.name(),
+            frame.index()
+        );
+        writeln!(hashes, "{} {:016x}", frame.index(), view.hash()).unwrap();
+    }
+    hashes
+}
+
 #[test]
 fn every_example_and_benchmark_matches_its_golden_hashes() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let files = scene_files(root);
     assert_ne!(files.len(), 0, "no example scenes found");
     for (name, file) in files {
-        let scene = px_format::load_file(&file, LoadOptions::default())
-            .unwrap()
-            .scene;
-        let actual = frame_hashes(&scene);
+        let actual = match px_format::load_work_file(&file, LoadOptions::default()).unwrap() {
+            Work::Scene(loaded) => frame_hashes(&loaded.scene),
+            Work::Sequence(loaded) => sequence_hashes(&loaded.sequence),
+        };
         let golden = root.join(format!("tests/golden/{name}.txt"));
         if std::env::var_os("PX_BLESS").is_some() {
             std::fs::write(&golden, &actual).unwrap();

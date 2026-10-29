@@ -3,16 +3,19 @@ use core::ops::Deref;
 use px_core::Paint;
 
 use crate::diagnostic::Diagnostics;
+use crate::font::Fonts;
 use crate::palette::NamedPalette;
 use crate::params::SceneParams;
 
-/// The scene's palette, where a paint can also name a text param: `"$coat"` or `"$coat.lit"`.
-pub(crate) struct Paints<'a> {
+/// What a scene's objects can name: paints of its palette (also through a text param:
+/// `"$coat"` or `"$coat.lit"`), its params and the loaded fonts.
+pub(crate) struct Names<'a> {
     pub(crate) palette: &'a NamedPalette,
     pub(crate) params: &'a SceneParams,
+    pub(crate) fonts: &'a Fonts,
 }
 
-impl Paints<'_> {
+impl Names<'_> {
     pub(crate) fn paint(
         &self,
         text: &str,
@@ -40,7 +43,7 @@ impl Paints<'_> {
     }
 }
 
-impl Deref for Paints<'_> {
+impl Deref for Names<'_> {
     type Target = NamedPalette;
 
     fn deref(&self) -> &NamedPalette {

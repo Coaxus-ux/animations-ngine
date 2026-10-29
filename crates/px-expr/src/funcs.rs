@@ -209,6 +209,61 @@ impl Func {
         }
     }
 
+    /// Whether the result depends on `ctx.time`; exhaustive so a new function must decide.
+    pub(crate) const fn reads_time(self) -> bool {
+        match self {
+            Self::Cycle | Self::Osc | Self::Pulse | Self::Between | Self::Wiggle | Self::Wind => {
+                true
+            }
+            Self::Abs
+            | Self::Sign
+            | Self::Floor
+            | Self::Ceil
+            | Self::Round
+            | Self::Fract
+            | Self::Min
+            | Self::Max
+            | Self::Clamp
+            | Self::Lerp
+            | Self::Map
+            | Self::Step
+            | Self::Smoothstep
+            | Self::Mod
+            | Self::Sqrt
+            | Self::Exp
+            | Self::Log
+            | Self::Pow
+            | Self::Sin
+            | Self::Cos
+            | Self::Tan
+            | Self::Atan2
+            | Self::Deg
+            | Self::Rad
+            | Self::Dist
+            | Self::Len
+            | Self::Snap
+            | Self::Wave
+            | Self::Tri
+            | Self::Saw
+            | Self::Square
+            | Self::Loop
+            | Self::Delay
+            | Self::Stagger
+            | Self::Hold
+            | Self::On2
+            | Self::On3
+            | Self::Ease
+            | Self::Rand
+            | Self::Range
+            | Self::Randi
+            | Self::Chance
+            | Self::Pick
+            | Self::Noise
+            | Self::Fbm
+            | Self::Cells => false,
+        }
+    }
+
     pub(crate) fn apply(self, args: &[f64], ctx: &Ctx) -> Option<f64> {
         Some(match (self, args) {
             (Self::Min, [first, rest @ ..]) => rest.iter().fold(*first, |a, b| libm::fmin(a, *b)),
@@ -237,7 +292,7 @@ impl Func {
                     0.0
                 }
             }
-            Self::Floor => libm::floor(x),
+            Self::Floor => px_core::floor(x),
             Self::Ceil => libm::ceil(x),
             Self::Round => libm::round(x),
             Self::Fract | Self::Saw => fract(x),
@@ -262,7 +317,7 @@ impl Func {
     fn binary(self, a: f64, b: f64, ctx: &Ctx) -> Option<f64> {
         Some(match self {
             Self::Step => truth(b >= a),
-            Self::Mod => a - b * libm::floor(a / b),
+            Self::Mod => a - b * px_core::floor(a / b),
             Self::Pow => libm::pow(a, b),
             Self::Atan2 => libm::atan2(a, b),
             Self::Len => libm::hypot(a, b),
@@ -290,7 +345,7 @@ impl Func {
             Self::Noise => random::noise(ctx.seed, [a, b, c]),
             Self::Range => a + (b - a) * random::rand(ctx.seed, c),
             Self::Randi => libm::fmin(
-                libm::floor(a + (b - a + 1.0) * random::rand(ctx.seed, c)),
+                px_core::floor(a + (b - a + 1.0) * random::rand(ctx.seed, c)),
                 b,
             ),
             Self::Fbm => random::fbm(ctx.seed, a, b, c),
@@ -300,7 +355,7 @@ impl Func {
 }
 
 fn fract(x: f64) -> f64 {
-    x - libm::floor(x)
+    x - px_core::floor(x)
 }
 
 const fn truth(condition: bool) -> f64 {

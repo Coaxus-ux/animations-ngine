@@ -7,16 +7,22 @@ pub const MAX_BLOB_CIRCLES: usize = 16;
 /// Pixel centers often sit exactly on an edge (distance 0); float noise of 1e-15 must not
 /// decide them, or animated shapes break perfect loops. The edge test uses this margin.
 const EDGE_TOLERANCE: f64 = 1e-6;
+/// Relative band on squared distances inside which `within` defers to `hypot`. It dwarfs
+/// float error (~1e-16), so the shortcut never changes a pixel.
+const SQUARED_MARGIN: f64 = 1e-9;
 
 /// Covers every pixel whose center has `distance(x, y) <= 0` (within `EDGE_TOLERANCE`), scanning only `bbox`.
 pub fn fill_sdf(plot: &mut impl Plot, bbox: Rect, distance: impl Fn(f64, f64) -> f64) {
+    fill_where(plot, bbox, |x, y| distance(x, y) <= EDGE_TOLERANCE);
+}
+
+fn fill_where(plot: &mut impl Plot, bbox: Rect, inside: impl Fn(f64, f64) -> bool) {
     let x_end = bbox.right().min(plot.width());
     let x_start = bbox.x.max(0);
     for y in bbox.rows(plot.height()) {
         let mut run: Option<i32> = None;
         for x in x_start..=x_end {
-            let inside =
-                x < x_end && distance(f64::from(x) + 0.5, f64::from(y) + 0.5) <= EDGE_TOLERANCE;
+            let inside = x < x_end && inside(f64::from(x) + 0.5, f64::from(y) + 0.5);
             match (inside, run) {
                 (true, None) => run = Some(x),
                 (false, Some(start)) => {
@@ -42,8 +48,8 @@ pub fn fill_rounded_rect(plot: &mut impl Plot, rect: Rect, radius: f64) {
 
 pub fn fill_capsule(plot: &mut impl Plot, from: [f64; 2], to: [f64; 2], radius: f64) {
     let bbox = bounding(&[from, to], radius);
-    fill_sdf(plot, bbox, |x, y| {
-        segment_distance([x, y], from, to) - radius
+    fill_where(plot, bbox, |x, y| {
+        within(segment_offset([x, y], from, to), radius)
     });
 }
 
@@ -52,8 +58,8 @@ pub fn fill_polygon(plot: &mut impl Plot, points: &[[f64; 2]]) {
     if points.len() < 3 {
         return;
     }
-    fill_sdf(plot, bounding(points, 0.0), |x, y| {
-        polygon_distance([x, y], points)
+    fill_where(plot, bounding(points, 0.0), |x, y| {
+        polygon_contains([x, y], points)
     });
 }
 
@@ -85,7 +91,25 @@ fn smooth_min(a: f64, b: f64, k: f64) -> f64 {
     a.min(b) - h * h * k * 0.25
 }
 
-fn segment_distance(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> f64 {
+/// Exactly `hypot(offset) - radius <= EDGE_TOLERANCE`; `hypot` only runs near the edge.
+fn within(offset: [f64; 2], radius: f64) -> bool {
+    let reach = radius + EDGE_TOLERANCE;
+    let squared = offset[0] * offset[0] + offset[1] * offset[1];
+    // A negative radius leaves `reach` tiny next to the rounding of `radius + EDGE_TOLERANCE`.
+    if radius >= 0.0 && squared.is_finite() && (reach * reach).is_finite() {
+        let limit = reach * reach;
+        if squared < limit * (1.0 - SQUARED_MARGIN) {
+            return true;
+        }
+        if squared > limit * (1.0 + SQUARED_MARGIN) {
+            return false;
+        }
+    }
+    libm::hypot(offset[0], offset[1]) - radius <= EDGE_TOLERANCE
+}
+
+/// From the nearest point of segment `ab` to `p`.
+fn segment_offset(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> [f64; 2] {
     let (pa, ba) = ([p[0] - a[0], p[1] - a[1]], [b[0] - a[0], b[1] - a[1]]);
     let length = ba[0] * ba[0] + ba[1] * ba[1];
     let h = if length > 0.0 {
@@ -93,15 +117,15 @@ fn segment_distance(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> f64 {
     } else {
         0.0
     };
-    libm::hypot(pa[0] - ba[0] * h, pa[1] - ba[1] * h)
+    [pa[0] - ba[0] * h, pa[1] - ba[1] * h]
 }
 
-fn polygon_distance(p: [f64; 2], points: &[[f64; 2]]) -> f64 {
-    let mut distance = f64::MAX;
+/// Inside by the even-odd rule, or within `EDGE_TOLERANCE` of an edge: the signed distance
+/// test without computing the distance of inside points.
+fn polygon_contains(p: [f64; 2], points: &[[f64; 2]]) -> bool {
     let mut inside = false;
     let mut previous = points[points.len() - 1];
     for &point in points {
-        distance = distance.min(segment_distance(p, previous, point));
         let crosses = (point[1] > p[1]) != (previous[1] > p[1]);
         if crosses
             && p[0]
@@ -111,7 +135,11 @@ fn polygon_distance(p: [f64; 2], points: &[[f64; 2]]) -> f64 {
         }
         previous = point;
     }
-    if inside { -distance } else { distance }
+    inside
+        || points
+            .iter()
+            .zip(points.iter().cycle().skip(points.len() - 1))
+            .any(|(&point, &previous)| within(segment_offset(p, previous, point), 0.0))
 }
 
 fn bounding(points: &[[f64; 2]], margin: f64) -> Rect {
@@ -139,7 +167,7 @@ fn bounding(points: &[[f64; 2]], margin: f64) -> Rect {
 )]
 fn clamp_floor(value: f64) -> i32 {
     let limit = f64::from(COORD_LIMIT);
-    libm::floor(if value.is_nan() {
+    px_core::floor(if value.is_nan() {
         0.0
     } else {
         value.clamp(-limit, limit)

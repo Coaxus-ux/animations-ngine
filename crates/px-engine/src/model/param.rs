@@ -13,6 +13,15 @@ impl Param {
             Self::Expr(program) => program.eval(env),
         }
     }
+
+    /// The same value in every frame (see `Program::is_timeless`).
+    #[must_use]
+    pub const fn is_timeless(&self) -> bool {
+        match self {
+            Self::Fixed(_) => true,
+            Self::Expr(program) => program.is_timeless(),
+        }
+    }
 }
 
 impl Default for Param {

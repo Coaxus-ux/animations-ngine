@@ -120,22 +120,17 @@ impl Mask<'_> {
         if self.distance[index] == 0 {
             return 0;
         }
-        let inside_box = |nx: i32, ny: i32| {
-            self.bbox
-                .is_some_and(|[x0, y0, x1, y1]| nx >= x0 && nx < x1 && ny >= y0 && ny < y1)
-        };
-        let best = offsets
-            .iter()
-            .map(|(dx, dy, cost)| {
-                let (nx, ny) = (x + dx, y + dy);
-                let neighbor = self
-                    .index(nx, ny)
-                    .filter(|_| inside_box(nx, ny))
-                    .map_or(0, |i| self.distance[i]);
-                neighbor.saturating_add(*cost)
-            })
-            .min()
-            .unwrap_or(FAR);
+        let [x0, y0, x1, y1] = self.bbox.unwrap_or_default();
+        let mut best = FAR;
+        for &(dx, dy, cost) in offsets {
+            let (nx, ny) = (x + dx, y + dy);
+            let neighbor = if nx >= x0 && nx < x1 && ny >= y0 && ny < y1 {
+                self.index(nx, ny).map_or(0, |i| self.distance[i])
+            } else {
+                0
+            };
+            best = best.min(neighbor.saturating_add(cost));
+        }
         self.distance[index] = self.distance[index].min(best).max(3);
         self.distance[index]
     }

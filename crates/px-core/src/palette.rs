@@ -169,6 +169,35 @@ impl Palette {
         self.resolve(paint).is_ok()
     }
 
+    /// The palette's darkest color by perceived brightness (the first one on ties).
+    #[must_use]
+    pub fn darkest(&self) -> Option<Paint> {
+        self.extreme(|luma, best| luma < best)
+    }
+
+    /// The palette's lightest color by perceived brightness (the first one on ties).
+    #[must_use]
+    pub fn lightest(&self) -> Option<Paint> {
+        self.extreme(|luma, best| luma > best)
+    }
+
+    fn extreme(&self, better: impl Fn(u32, u32) -> bool) -> Option<Paint> {
+        let mut found: Option<(Paint, u32)> = None;
+        for (ramp, colors) in (0u16..).zip(self.ramps()) {
+            for (tone, color) in (0u8..).zip(colors.colors()) {
+                let luma = color.luma();
+                if found.is_none_or(|(_, best)| better(luma, best)) {
+                    let paint = Paint {
+                        ramp: RampId(ramp),
+                        tone: Tone::new(tone),
+                    };
+                    found = Some((paint, luma));
+                }
+            }
+        }
+        found.map(|(paint, _)| paint)
+    }
+
     /// The ramp a pixel switches to under a light of `color` (PALETTES §4.4).
     pub fn set_twin(
         &mut self,

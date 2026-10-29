@@ -1,11 +1,15 @@
 use px_core::{LightColor, Paint, RampId};
-use px_engine::MAX_PARTICLES;
+use px_engine::{MAX_PARTICLES, TextCell};
 
 use crate::diagnostic::Diagnostics;
-use crate::paints::Paints;
+use crate::font::DEFAULT_FONT;
+use crate::markup::{self, Style};
+use crate::names::Names;
 use crate::params::{ParamValue, value_of};
 use crate::props::Props;
 use crate::schema::Kind;
+use crate::suggest;
+use crate::text::{Align, layout};
 use crate::values;
 
 /// Non-animatable settings that only some kinds have.
@@ -15,6 +19,7 @@ pub(crate) enum Extras {
     None,
     Points(Vec<[f64; 2]>),
     Circles(Vec<[f64; 3]>),
+    Text(Vec<TextCell>),
     Particles {
         count: u16,
         fade: bool,
@@ -81,7 +86,7 @@ pub(crate) fn flag(props: &mut Props<'_>, key: &'static str, diags: &mut Diagnos
 fn paint(
     props: &mut Props<'_>,
     key: &'static str,
-    palette: &Paints<'_>,
+    palette: &Names<'_>,
     diags: &mut Diagnostics,
 ) -> Option<Paint> {
     let entry = props.get(key)?;
@@ -92,7 +97,7 @@ fn paint(
 pub(crate) fn parse(
     props: &mut Props<'_>,
     kind: Kind,
-    palette: &Paints<'_>,
+    palette: &Names<'_>,
     diags: &mut Diagnostics,
 ) -> Extras {
     match kind {
@@ -105,6 +110,7 @@ pub(crate) fn parse(
                 .unwrap_or(20),
             fade: flag(props, "fade", diags),
         },
+        Kind::Text => text(props, palette, diags),
         Kind::Shade => Extras::Shade {
             round: flag(props, "round", diags),
         },
@@ -136,6 +142,75 @@ pub(crate) fn parse(
         Kind::UseScene => placement(props, diags),
         _ => Extras::None,
     }
+}
+
+/// Lays the text out when the scene loads: `text "Hello [b]world[/b]" x=… y=…`. The words
+/// come first (`"$title"` reads a text param); `font` defaults to the built-in one.
+fn text(props: &mut Props<'_>, names: &Names<'_>, diags: &mut Diagnostics) -> Extras {
+    let font = props
+        .get("font")
+        .map_or(Some(DEFAULT_FONT), |entry| values::string(entry, diags));
+    let font = font.and_then(|name| {
+        let font = names.fonts.get(name);
+        if font.is_none() {
+            let hint = suggest::did_you_mean(name, names.fonts.keys().map(String::as_str));
+            diags.error(props.offset(), format!("unknown font \"{name}\".{hint}"));
+        }
+        font.map(|font| (name, font))
+    });
+    let words = props.args().next();
+    if words.is_none() {
+        diags.error(
+            props.offset(),
+            "`text` needs its words first: text \"Hello\" x=0 y=0 paint=\"ink\"",
+        );
+    }
+    let content = words.and_then(|entry| {
+        let text = values::string(entry, diags)?;
+        let Some(param) = text.strip_prefix('$') else {
+            return Some(text);
+        };
+        names
+            .params
+            .text(param)
+            .map_err(|message| diags.error(entry.span().offset(), message))
+            .ok()
+    });
+    let mut flag = |key| {
+        props
+            .get(key)
+            .and_then(|entry| values::boolean(entry, diags))
+            .unwrap_or(false)
+    };
+    let style = Style {
+        bold: flag("bold"),
+        italic: flag("italic"),
+        ..Style::default()
+    };
+    let align = props.get("align").map_or(Some(Align::Left), |entry| {
+        let name = values::string(entry, diags)?;
+        let align = Align::parse(name);
+        if align.is_none() {
+            let hint = suggest::did_you_mean(name, Align::NAMES);
+            diags.error(
+                entry.span().offset(),
+                format!("`align` is left, center or right.{hint}"),
+            );
+        }
+        align
+    });
+    let (Some((name, font)), Some(content), Some(align)) = (font, content, align) else {
+        return Extras::Text(Vec::new());
+    };
+    let laid = layout(font, &markup::styled(content, style), align);
+    if !laid.missing.is_empty() {
+        let missing: String = laid.missing.iter().collect();
+        diags.warning(
+            props.offset(),
+            format!("font \"{name}\" has no glyph for \"{missing}\"; drawn as boxes"),
+        );
+    }
+    Extras::Text(laid.cells)
 }
 
 /// Parses `"a,b a,b …"` into groups of `N` numbers.
@@ -174,13 +249,9 @@ fn tuples<const N: usize>(
     }
 }
 
-fn placement(props: &mut Props<'_>, diags: &mut Diagnostics) -> Extras {
-    let scene = props.name_arg(diags).unwrap_or_default().to_owned();
-    props.get("id");
-    let looping = props
-        .get("loop")
-        .and_then(|entry| values::boolean(entry, diags));
-    let overrides = props
+/// Every prop not read so far, as a param override of the scene being placed or shot.
+pub(crate) fn overrides(props: &mut Props<'_>, diags: &mut Diagnostics) -> Vec<Override> {
+    props
         .rest()
         .into_iter()
         .filter_map(|entry| {
@@ -198,7 +269,16 @@ fn placement(props: &mut Props<'_>, diags: &mut Diagnostics) -> Extras {
                 offset: entry.span().offset(),
             })
         })
-        .collect();
+        .collect()
+}
+
+fn placement(props: &mut Props<'_>, diags: &mut Diagnostics) -> Extras {
+    let scene = props.name_arg(diags).unwrap_or_default().to_owned();
+    props.get("id");
+    let looping = props
+        .get("loop")
+        .and_then(|entry| values::boolean(entry, diags));
+    let overrides = overrides(props, diags);
     Extras::Instance(Box::new(Placement {
         scene,
         looping,

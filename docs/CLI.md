@@ -98,6 +98,8 @@ pxe export --preset release-gifs
 
 MP4/WebM need `ffmpeg` (see §5).
 
+> **Today (2026-10-30):** `pxe export <file> [--scene NAME] [--scale N] [--param NAME=VALUE] [--out PATH] [--jobs N]` writes a GIF of a scene or a sequence; a sequence's GIF gives each frame its own color table, so shots in different palettes keep their exact colors. Frames are rendered and compressed on `--jobs` threads (default: every core) and stored as deltas, only the box that changed since the previous frame; the file is byte-identical for any `--jobs` (D-010). `cargo pxe …` runs the optimized CLI from the repository. `pxe render <file> --frame N` writes one PNG of either.
+
 ### 3.4 `watch`
 ```bash
 pxe watch examples/sunset-walk.kdl --scale 5 --param stride=6
@@ -151,7 +153,7 @@ pxe bench                 # render and compare all
 pxe bench B3 --update     # accept new output as golden
 ```
 
-> **Today (2026-10-28):** `pxe bench [FILES…] [--budget-ms 33.3] [--rounds 3] [--sweep NAME=V1,V2,…]` times every frame of `examples/*.kdl` and `benchmarks/*/*.kdl` (or the given files), prints each scene's size, frame count, shapes, placed scenes (`inst`) and lights with the mean and worst frame time, and exits with code 4 when a worst frame is over budget. `--sweep` renders each scene once per value of a scene param and reports the first value over budget instead of failing, e.g. `pxe bench examples/town-festival.kdl --sweep crowd=10,100,300,1000`. `tools/check.sh` runs it in release mode. Golden comparison runs as indexed-buffer hashes in `cargo test` (`crates/px-cli/tests/golden.rs`); the flags below are not implemented yet.
+> **Today (2026-10-28):** `pxe bench [FILES…] [--budget-ms 33.3] [--rounds 3] [--sweep NAME=V1,V2,…]` times every frame of `examples/*.kdl` and `benchmarks/*/*.kdl` (or the given files; a sequence is timed frame by frame with its transitions and reports its largest shot's counts), prints an aligned table of each scene's size, frame count, shapes, placed scenes (`inst`) and lights with the mean, 95th-percentile and worst frame time, the sustained fps and the worst frame as a share of the budget, then a summary line (scenes, frames, total frame time, slowest frame, how many are over budget), and exits with code 4 when a worst frame is over budget. `--sweep` renders each scene once per value of a scene param and reports the first value over budget instead of failing, e.g. `pxe bench examples/town-festival.kdl --sweep crowd=10,100,300,1000`. `tools/check.sh` runs it in release mode. Golden comparison runs as indexed-buffer hashes in `cargo test` (`crates/px-cli/tests/golden.rs`); the flags below are not implemented yet.
 | Flag | Meaning |
 |---|---|
 | `--update` | Overwrite golden images |
