@@ -5,6 +5,7 @@ mod frame;
 mod geometry;
 mod lighting;
 mod mask;
+mod pixels;
 mod placement;
 mod reflection;
 mod report;

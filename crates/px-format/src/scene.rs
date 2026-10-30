@@ -13,6 +13,7 @@ use crate::objects;
 use crate::palette::NamedPalette;
 use crate::params::SceneParams;
 use crate::props::Props;
+use crate::source_map::{Origin, PaintNames};
 use crate::timeline::{Markers, Timeline};
 use crate::units::Measure;
 use crate::{suggest, values};
@@ -92,12 +93,20 @@ pub(crate) fn header<'c>(
     }
 }
 
+/// A parsed scene with what maps it back to its source.
+pub(crate) struct Parsed {
+    pub(crate) spec: SceneSpec,
+    pub(crate) timeline: Timeline,
+    pub(crate) origins: Vec<Origin>,
+    pub(crate) paint_names: PaintNames,
+}
+
 pub(crate) fn parse(
     node: &KdlNode,
     catalog: &Catalog<'_>,
     overrides: Overrides<'_>,
     diags: &mut Diagnostics,
-) -> Option<(SceneSpec, Timeline)> {
+) -> Option<Parsed> {
     let header = header(node, catalog, diags);
     let (palette, palette_name) = header.palette.zip(header.palette_name)?;
     let (canvas, seed) = header.canvas().zip(header.seed)?;
@@ -136,7 +145,12 @@ pub(crate) fn parse(
         shapes: out.shapes,
         environment: out.world,
     };
-    Some((spec, timeline))
+    Some(Parsed {
+        spec,
+        timeline,
+        origins: out.origins,
+        paint_names: PaintNames::new(palette.ramp_names()),
+    })
 }
 
 /// Param values given from outside a scene: on the command line, or by a `use-scene` in

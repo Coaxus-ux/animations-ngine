@@ -1,4 +1,5 @@
-use px_raster::Plot;
+use px_core::Paint;
+use px_raster::{Plot, Rect};
 
 pub(crate) const FULL: u8 = 255;
 
@@ -10,6 +11,8 @@ pub(crate) struct Mask<'a> {
     pub(crate) temp: &'a mut [u8],
     pub(crate) distance: &'a mut [u16],
     pub(crate) noise: &'a mut [i8],
+    /// Each covered pixel's own paint, for shapes painted pixel by pixel; stale elsewhere.
+    pub(crate) paints: &'a mut [Paint],
     pub(crate) bbox: Option<[i32; 4]>,
 }
 
@@ -32,6 +35,23 @@ impl Mask<'_> {
             self.coverage[index] = self.coverage[index].max(alpha);
             self.grow(y, x, x + 1);
         }
+    }
+
+    /// Covers `rect` (clipped to the canvas) with `paint` as the pixels' own paint.
+    pub(crate) fn fill_paint(&mut self, rect: Rect, paint: Paint) {
+        let (x0, x1) = (rect.x.max(0), (rect.x + rect.width).min(self.width));
+        let (y0, y1) = (rect.y.max(0), (rect.y + rect.height).min(self.height));
+        if x0 >= x1 || y0 >= y1 {
+            return;
+        }
+        for y in y0..y1 {
+            if let (Some(first), Some(last)) = (self.index(x0, y), self.index(x1 - 1, y)) {
+                self.coverage[first..=last].fill(FULL);
+                self.paints[first..=last].fill(paint);
+            }
+        }
+        self.grow(y0, x0, x1);
+        self.grow(y1 - 1, x0, x1);
     }
 
     fn grow(&mut self, y: i32, x_start: i32, x_end: i32) {

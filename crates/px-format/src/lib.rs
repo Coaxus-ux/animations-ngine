@@ -6,8 +6,10 @@ mod attach;
 mod compiler;
 mod diagnostic;
 mod document;
+pub mod edit;
 mod extras;
 mod font;
+mod geometry;
 mod instances;
 mod keyframes;
 mod library;
@@ -16,10 +18,12 @@ mod names;
 mod objects;
 mod palette;
 mod params;
+mod pixels;
 mod props;
 mod scene;
 mod schema;
 mod sequence;
+mod source_map;
 mod sources;
 mod style;
 mod suggest;
@@ -33,5 +37,8 @@ pub use document::{
     LoadOptions, Loaded, LoadedSequence, Work, load, load_file, load_scene, load_work,
     load_work_file,
 };
+pub use font::{Font, Glyph};
+pub use pixels::write_pixels;
+pub use source_map::{Origin, PaintNames};
 pub use sources::{FsSources, MemorySources, SourceFile, Sources};
 pub use timeline::{Marker, Timeline, Track};

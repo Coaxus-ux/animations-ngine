@@ -580,9 +580,11 @@ dependencies = [
  "minifb",
  "px-core",
  "px-director",
+ "px-editor",
  "px-engine",
  "px-export",
  "px-format",
+ "px-ui",
 ]
 
 [[package]]
@@ -600,6 +602,19 @@ dependencies = [
  "px-core",
  "px-engine",
  "px-expr",
+]
+
+[[package]]
+name = "px-editor"
+version = "0.0.1"
+dependencies = [
+ "kdl",
+ "px-core",
+ "px-engine",
+ "px-export",
+ "px-format",
+ "px-raster",
+ "px-ui",
 ]
 
 [[package]]
@@ -646,6 +661,16 @@ version = "0.0.1"
 dependencies = [
  "libm",
  "px-core",
+]
+
+[[package]]
+name = "px-ui"
+version = "0.0.1"
+dependencies = [
+ "px-core",
+ "px-engine",
+ "px-format",
+ "px-raster",
 ]
 
 [[package]]

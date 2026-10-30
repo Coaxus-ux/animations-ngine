@@ -2,9 +2,33 @@
 
 > Companion to [SPEC.md](SPEC.md). Format in [FORMAT.md](FORMAT.md), scripts in [SCRIPTING.md](SCRIPTING.md), command line in [CLI.md](CLI.md).
 
-The editor is a desktop app (Rust + egui) inspired by Pixel Composer. Its job is to **see, tweak and assemble**; the KDL files remain the source of truth. Everything the editor does, it does by editing those files, and you can keep writing them in VS Code at the same time.
+The editor is a desktop app whose every pixel, icons included, is drawn by the engine itself (D-012), inspired by Aseprite and Pixel Composer. Its job is to **paint, see, tweak and assemble**; the KDL files remain the source of truth. Everything the editor does, it does by editing those files, and you can keep writing them in VS Code at the same time.
 
 ---
+
+## 0. Today: `pxe edit`
+
+> **Today (2026-10-30):** `cargo pxe edit <file.kdl> [--size WxH] [--scale N]` opens the editor (`--size` creates a new file with one empty pixel layer). Sections 1 onward describe the full design; this section is what exists.
+
+**Architecture (D-015).** `px-ui` is a toolkit with no window or files: an indexed UI canvas in a theme palette ([`assets/theme-dark.kdl`](../crates/px-editor/assets/theme-dark.kdl), a light one too), the engine's pixel font, icons rendered from KDL scenes of `pixels` ([`assets/icons-*.kdl`](../crates/px-editor/assets/)), and immediate-mode widgets. `px-editor` holds the domain (documents, layers, commands, history), tools (one `Tool` type each), views (panels that only emit intents) and the app (windows, dispatch). `pxe edit` is the only adapter: minifb windows and the file system.
+
+**Source of truth (D-014).** The scene's KDL text. Every action is a node-level splice of the text followed by a reload, so `git diff` shows exactly what changed. One undo history (Ctrl+Z / Ctrl+Shift+Z, 200 steps) covers strokes, layer edits, clicks and typed code. A stroke previews in memory and becomes one entry when the button is released.
+
+**Finding things.** Every action is in the menu bar (File, Edit, Layer, Frame, View, Window, Help) with its shortcut, so nothing is reachable only through a key or a gesture. Tools sit down the left with the two colors below them; the bar under the menus names the current tool, says what the mouse does with it, shows its options (Filled, Every matching pixel, Use main color) and warns when the active layer can't be painted. F1 (Help menu) shows how to use everything. Menus, tooltips and dialogs draw on a top layer, above the canvas. The UI size follows the window (View > UI size to fix it), and the inspector folds into the Window menu when the window is narrow.
+
+| Area | What it does |
+|---|---|
+| Canvas | Integer zoom (wheel, `+`/`-`, `0` fits), pan with Space+drag or the middle button, pixel grid from 6× (toggle), onion skin of the previous and next cel, marching ants around the selection, a pixel cursor. Left button paints with the primary paint, right with the secondary. |
+| Tools | Pencil (pixel-perfect: L-corners are removed), eraser, fill (Shift: every matching pixel), line, rectangle, ellipse (outline or filled; Shift: 45° and squares), eyedropper, box select, lasso, move, pick. |
+| Selection | Ctrl+C / X / V, Delete, H / Shift+H flip, Ctrl+A, Ctrl+D / Esc. Tools only change selected pixels. |
+| Layers | Pixel layers (`layer` + `pixels`, FORMAT A.9) and shape layers in file order, top first: show/hide per window, lock, double click to rename, drag to reorder, opacity, add, delete, move. |
+| Timeline | Frames × pixel layers: a cel starts at a dot and holds through the bar. New cel (a copy), delete cel, add or remove a frame, play (Enter), step with `,` and `.`. |
+| Palette | The scene's ramps as swatches in their real colors. Click picks the paint (right click: secondary, X swaps); with the pick tool (O) and a picked object, one click rewrites that object's `paint=` in the file. Double click opens a color picker (RGB sliders, hex) that rewrites the color in the `palette` node, recoloring everything that uses it. |
+| Inspector | The picked object's properties (or the scene's): numbers, paints and expressions as text fields, booleans as toggles; Enter writes the property. |
+| Code | F2 cycles canvas / split / code. The KDL is edited live: after 300 ms without typing it loads; while it doesn't, the errors show below and the last good scene stays. Picking an object moves the cursor to its node. |
+| Windows | Ctrl+Shift+N opens another canvas window on the same document with its own zoom, frame, active layer and hidden layers; edits show in every window. Any panel tears off into its own window (its title-bar button, or drag the title out) and docks back when that window closes. The layout is kept in `~/.config/px/editor.kdl`. |
+
+Closing with unsaved changes keeps them in `<file>.unsaved.kdl` next to the file.
 
 ## 1. Layout
 

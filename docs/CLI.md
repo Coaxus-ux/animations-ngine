@@ -13,6 +13,7 @@ The binary's working name is **`pxe`** (to be renamed with the project). All com
 | `pxe new <name>` | Create a project |
 | `pxe preview [scene]` | Open the editor (or a minimal preview window with `--lite`) |
 | `pxe render <scene>` | Render frames to PNG (debugging, stills) |
+| `pxe edit <file>` | The pixel-art editor: paint layers, animate cels, edit the scene visually or as code ([EDITOR.md](EDITOR.md) §0) |
 | `pxe export <target>` | Produce final outputs: animations, sprite sheets, tilesets, layers |
 | `pxe watch <file>` | Live preview window that reloads whenever the scene file changes |
 | `pxe check` | Validate the whole project without rendering |

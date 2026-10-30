@@ -1,0 +1,12 @@
+// The editor's light theme, with the same ramps as the dark one.
+palette "theme" {
+    ramp "window"  "#c9c6d8"
+    ramp "panel"   "#9a97ad" "#dedbea" "#f4f2fb" "#cfccdd"
+    ramp "field"   "#ffffff"
+    ramp "ink"     "#6a6780" "#1b1a26"
+    ramp "accent"  "#5c7cfa" "#2f4ac4"
+    ramp "warning" "#d9480f"
+    ramp "checker" "#d8d8e0" "#f0f0f6"
+    ramp "grid"    "#b8b5c8"
+    ramp "key"     "#ff00ff"
+}

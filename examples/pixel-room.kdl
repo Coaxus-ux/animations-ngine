@@ -1,0 +1,70 @@
+// Hand-painted pixels next to procedural shapes: a cat on a windowsill blinks while the
+// procedural moon light flickers. Paint it further with: pxe edit examples/pixel-room.kdl
+
+palette "room" {
+    ramp "wall"  "#151425" "#22213a" "#33325a" "#4a4a7a"
+    ramp "wood"  "#2a160d" "#4a2a16" "#6e4424" "#9a6636"
+    ramp "fur"   "#1b1b24" "#3a3a4c" "#6b6b84" "#a5a5bd"
+    ramp "eye"   "#2f6b3a" "#7fd36b"
+    ramp "leaf"  "#12301c" "#24592c" "#3f8a3c" "#7cc25a"
+    ramp "moon"  "#c8c8e8" "#f4f4ff"
+}
+
+scene "pixel-room" palette="room" width=64 height=48 fps=12 duration="18f" loop=#true background="wall.0" {
+    ambient darkness=1
+    layer "room" {
+        rect x=8 y=6 width=24 height=20 paint="wall.2"
+        ellipse x=22 y=9 width=7 height=7 paint="moon.0" emissive=#true
+        light-point x=25 y=12 reach=40 intensity="=1.6 + wiggle(0.2, 4)"
+        rect x=4 y=26 width=32 height=3 paint="wood.2"
+        rect x=0 y=40 width=64 height=8 paint="wood.1"
+    }
+    layer "cat" {
+        pixels "cat-art" x=12 y=17 {
+            legend { a "fur.0"; b "fur.1"; c "fur.2"; d "fur.3"; e "eye.1"; }
+            cel x=6 """
+            b.....b.
+            bb...bb.
+            bcccccb.
+            cedcced.
+            cccccccb
+            .ccccccc
+            .cdddccc
+            ..ccccca
+            """
+            cel frame=9 """
+            b.....b.
+            bb...bb.
+            bcccccb.
+            caaccaa.
+            cccccccb
+            .ccccccc
+            .cdddccc
+            ..ccccca
+            """
+        }
+    }
+    layer "layer-1" {
+        pixels "layer-1-art" x=0 y=0 {
+            legend { a "wall.3"; }
+            cel frame=4 x=1 y=12 """
+            aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+            """
+        }
+    }
+    layer "plant" {
+        pixels "plant-art" x=44 y=28 {
+            legend { g "leaf.1"; h "leaf.2"; l "leaf.3"; w "wood.3"; d "wood.1" }
+            cel """
+            ..h.l..
+            .hlhlh.
+            hlg.ghl
+            .g.h.g.
+            ..ggg..
+            .wwwww.
+            .wdddw.
+            ..ddd..
+            """
+        }
+    }
+}

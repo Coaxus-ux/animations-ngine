@@ -82,6 +82,10 @@ impl Diagnostics {
         core::mem::replace(&mut self.file, file)
     }
 
+    pub(crate) const fn file(&self) -> usize {
+        self.file
+    }
+
     pub(crate) fn error(&mut self, offset: usize, message: impl Into<String>) {
         self.push(Severity::Error, offset, message.into());
     }

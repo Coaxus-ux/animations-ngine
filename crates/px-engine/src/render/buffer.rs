@@ -20,6 +20,7 @@ pub struct FrameBuffer {
     temp: Vec<u8>,
     distance: Vec<u16>,
     noise: Vec<i8>,
+    paints: Vec<Paint>,
     placed: Vec<Placed>,
     report: FrameReport,
 }
@@ -37,6 +38,7 @@ impl FrameBuffer {
             temp: vec![0; count],
             distance: vec![0; count],
             noise: vec![0; count],
+            paints: vec![scene.background(); count],
             placed: vec![Placed::root(px_expr::Env::default()); MAX_INSTANCES],
             report: FrameReport::default(),
         }
@@ -86,6 +88,7 @@ impl FrameBuffer {
             temp: &mut self.temp,
             distance: &mut self.distance,
             noise: &mut self.noise,
+            paints: &mut self.paints,
             bbox: None,
         };
         mask.coverage.fill(0);
@@ -96,6 +99,24 @@ impl FrameBuffer {
             placed: &mut self.placed,
         };
         render(scene, frame, target, &mut self.report, capture)
+    }
+
+    /// The paints of the last frame rendered, row by row.
+    #[must_use]
+    pub fn cells(&self) -> &[Paint] {
+        &self.cells
+    }
+
+    /// The shape (index into `Scene::shapes`) that drew pixel `(x, y)` of the last frame,
+    /// or `None` for the background. Draw order is the depth, so the depth buffer says it.
+    #[must_use]
+    pub fn shape_at(&self, x: i32, y: i32) -> Option<usize> {
+        let (width, height) = (i32::from(self.size.width()), i32::from(self.size.height()));
+        if x < 0 || y < 0 || x >= width || y >= height {
+            return None;
+        }
+        let depth = self.depth[usize::try_from(y * width + x).ok()?];
+        usize::from(depth).checked_sub(1)
     }
 
     #[must_use]

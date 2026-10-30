@@ -1,5 +1,5 @@
 use px_core::{LightColor, Paint, RampId};
-use px_engine::{MAX_PARTICLES, TextCell};
+use px_engine::{Cel, MAX_PARTICLES, TextCell};
 
 use crate::diagnostic::Diagnostics;
 use crate::font::DEFAULT_FONT;
@@ -20,6 +20,7 @@ pub(crate) enum Extras {
     Points(Vec<[f64; 2]>),
     Circles(Vec<[f64; 3]>),
     Text(Vec<TextCell>),
+    Pixels(Vec<Cel>),
     Particles {
         count: u16,
         fade: bool,

@@ -118,6 +118,7 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 - **Risks:** 2D limbs look stiff at larger sizes; faces look generic. *Mitigation:* path A is officially for 16–48 px full bodies; close-ups use the parametric **face rig** and `framing` (CATALOG §7.2.1); large full-body action waits for path B (M10). The B7 blind expression test runs here.
 
 ### M7 — Editor v1
+> **Pulled forward (2026-10-30):** `pxe edit` (EDITOR.md §0): a pixel-art editor drawn by the engine (D-012) with pixel layers in the scene file (`pixels`, D-013), drawing and selection tools, a cel timeline with onion skin, the palette with one-click recolor and a color picker, an inspector, a live code view, several windows and tear-off panels; every edit is a byte-preserving KDL splice with one undo history (D-014), and the editor is layered with ports and adapters (D-015). Still M7: debug views, ◆ keyframing from the inspector, the hierarchy below layers, library, console and the node graph.
 - **Scope:** preview with debug views, inspector with ◆, timeline, hierarchy, library, palette panel, console; KDL round-trip edits that preserve comments; node graph panel (read-only at first, then editable).
 - **Deliverables:** `px-editor`, `px-engine` facade (EDITOR.md).
 - **Done when:** a slider change in the editor rewrites the KDL with a minimal diff; keyframes created in the timeline appear as an `anim` block; opening a prefab shows its graph.

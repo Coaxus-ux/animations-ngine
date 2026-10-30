@@ -1,0 +1,179 @@
+// The editor's small row and header icons, drawn as pixel layers and rendered by the engine (D-012).
+// Every scene uses the theme palette; pixels left at "key" are transparent.
+use "theme.kdl"
+
+scene "eye" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "eye-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ..iiii..
+        .i....i.
+        i..aa..i
+        i..aa..i
+        .i....i.
+        ..iiii..
+        ........
+        """
+    }
+}
+
+scene "eye-off" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "eye-off-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ..dddd..
+        .d....d.
+        d......d
+        d......d
+        .d....d.
+        ..dddd..
+        ........
+        """
+    }
+}
+
+scene "lock" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "lock-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ..iiii..
+        .i....i.
+        .i....i.
+        iiiiiiii
+        iiiddiii
+        iiiddiii
+        iiiiiiii
+        ........
+        """
+    }
+}
+
+scene "unlock" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "unlock-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ..dddd..
+        .d....d.
+        ......d.
+        dddddddd
+        ddd..ddd
+        ddd..ddd
+        dddddddd
+        ........
+        """
+    }
+}
+
+scene "popout" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "popout-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ....iiii
+        ......ii
+        .....i.i
+        iii.i..i
+        i..i....
+        i.......
+        i......i
+        iiiiiiii
+        """
+    }
+}
+
+scene "plus" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "plus-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ...ii...
+        ...ii...
+        .iiiiii.
+        .iiiiii.
+        ...ii...
+        ...ii...
+        ........
+        """
+    }
+}
+
+scene "trash" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "trash-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ..iiii..
+        iiiiiiii
+        .i....i.
+        .i.i.ii.
+        .i.i.ii.
+        .i.i.ii.
+        .iiiiii.
+        ........
+        """
+    }
+}
+
+scene "up" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "up-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ...ii...
+        ..iiii..
+        .iiiiii.
+        ...ii...
+        ...ii...
+        ...ii...
+        ........
+        """
+    }
+}
+
+scene "down" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "down-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ...ii...
+        ...ii...
+        ...ii...
+        .iiiiii.
+        ..iiii..
+        ...ii...
+        ........
+        """
+    }
+}
+
+scene "cel" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "cel-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ..iiii..
+        .iiiiii.
+        .iiiiii.
+        .iiiiii.
+        .iiiiii.
+        ..iiii..
+        ........
+        """
+    }
+}
+
+scene "hold" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "hold-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ........
+        ........
+        iiiiiiii
+        iiiiiiii
+        ........
+        ........
+        ........
+        """
+    }
+}

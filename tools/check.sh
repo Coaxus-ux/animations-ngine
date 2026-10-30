@@ -36,6 +36,18 @@ cargo test --workspace --locked --no-fail-fast
 step "tests with optimized debug assertions"
 cargo test --workspace --profile release-assertions --locked --no-fail-fast
 
+step "editor architecture (D-015): only px-cli touches windows and files"
+for crate in px-editor px-ui; do
+    if cargo tree --locked -p "$crate" -e normal --prefix none | grep -q '^minifb '; then
+        echo "$crate must not depend on minifb" >&2
+        exit 1
+    fi
+    if grep -rnE 'std::fs|std::net|minifb' "crates/$crate/src"; then
+        echo "$crate must reach files and windows only through its ports" >&2
+        exit 1
+    fi
+done
+
 step "allocation-free rendering"
 cargo test -p px-engine -p px-director --test no_alloc --locked -- --test-threads=1
 

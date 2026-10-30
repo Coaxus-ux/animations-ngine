@@ -1,51 +1,27 @@
 use px_core::LightColor;
 use px_engine::object_seed;
 use px_engine::{
-    Ambient, Anchor, Bounds, Camera, Clip, Environment, Geometry, Layer, Light, LightKind, Outline,
-    Param, Particles, Reflection, Segment, Shading, Shape, Style, Text,
+    Ambient, Anchor, Camera, Clip, Environment, Layer, Light, LightKind, Outline, Param,
+    Reflection, Shading, Shape, Style,
 };
-use px_expr::{Blend, Program};
 
 use crate::attach::Targets;
 use crate::diagnostic::Diagnostics;
 use crate::extras::{Extras, Placement};
+use crate::geometry::{Next, geometry};
 use crate::objects::Tree;
 use crate::schema::Kind;
+use crate::source_map::Origin;
 use crate::style::Flags;
 use crate::timeline::Track;
 use crate::values;
-
-/// Hands out a draft's compiled properties in schema order.
-struct Next(std::vec::IntoIter<Param>);
-
-impl Next {
-    fn param(&mut self) -> Param {
-        self.0.next().unwrap_or_default()
-    }
-
-    fn bounds(&mut self) -> Bounds {
-        Bounds {
-            x: self.param(),
-            y: self.param(),
-            width: self.param(),
-            height: self.param(),
-        }
-    }
-
-    fn segment(&mut self) -> Segment {
-        Segment {
-            x1: self.param(),
-            y1: self.param(),
-            x2: self.param(),
-            y2: self.param(),
-        }
-    }
-}
 
 /// Everything a scene and the scenes it places add up to.
 #[derive(Debug, Default)]
 pub(crate) struct Output {
     pub(crate) shapes: Vec<Shape>,
+    /// Where each shape of `shapes` comes from.
+    pub(crate) origins: Vec<Origin>,
     pub(crate) world: Environment,
     pub(crate) tracks: Vec<Track>,
     pub(crate) targets: Targets,
@@ -144,11 +120,17 @@ pub(crate) fn assemble(
                     ..style(&draft.flags, &mut next, layer, clips)
                 };
                 shape_index += 1;
-                out.shapes.extend(draft.paint.map(|paint| Shape {
-                    geometry,
-                    paint,
-                    style,
-                }));
+                if let Some(paint) = draft.paint {
+                    out.shapes.push(Shape {
+                        geometry,
+                        paint,
+                        style,
+                    });
+                    out.origins.push(Origin {
+                        file: diags.file(),
+                        offset: draft.node.span().offset(),
+                    });
+                }
             }
             (kind, extras) => {
                 let node = SceneNode {
@@ -321,77 +303,5 @@ fn style(flags: &Flags, next: &mut Next, layer: usize, clips: Vec<usize>) -> Sty
         instance: None,
         anchor: None,
         seed: None,
-    }
-}
-
-fn geometry(kind: Kind, extras: Extras, next: &mut Next) -> Geometry {
-    match (kind, extras) {
-        (Kind::Ellipse, _) => Geometry::Ellipse(next.bounds()),
-        (Kind::RoundedRect, _) => Geometry::RoundedRect {
-            bounds: next.bounds(),
-            radius: next.param(),
-        },
-        (Kind::Line, _) => Geometry::Line {
-            segment: next.segment(),
-            width: next.param(),
-        },
-        (Kind::Capsule, _) => Geometry::Line {
-            segment: next.segment(),
-            width: doubled(next.param()),
-        },
-        (_, Extras::Points(points)) => Geometry::Polygon {
-            x: next.param(),
-            y: next.param(),
-            points,
-        },
-        (_, Extras::Circles(circles)) => Geometry::Blob {
-            x: next.param(),
-            y: next.param(),
-            circles,
-            smooth: next.param(),
-        },
-        (Kind::Rope, _) => Geometry::Rope {
-            segment: next.segment(),
-            sag: next.param(),
-            sway: next.param(),
-            width: next.param(),
-        },
-        (_, Extras::Particles { count, fade }) => Geometry::Particles(Box::new(Particles {
-            area: next.bounds(),
-            velocity_x: next.param(),
-            velocity_y: next.param(),
-            gravity: next.param(),
-            life: next.param(),
-            size: next.param(),
-            wind: next.param(),
-            streak: next.param(),
-            count,
-            fade,
-        })),
-        (_, Extras::Text(cells)) => Geometry::Text(Box::new(Text {
-            x: next.param(),
-            y: next.param(),
-            size: next.param(),
-            reveal: next.param(),
-            scatter: next.param(),
-            cells,
-        })),
-        (_, Extras::Shade { round }) => Geometry::Shade {
-            bounds: next.bounds(),
-            steps: next.param(),
-            round,
-        },
-        _ => Geometry::Rect(next.bounds()),
-    }
-}
-
-fn doubled(radius: Param) -> Param {
-    match radius {
-        Param::Fixed(radius) => Param::Fixed(radius * 2.0),
-        Param::Expr(program) => Param::Expr(Program::blend(
-            &program,
-            &Program::fixed(2.0),
-            Blend::Multiply,
-        )),
     }
 }

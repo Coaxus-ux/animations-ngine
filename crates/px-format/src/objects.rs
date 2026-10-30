@@ -8,6 +8,7 @@ use crate::diagnostic::Diagnostics;
 use crate::extras::{self, Extras};
 use crate::keyframes::Anim;
 use crate::names::Names;
+use crate::pixels;
 use crate::props::Props;
 use crate::schema::Kind;
 use crate::style::{self, Flags};
@@ -152,6 +153,12 @@ fn draft<'a>(
     let anims = anims(node, kind, diags);
     let paint = match kind {
         Kind::Shade => palette.darkest(),
+        // Pixels bring their own paints; `paint` only colors outlines and an empty layer.
+        Kind::Pixels => match props.get("paint") {
+            Some(entry) => values::string(entry, diags)
+                .and_then(|text| palette.paint(text, entry.span().offset(), diags)),
+            None => palette.darkest(),
+        },
         _ if kind.is_shape() => props.require("paint", diags).and_then(|entry| {
             let text = values::string(entry, diags)?;
             palette.paint(text, entry.span().offset(), diags)
@@ -168,7 +175,10 @@ fn draft<'a>(
     } else {
         None
     };
-    let extras = extras::parse(&mut props, kind, palette, diags);
+    let extras = match kind {
+        Kind::Pixels => Extras::Pixels(pixels::parse(node, palette, diags)),
+        _ => extras::parse(&mut props, kind, palette, diags),
+    };
     props.finish(diags);
     Draft {
         node,
@@ -211,6 +221,7 @@ fn anims<'a>(node: &'a KdlNode, kind: Kind, diags: &mut Diagnostics) -> Vec<Opti
             }
             "k" if kind == Kind::Camera => multi_key(node, child, kind, &mut anims, diags),
             _ if matches!(kind, Kind::Layer | Kind::Group) => {}
+            "legend" | "cel" if kind == Kind::Pixels => {}
             other => diags.error(
                 child.span().offset(),
                 format!("`{name}` can only contain `anim` blocks, found `{other}`"),

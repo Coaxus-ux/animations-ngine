@@ -80,6 +80,7 @@ pub(crate) fn rasterize(
         )?,
         Geometry::Particles(particles) => self::particles(particles, values, mask)?,
         Geometry::Text(spec) => super::text::text(spec, values, mask)?,
+        Geometry::Pixels(art) => super::pixels::pixels(art, values, mask)?,
     }
     Ok(())
 }

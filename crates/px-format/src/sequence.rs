@@ -105,11 +105,11 @@ fn shot(
         },
         diags,
     );
-    let scene = parsed.and_then(|(spec, timeline)| {
-        let scene = Scene::new(spec)
+    let scene = parsed.and_then(|parsed| {
+        let scene = Scene::new(parsed.spec)
             .map_err(|error| diags.error(scene_node.span().offset(), error.to_string()))
             .ok()?;
-        Some((scene, timeline.markers))
+        Some((scene, parsed.timeline.markers))
     });
     diags.in_file(previous);
     let (scene, markers) = scene?;

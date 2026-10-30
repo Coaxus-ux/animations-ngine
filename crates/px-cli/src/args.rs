@@ -2,6 +2,7 @@ use std::num::NonZeroUsize;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
+use px_core::MAX_CANVAS_SIDE;
 
 /// Pixel art engine command-line tool.
 #[derive(Debug, Parser)]
@@ -48,6 +49,17 @@ pub(crate) enum Command {
     Timeline {
         #[command(flatten)]
         input: Input,
+    },
+    /// Open the pixel-art editor on a scene file (creating it with `--size`).
+    Edit {
+        /// Scene file (.kdl).
+        file: PathBuf,
+        /// Canvas size for a new file, e.g. `--size 64x64`.
+        #[arg(long, value_parser = parse_size)]
+        size: Option<(u16, u16)>,
+        /// Window pixels per UI pixel (1..=4).
+        #[arg(long)]
+        scale: Option<u8>,
     },
     /// Render every frame to a looping GIF.
     Export {
@@ -96,6 +108,21 @@ fn parse_sweep(text: &str) -> Result<Sweep, String> {
         return Err(format!("expected NAME=V1,V2,…, found \"{text}\""));
     }
     Ok(Sweep { param, values })
+}
+
+fn parse_size(text: &str) -> Result<(u16, u16), String> {
+    let (width, height) = text
+        .split_once('x')
+        .ok_or_else(|| format!("expected WIDTHxHEIGHT, found \"{text}\""))?;
+    let side = |value: &str| {
+        value
+            .trim()
+            .parse::<u16>()
+            .ok()
+            .filter(|side| (1..=MAX_CANVAS_SIDE).contains(side))
+            .ok_or_else(|| format!("sides are 1..={MAX_CANVAS_SIDE}, found \"{value}\""))
+    };
+    Ok((side(width)?, side(height)?))
 }
 
 fn parse_param(text: &str) -> Result<(String, String), String> {

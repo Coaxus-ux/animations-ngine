@@ -2,6 +2,7 @@ use px_core::Paint;
 
 use super::instance::Anchor;
 use super::param::Param;
+use super::pixels::PixelArt;
 use super::text::Text;
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -66,6 +67,7 @@ pub enum Geometry {
     },
     Particles(Box<Particles>),
     Text(Box<Text>),
+    Pixels(Box<PixelArt>),
     Shade {
         bounds: Bounds,
         steps: Param,

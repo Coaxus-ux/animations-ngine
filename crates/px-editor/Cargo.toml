@@ -1,0 +1,21 @@
+[package]
+name = "px-editor"
+description = "The pixel-art editor: documents, tools, panels and windows, drawn with px-ui (no window library, no file system)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+kdl.workspace = true
+px-core.workspace = true
+px-engine.workspace = true
+px-format.workspace = true
+px-raster.workspace = true
+px-ui.workspace = true
+
+[dev-dependencies]
+px-export.workspace = true
+
+[lints]
+workspace = true

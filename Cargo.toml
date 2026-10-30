@@ -16,6 +16,8 @@ px-format = { path = "crates/px-format" }
 px-engine = { path = "crates/px-engine" }
 px-export = { path = "crates/px-export" }
 px-director = { path = "crates/px-director" }
+px-editor = { path = "crates/px-editor" }
+px-ui = { path = "crates/px-ui" }
 anyhow = "1"
 clap = { version = "4.6", features = ["derive"] }
 gif = "0.14"

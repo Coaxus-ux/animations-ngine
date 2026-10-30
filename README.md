@@ -13,6 +13,7 @@ brew install rustup && rustup default stable
 cargo pxe export examples/hello.kdl            # → out/hello.gif (`cargo pxe` = optimized `pxe`)
 cargo pxe render examples/hello.kdl --frame 6  # → out/hello-6.png
 cargo pxe watch examples/lantern-night.kdl     # live preview, reloads on save
+cargo pxe edit examples/pixel-room.kdl         # the pixel-art editor (layers, tools, timeline, code view)
 cargo pxe bench                                # frame times for every example
 cargo pxe export examples/trailer.kdl --scale 2 --jobs 4   # → out/trailer.gif on 4 threads
 ```

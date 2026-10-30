@@ -20,7 +20,7 @@ pub(crate) type Fonts = BTreeMap<String, Font>;
 
 /// A pixel font (PIECES.md §10): every glyph is as tall as the font.
 #[derive(Clone, Debug)]
-pub(crate) struct Font {
+pub struct Font {
     pub(crate) height: u8,
     pub(crate) spacing: u8,
     pub(crate) line_height: u8,
@@ -28,19 +28,42 @@ pub(crate) struct Font {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct Glyph {
+pub struct Glyph {
     pub(crate) width: u8,
     /// Ink pixels as (x, y) from the glyph's top-left.
     pub(crate) ink: Vec<(u8, u8)>,
 }
 
 impl Font {
-    pub(crate) fn glyph(&self, character: char) -> Option<&Glyph> {
+    /// The built-in 5×7 font.
+    #[must_use]
+    pub fn builtin() -> Option<Self> {
+        default_font()
+    }
+
+    #[must_use]
+    pub const fn height(&self) -> u8 {
+        self.height
+    }
+
+    #[must_use]
+    pub const fn spacing(&self) -> u8 {
+        self.spacing
+    }
+
+    #[must_use]
+    pub const fn line_height(&self) -> u8 {
+        self.line_height
+    }
+
+    #[must_use]
+    pub fn glyph(&self, character: char) -> Option<&Glyph> {
         self.glyphs.get(&character)
     }
 
     /// The hollow box drawn for a character the font has no glyph for.
-    pub(crate) fn placeholder(&self) -> Glyph {
+    #[must_use]
+    pub fn placeholder(&self) -> Glyph {
         let width = (self.height / 2 + 1).max(3);
         let (right, bottom) = (width - 1, self.height - 1);
         let ink = (0..=bottom)
@@ -48,6 +71,19 @@ impl Font {
             .filter(|&(x, y)| x == 0 || y == 0 || x == right || y == bottom)
             .collect();
         Glyph { width, ink }
+    }
+}
+
+impl Glyph {
+    #[must_use]
+    pub const fn width(&self) -> u8 {
+        self.width
+    }
+
+    /// Ink pixels as (x, y) from the glyph's top-left.
+    #[must_use]
+    pub fn ink(&self) -> &[(u8, u8)] {
+        &self.ink
     }
 }
 

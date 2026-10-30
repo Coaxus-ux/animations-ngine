@@ -23,7 +23,9 @@ crates/
   px-engine   FrameBuffer::render: scene + frame → indexed canvas (no alloc)
   px-director sequences: shots + transitions → frames of (shot, paint) cells (no alloc)
   px-export   indexed → RGB, upscale, PNG, GIF
-  px-cli      the `pxe` binary
+  px-ui       pixel-art UI toolkit drawn by the engine (no window, no files)
+  px-editor   the editor: domain, tools, views, app (no window, no files)
+  px-cli      the `pxe` binary; `pxe edit` is the editor's only window/file adapter
 examples/     sample scenes and the trailer sequence; examples/parts/<example>/ holds the scenes each example places or shoots
 tools/        repo tooling (file size guard)
 ```

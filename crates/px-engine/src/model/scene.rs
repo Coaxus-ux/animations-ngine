@@ -2,6 +2,7 @@ use std::fmt;
 
 use px_core::{FrameCount, FrameRate, Paint, Palette, PaletteError, Size};
 
+use super::pixels::Cel;
 use super::shape::{Geometry, Outline, Shape};
 use super::world::Environment;
 use crate::render::{FrameBuffer, Stamps};
@@ -69,6 +70,10 @@ pub enum ModelError {
         what: &'static str,
         index: usize,
     },
+    /// A cel's pixels don't fill its box.
+    InvalidCel {
+        shape: usize,
+    },
 }
 
 /// How much a scene asks of the renderer.
@@ -110,6 +115,12 @@ impl Scene {
         };
         scene.stamps = FrameBuffer::capture(&scene);
         Ok(scene)
+    }
+
+    /// What the scene was built from, to change it and build it again (`Scene::new`).
+    #[must_use]
+    pub const fn spec(&self) -> &SceneSpec {
+        &self.spec
     }
 
     pub(crate) const fn stamps(&self) -> &Stamps {
@@ -175,6 +186,16 @@ fn validate_shape(spec: &SceneSpec, index: usize, shape: &Shape) -> Result<(), M
         error,
     };
     spec.palette.resolve(shape.paint).map_err(paint_error)?;
+    if let Geometry::Pixels(art) = &shape.geometry {
+        for paint in art.paints() {
+            spec.palette.resolve(paint).map_err(paint_error)?;
+        }
+        let filled =
+            |cel: &Cel| cel.pixels.len() == usize::from(cel.width) * usize::from(cel.height);
+        if !art.cels.iter().all(filled) {
+            return Err(ModelError::InvalidCel { shape: index });
+        }
+    }
     if let Outline::Full(paint) | Outline::Selective(paint) = shape.style.outline {
         spec.palette.resolve(paint).map_err(paint_error)?;
     }
@@ -290,6 +311,12 @@ impl fmt::Display for ModelError {
             Self::UnknownClip { shape } => write!(f, "shape #{shape} uses an unknown clip"),
             Self::UnknownInstance { what, index } => {
                 write!(f, "{what} #{index} belongs to an unknown instance")
+            }
+            Self::InvalidCel { shape } => {
+                write!(
+                    f,
+                    "shape #{shape} has a cel whose pixels don't fill its box"
+                )
             }
         }
     }

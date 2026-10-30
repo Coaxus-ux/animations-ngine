@@ -59,6 +59,7 @@ pub(crate) enum Kind {
     Rope,
     Particles,
     Text,
+    Pixels,
     Shade,
     LightPoint,
     LightCone,
@@ -71,7 +72,7 @@ pub(crate) enum Kind {
     UseScene,
 }
 
-pub(crate) const SHAPE_NAMES: [(&str, Kind); 11] = [
+pub(crate) const SHAPE_NAMES: [(&str, Kind); 12] = [
     ("rect", Kind::Rect),
     ("ellipse", Kind::Ellipse),
     ("rounded-rect", Kind::RoundedRect),
@@ -82,6 +83,7 @@ pub(crate) const SHAPE_NAMES: [(&str, Kind); 11] = [
     ("rope", Kind::Rope),
     ("particles", Kind::Particles),
     ("text", Kind::Text),
+    ("pixels", Kind::Pixels),
     ("shade", Kind::Shade),
 ];
 
@@ -203,7 +205,7 @@ impl Kind {
             Self::RoundedRect => &ROUNDED,
             Self::Line => &LINE,
             Self::Capsule => &CAPSULE,
-            Self::Polygon => &ORIGIN,
+            Self::Polygon | Self::Pixels => &ORIGIN,
             Self::Camera => &CAMERA,
             Self::Blob => &BLOB,
             Self::Rope => &ROPE,

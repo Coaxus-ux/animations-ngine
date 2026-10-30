@@ -198,6 +198,10 @@ impl NamedPalette {
         found
     }
 
+    pub(crate) fn ramp_names(&self) -> impl Iterator<Item = (String, RampId)> + '_ {
+        self.ramps.iter().map(|(name, id)| (name.clone(), *id))
+    }
+
     pub(crate) fn darkest(&self) -> Option<Paint> {
         let luminance =
             |rgb: Rgb| u32::from(rgb.r) * 299 + u32::from(rgb.g) * 587 + u32::from(rgb.b) * 114;

@@ -6,7 +6,7 @@ use super::stamp::Write;
 use super::surface::{CASTS_SHADOW, EMISSIVE, Region, Surface};
 use super::texture::{clustered_noise, sample_texture};
 use super::transform::Transform;
-use crate::model::{Gradient, GradientDirection, Outline, Shading, Shape};
+use crate::model::{Geometry, Gradient, GradientDirection, Outline, Shading, Shape};
 
 /// Everything about one shape that was evaluated for this frame.
 pub(crate) struct Evaluated<'c> {
@@ -34,13 +34,15 @@ pub(crate) fn composite(
     mut writes: Option<&mut Vec<Write>>,
 ) {
     let style = &shape.style;
-    if style.cleanup {
+    // Pixel art keeps its pixels as painted: cleanup would add pixels without a paint.
+    let own_paints = matches!(shape.geometry, Geometry::Pixels(_));
+    if style.cleanup && !own_paints {
         mask.clean();
     }
     if frame.contact_shadow > 0.0 {
         contact_shadow(frame, palette, mask, surface);
     }
-    if matches!(shape.geometry, crate::model::Geometry::Shade { .. }) {
+    if matches!(shape.geometry, Geometry::Shade { .. }) {
         shade(frame, palette, mask, surface);
         return;
     }
@@ -73,9 +75,11 @@ pub(crate) fn composite(
         let fill = Fill {
             shape,
             frame,
+            palette,
             bbox,
             max_distance,
             ramp_len,
+            own_paints,
         };
         let paint = outline_paint(style.outline, mask, x, y, &edge)
             .unwrap_or_else(|| fill.paint(mask, x, y));
@@ -99,9 +103,12 @@ pub(crate) fn composite(
 struct Fill<'a> {
     shape: &'a Shape,
     frame: &'a Evaluated<'a>,
+    palette: &'a Palette,
     bbox: [i32; 4],
     max_distance: f64,
     ramp_len: u8,
+    /// Each pixel brings its own paint (`mask.paints`) instead of the shape's.
+    own_paints: bool,
 }
 
 impl Fill<'_> {
@@ -121,9 +128,17 @@ impl Fill<'_> {
         if style.texture.is_some() {
             offset += f64::from(clustered_noise(mask, x, y));
         }
+        let (base, ramp_len) = match mask.index(x, y).filter(|_| self.own_paints) {
+            Some(index) => {
+                let paint = mask.paints[index];
+                let len = self.palette.ramp(paint.ramp).map_or(1, px_core::Ramp::len);
+                (paint, len)
+            }
+            None => (self.shape.paint, self.ramp_len),
+        };
         Paint {
-            ramp: self.shape.paint.ramp,
-            tone: shifted(self.shape.paint.tone, offset, self.ramp_len, x, y),
+            ramp: base.ramp,
+            tone: shifted(base.tone, offset, ramp_len, x, y),
         }
     }
 }

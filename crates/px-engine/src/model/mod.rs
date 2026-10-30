@@ -1,5 +1,6 @@
 mod instance;
 mod param;
+mod pixels;
 mod scene;
 mod shape;
 mod text;
@@ -7,6 +8,7 @@ mod world;
 
 pub use instance::{Anchor, Instance, Window};
 pub use param::Param;
+pub use pixels::{Cel, PixelArt};
 pub use scene::{
     Looping, MAX_CLIPS, MAX_INSTANCES, MAX_LAYERS, MAX_LIGHTS, MAX_PARTICLES, MAX_REFLECTIONS,
     MAX_SHAPES, MAX_TEXT_CELLS, ModelError, Scene, SceneSpec, Stats, Timing,

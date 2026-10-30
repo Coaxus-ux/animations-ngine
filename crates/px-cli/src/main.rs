@@ -3,6 +3,7 @@
 mod args;
 mod bench;
 mod commands;
+mod edit;
 mod file_watch;
 mod gif;
 mod parallel;

@@ -11,6 +11,7 @@ use crate::font::{self, DEFAULT_FONT, Fonts};
 use crate::library::Library;
 use crate::palette::{self, NamedPalette};
 use crate::scene::Overrides;
+use crate::source_map::{Origin, PaintNames};
 use crate::sources::{FsSources, MemorySources, SourceFile, Sources};
 use crate::timeline::Timeline;
 use crate::{scene, sequence, suggest};
@@ -24,6 +25,9 @@ pub struct Loaded {
     /// Every file the scene was built from, root first.
     pub files: Vec<SourceFile>,
     pub timeline: Timeline,
+    /// The node each of `scene.shapes()` was built from.
+    pub origins: Vec<Origin>,
+    pub paint_names: PaintNames,
 }
 
 #[derive(Debug)]
@@ -110,11 +114,13 @@ pub fn load_work(
         .and_then(|target| build(target, &catalog, options, &mut diags));
     let files = library.files;
     match (diags.finish(), built) {
-        (Ok(warnings), Some(Built::Scene(scene, timeline))) => Ok(Work::Scene(Box::new(Loaded {
-            scene: *scene,
+        (Ok(warnings), Some(Built::Scene(built))) => Ok(Work::Scene(Box::new(Loaded {
+            scene: built.scene,
             warnings,
             files,
-            timeline,
+            timeline: built.timeline,
+            origins: built.origins,
+            paint_names: built.paint_names,
         }))),
         (Ok(warnings), Some(Built::Sequence(sequence))) => Ok(Work::Sequence(LoadedSequence {
             sequence,
@@ -127,8 +133,15 @@ pub fn load_work(
 }
 
 enum Built {
-    Scene(Box<Scene>, Timeline),
+    Scene(Box<BuiltScene>),
     Sequence(Sequence),
+}
+
+struct BuiltScene {
+    scene: Scene,
+    timeline: Timeline,
+    origins: Vec<Origin>,
+    paint_names: PaintNames,
 }
 
 fn build(
@@ -141,11 +154,16 @@ fn build(
         Target::Scene(file, node) => {
             diags.in_file(file);
             let overrides = Overrides::Cli(options.params);
-            let (spec, timeline) = scene::parse(node, catalog, overrides, diags)?;
-            let scene = Scene::new(spec)
+            let parsed = scene::parse(node, catalog, overrides, diags)?;
+            let scene = Scene::new(parsed.spec)
                 .map_err(|error| diags.error(node.span().offset(), error.to_string()))
                 .ok()?;
-            Some(Built::Scene(Box::new(scene), timeline))
+            Some(Built::Scene(Box::new(BuiltScene {
+                scene,
+                timeline: parsed.timeline,
+                origins: parsed.origins,
+                paint_names: parsed.paint_names,
+            })))
         }
         Target::Sequence(file, node) => {
             diags.in_file(file);

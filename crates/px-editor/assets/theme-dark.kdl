@@ -1,0 +1,12 @@
+// The editor's dark theme: every UI pixel uses one of these colors (px-ui `Theme`).
+palette "theme" {
+    ramp "window"  "#0e0d16"
+    ramp "panel"   "#14131f" "#1f1d2e" "#2b2940" "#262438"
+    ramp "field"   "#0a0a12"
+    ramp "ink"     "#7d7a99" "#e6e3f5"
+    ramp "accent"  "#3b5bdb" "#8fa8ff"
+    ramp "warning" "#e8590c"
+    ramp "checker" "#2a2a33" "#3a3a46"
+    ramp "grid"    "#3c3a52"
+    ramp "key"     "#ff00ff"
+}
