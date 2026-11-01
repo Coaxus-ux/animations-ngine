@@ -763,7 +763,7 @@ scene "street" view="perspective" palette="neon-night" warmup="2s" loop-blend="6
 
 ## Appendix A. What the loader accepts today
 
-The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes.
+The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes. The editor writes only these nodes: its palette editor writes `ramp` lines and saves standalone palette files (a file holding one `palette` node, as in `examples/parts/pond/pond-palette.kdl`), and its per-element code editor replaces one node's text in place.
 
 ### A.1 Scene children
 

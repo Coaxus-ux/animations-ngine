@@ -1,0 +1,5 @@
+palette "dusk-12" {
+    ramp "sky" "#1a1430" "#3c2a5e" "#7a4f8c" "#d08aa0"
+    ramp "sun" "#6b2a1a" "#c2552a" "#f09a3a" "#ffd98a"
+    ramp "ground" "#0e1a14" "#1f3a2a" "#3f6a3f" "#8ab06a"
+}

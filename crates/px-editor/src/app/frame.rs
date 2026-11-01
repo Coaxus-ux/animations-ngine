@@ -23,11 +23,13 @@ impl App {
         let kind = self.windows[index].kind;
         // A focused text field or code view gets the keys instead of the shortcuts.
         let typing = self.windows[index].ui.focus.is_some();
-        shortcuts::collect(input, typing, &mut intents);
+        let modal = self.windows[index].dialog.is_some();
+        let tabs = (self.documents.active_index(), self.documents.len());
+        shortcuts::collect(input, typing, modal, tabs, &mut intents);
         self.tick(input.time_ms);
         if kind == WindowKind::Main
             && input.time_ms % DISK_CHECK_MS < 20
-            && let Some(document) = &mut self.document
+            && let Some(document) = self.document_mut()
         {
             document.check_disk(store);
         }
@@ -48,26 +50,18 @@ impl App {
                 .map_or_else(|| window.view.clone(), |focused| focused.view.clone())
         };
         let mut cache = self.caches.remove(&id).unwrap_or_default();
-        if let Some(document) = &self.document {
-            cache.update(document, &view);
+        if let Some(slot) = self.documents.active() {
+            cache.update(slot.id, &slot.document, &view);
         }
         self.draw_window(&mut window, &view, &cache, input, size, &mut intents);
         self.caches.insert(id, cache);
         self.windows.insert(index, window);
 
-        let revision = self
-            .document
-            .as_ref()
-            .map(crate::domain::Document::revision);
+        let before = self.title_key();
         for intent in intents {
             self.apply(intent, id, input, store);
         }
-        if self
-            .document
-            .as_ref()
-            .map(crate::domain::Document::revision)
-            != revision
-        {
+        if self.title_key() != before {
             self.retitle();
         }
         self.windows
@@ -93,6 +87,8 @@ impl App {
         let ui_width = i32::try_from(width).unwrap_or(1) / scale;
         let ui_height = i32::try_from(height).unwrap_or(1) / scale;
         let roles = self.assets.theme.roles;
+        let tabs = self.documents.tabs();
+        window.ui.modal = window.dialog.is_some();
         window.canvas.reset(ui_width, ui_height, roles.window);
         window.pixels.clear();
         window.pixels.resize(width * height, 0);
@@ -111,15 +107,20 @@ impl App {
                 kind,
                 raw: input,
                 scale,
-                document: self.document.as_ref(),
+                document: self.document(),
                 editing: &self.editing,
                 view,
                 popped: &window.popped,
+                tabs: &tabs,
+                active_tab: self.documents.active_index(),
+                recent: self.recent.paths(),
+                dialog: window.dialog.as_mut(),
+                selected: window.selected.as_ref(),
+                palette_edit: window.palette_edit,
                 code: &mut window.code,
                 picker: window.picker,
                 fields: &mut window.fields,
                 renaming: window.renaming,
-                last_click: &mut window.last_click,
                 cache,
                 guide: self
                     .stroke
@@ -159,7 +160,7 @@ impl App {
                 .as_ref()
                 .map_or(&[][..], |stroke| stroke.guide());
             let canvas = views::CanvasPaint {
-                document: self.document.as_ref(),
+                document: self.document(),
                 view,
                 cache,
                 editing: &self.editing,
@@ -184,11 +185,7 @@ impl App {
             self.editing.played_at = now;
             return;
         }
-        let Some(scene) = self
-            .document
-            .as_ref()
-            .and_then(crate::domain::Document::scene)
-        else {
+        let Some(scene) = self.document().and_then(crate::domain::Document::scene) else {
             return;
         };
         let timing = scene.timing();

@@ -8,5 +8,8 @@ palette "theme" {
     ramp "warning" "#e8590c"
     ramp "checker" "#2a2a33" "#3a3a46"
     ramp "grid"    "#3c3a52"
+    ramp "disabled" "#4a4860"
+    ramp "backdrop" "#07060c"
+    ramp "tab"      "#1a1828"
     ramp "key"     "#ff00ff"
 }

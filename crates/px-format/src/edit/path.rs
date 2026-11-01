@@ -52,7 +52,7 @@ impl NodePath {
                 .iter()
                 .filter(|node| step.matches(node))
                 .nth(step.nth)?;
-            nodes = node.children().map(KdlDocument::nodes).unwrap_or_default();
+            nodes = children_of(node);
             found = Some(node);
         }
         found
@@ -76,11 +76,19 @@ impl Step {
     }
 }
 
-pub(crate) fn id_of(node: &KdlNode) -> Option<&str> {
+/// The node's first argument when it is a string: what names it in paths and labels.
+#[must_use]
+pub fn id_of(node: &KdlNode) -> Option<&str> {
     node.entries()
         .first()
         .filter(|entry| entry.name().is_none())
         .and_then(|entry| entry.value().as_string())
+}
+
+/// The nodes of the block, or nothing when the node has no `{ … }`.
+#[must_use]
+pub fn children_of(node: &KdlNode) -> &[KdlNode] {
+    node.children().map(KdlDocument::nodes).unwrap_or_default()
 }
 
 impl fmt::Display for NodePath {

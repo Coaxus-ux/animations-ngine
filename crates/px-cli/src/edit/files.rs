@@ -21,6 +21,16 @@ impl FileStore for DiskFiles {
         fs::write(path, text).map_err(|error| format!("{}: {error}", path.display()))
     }
 
+    fn write_bytes(&mut self, path: &Path, bytes: &[u8]) -> Result<(), String> {
+        if let Some(parent) = path
+            .parent()
+            .filter(|parent| !parent.as_os_str().is_empty())
+        {
+            fs::create_dir_all(parent).map_err(|error| format!("{}: {error}", parent.display()))?;
+        }
+        fs::write(path, bytes).map_err(|error| format!("{}: {error}", path.display()))
+    }
+
     fn stamp(&mut self, path: &Path) -> Option<u64> {
         let modified = fs::metadata(path).ok()?.modified().ok()?;
         let since = modified.duration_since(UNIX_EPOCH).ok()?;

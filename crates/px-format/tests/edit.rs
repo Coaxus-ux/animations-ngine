@@ -6,7 +6,7 @@
 use std::path::{Path, PathBuf};
 
 use kdl::KdlValue;
-use px_format::edit::{NodePath, Source};
+use px_format::edit::{NodePath, Source, children_of, id_of};
 
 const SCENE: &str = r#"// header comment
 scene "main" width=8 {
@@ -128,6 +128,50 @@ fn a_parent_without_children_gets_a_block() {
 }
 
 #[test]
+fn inserting_into_a_childless_node_with_the_brace_on_its_line_adds_a_child() {
+    let ramp = "ramp \"ramp\" \"#808080\"";
+    let palette = NodePath::root().child("palette", Some("p"), 0);
+    let expected = "palette \"p\" {\n    ramp \"ramp\" \"#808080\"\n}\n";
+    for text in [
+        "palette \"p\" { }\n",
+        "palette \"p\" {}\n",
+        "palette \"p\" {\n}\n",
+    ] {
+        let mut source = Source::parse(text).unwrap();
+        source.insert(&palette, usize::MAX, ramp).unwrap();
+        assert_eq!(source.text(), expected, "from {text:?}");
+        assert_eq!(children_of(&source.nodes()[0]).len(), 1);
+    }
+
+    let mut source = Source::parse("scene \"s\" {\n    palette \"p\" { /* keep */ }\n}\n").unwrap();
+    let nested = NodePath::root()
+        .child("scene", Some("s"), 0)
+        .child("palette", Some("p"), 0);
+    source.insert(&nested, 0, ramp).unwrap();
+    assert_eq!(
+        source.text(),
+        "scene \"s\" {\n    palette \"p\" { /* keep */\n        ramp \"ramp\" \"#808080\"\n    }\n}\n"
+    );
+    assert!(
+        source
+            .node(&nested.child("ramp", Some("ramp"), 0))
+            .is_some()
+    );
+}
+
+#[test]
+fn a_node_is_identified_by_its_first_string_argument() {
+    let source = Source::parse("layer \"sky\" x=1\nrect 3 \"no\"\nscene x=\"prop\" { }\n").unwrap();
+    let nodes = source.nodes();
+    assert_eq!(id_of(&nodes[0]), Some("sky"));
+    assert_eq!(id_of(&nodes[1]), None);
+    assert_eq!(id_of(&nodes[2]), None);
+    let none: &[kdl::KdlNode] = &[];
+    assert_eq!(children_of(&nodes[0]), none);
+    assert_eq!(children_of(&nodes[2]), none);
+}
+
+#[test]
 fn moving_a_child_reorders_whole_nodes() {
     let text = "scene \"s\" {\n    layer \"a\" {\n        rect x=1\n    }\n    layer \"b\"\n}\n";
     let mut source = Source::parse(text).unwrap();
@@ -144,4 +188,18 @@ fn an_edit_that_breaks_the_file_changes_nothing() {
     let mut source = Source::parse(SCENE).unwrap();
     assert!(source.replace(&layer(), "layer {").is_err());
     assert_eq!(source.text(), SCENE);
+}
+
+#[test]
+fn node_text_strips_the_indent_and_replace_with_reindent_round_trips() {
+    let mut source = Source::parse(SCENE).unwrap();
+    let text = source.node_text(&layer()).unwrap();
+    assert_eq!(text, "layer \"l\" {\n    rect x=3\n}\n");
+    let edited = text.replace("x=3", "x=4");
+    let indent = source.indent(&layer());
+    source
+        .replace(&layer(), &Source::reindent(&edited, &indent))
+        .unwrap();
+    assert_eq!(source.text(), SCENE.replace("rect x=3", "rect x=4"));
+    assert!(source.node(&layer().child("rect", None, 0)).is_some());
 }

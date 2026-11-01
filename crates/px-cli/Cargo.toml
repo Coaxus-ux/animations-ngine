@@ -21,6 +21,7 @@ px-engine.workspace = true
 px-export.workspace = true
 px-format.workspace = true
 px-ui.workspace = true
+rfd.workspace = true
 
 [dev-dependencies]
 gif.workspace = true

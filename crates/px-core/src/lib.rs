@@ -9,6 +9,7 @@ mod dither;
 mod float;
 mod geometry;
 mod hash;
+mod hsv;
 mod palette;
 mod seed;
 mod time;
@@ -20,6 +21,7 @@ pub use dither::{bayer_threshold, dither_keep, dither_steps};
 pub use float::floor;
 pub use geometry::{COORD_LIMIT, snap_coord, snap_extent};
 pub use hash::{hash_bytes, hash_cells};
+pub use hsv::{Hsv, ramp as hsv_ramp};
 pub use palette::{
     LightColor, MAX_LIGHT_COLORS, MAX_RAMPS, MAX_TONES, Paint, Palette, PaletteError, Ramp, RampId,
 };

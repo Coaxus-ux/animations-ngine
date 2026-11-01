@@ -72,17 +72,33 @@ pub(super) fn palette(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
 }
 
 /// Buttons that act on the main color: change it in the palette, or give it to the
-/// picked shape.
+/// picked shape; a third opens the palette editor.
 fn actions(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let id = Id::new("palette").with_name("actions");
-    let (edit, recolor) = area.inset(1).take_left(area.width / 2);
+    let third = area.width / 3;
+    let (edit, rest) = area.inset(1).take_left(third);
+    let (recolor, ramps) = rest.take_left(third);
     if button(
         ui,
         id.with_name("edit"),
         edit.take_left(edit.width - 1).0,
-        "Edit color",
+        "Color",
     ) {
         context.intents.push(Intent::EditPrimaryColor);
+    }
+    if ui.hovering(edit) {
+        ui.tooltip("Change the main color");
+    }
+    if button(
+        ui,
+        id.with_name("ramps"),
+        ramps.take_right(ramps.width - 1).0,
+        "Ramps",
+    ) {
+        context.intents.push(Intent::TogglePaletteEdit);
+    }
+    if ui.hovering(ramps) {
+        ui.tooltip("Edit palette (F4): ramps, tones, import, presets");
     }
     let picked = context.editing.picked.is_some();
     if button(ui, id.with_name("recolor"), recolor, "Recolor") {
@@ -124,7 +140,7 @@ fn swatch(
         );
     }
     if response.clicked {
-        if super::double_click(context, id, ui.input.time_ms) {
+        if response.double_clicked {
             context.intents.push(Intent::OpenPicker(paint));
         } else {
             context.intents.push(Intent::Swatch(paint));
@@ -146,7 +162,6 @@ fn color_picker(
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.panel_dark);
     let id = Id::new("picker");
-    let hex = |color: Rgb| format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b);
     let mut color = context
         .fields
         .get(&id)
@@ -189,7 +204,7 @@ fn color_picker(
         .fields
         .get(&field)
         .cloned()
-        .unwrap_or_else(|| hex(color));
+        .unwrap_or_else(|| color.to_string());
     let response = text_field(ui, field, row(), &mut text);
     if response.changed {
         if let Ok(parsed) = Rgb::parse_hex(&text) {
@@ -199,7 +214,7 @@ fn color_picker(
     } else if !response.focused {
         context.fields.remove(&field);
     }
-    context.fields.insert(id, hex(color));
+    context.fields.insert(id, color.to_string());
     ui.canvas.rgb_box(
         rect(preview.x, preview.y, preview.width, preview.height / 2),
         original,

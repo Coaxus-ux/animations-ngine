@@ -177,3 +177,163 @@ scene "hold" palette="theme" width=8 height=8 fps=1 duration="1f" background="ke
         """
     }
 }
+
+scene "home" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "home-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ...ii...
+        ..iiii..
+        .iiiiii.
+        iiiiiiii
+        .iiiiii.
+        .ii..ii.
+        .ii..ii.
+        ........
+        """
+    }
+}
+
+scene "close" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "close-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        .i....i.
+        ..i..i..
+        ...ii...
+        ...ii...
+        ..i..i..
+        .i....i.
+        ........
+        """
+    }
+}
+
+scene "minus" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "minus-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ........
+        ........
+        .iiiiii.
+        .iiiiii.
+        ........
+        ........
+        ........
+        """
+    }
+}
+
+scene "folder" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "folder-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        iiii....
+        i...iiii
+        i......i
+        i......i
+        i......i
+        iiiiiiii
+        ........
+        """
+    }
+}
+
+scene "file" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "file-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        .iiii...
+        .i..ii..
+        .i..iii.
+        .i....i.
+        .i....i.
+        .i....i.
+        .iiiiii.
+        ........
+        """
+    }
+}
+
+scene "swatch" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "swatch-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        iiiiiiii
+        iaaibbbi
+        iaaibbbi
+        iiiiiiii
+        iddiwwwi
+        iddiwwwi
+        iiiiiiii
+        """
+    }
+}
+
+scene "scene" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "scene-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        iiiiiiii
+        i.i..i.i
+        iiiiiiii
+        i......i
+        i......i
+        iiiiiiii
+        i.i..i.i
+        iiiiiiii
+        """
+    }
+}
+
+scene "pixels" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "pixels-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        .ii..ii.
+        .ii..ii.
+        ...ii...
+        ...ii...
+        .ii..ii.
+        .ii..ii.
+        ........
+        """
+    }
+}
+
+scene "shape" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "shape-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ...ii...
+        ..iiii..
+        .iiiiii.
+        .iiiiii.
+        ..iiii..
+        ...ii...
+        ........
+        """
+    }
+}
+
+scene "node" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "node-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ........
+        ..i..i..
+        .i....i.
+        i......i
+        i......i
+        .i....i.
+        ..i..i..
+        ........
+        """
+    }
+}

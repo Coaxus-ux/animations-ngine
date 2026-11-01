@@ -4,158 +4,20 @@
     reason = "tests should fail loudly on unexpected errors"
 )]
 
-use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+mod common;
 
-use px_core::hash_bytes;
-use px_editor::app::{App, Intent, WindowId};
+use std::path::Path;
+
+use common::{FILE, layer, open, shown_paint, stroke};
+use px_editor::app::{App, Intent};
 use px_editor::assets::ThemeChoice;
-use px_editor::ports::FileStore;
 use px_editor::tools::ToolKind;
-use px_editor::views::Placement;
-use px_ui::{Buttons, Input};
-
-const SIZE: (usize, usize) = (1280, 800);
-const FILE: &str = "room.kdl";
-
-#[derive(Default)]
-struct MemoryFiles {
-    files: BTreeMap<PathBuf, String>,
-    writes: u64,
-}
-
-impl FileStore for MemoryFiles {
-    fn read(&mut self, path: &Path) -> Result<String, String> {
-        self.files
-            .get(path)
-            .cloned()
-            .ok_or_else(|| "no such file".to_owned())
-    }
-
-    fn write(&mut self, path: &Path, text: &str) -> Result<(), String> {
-        self.writes += 1;
-        self.files.insert(path.to_path_buf(), text.to_owned());
-        Ok(())
-    }
-
-    fn stamp(&mut self, path: &Path) -> Option<u64> {
-        self.files.contains_key(path).then_some(self.writes)
-    }
-}
-
-fn example() -> String {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/pixel-room.kdl");
-    std::fs::read_to_string(path).unwrap()
-}
-
-/// The app with the pixel-room example open, its main window drawn once.
-fn open() -> (App, MemoryFiles, WindowId) {
-    let mut files = MemoryFiles::default();
-    files.files.insert(PathBuf::from(FILE), example());
-    let mut app = App::new(ThemeChoice::Dark).unwrap();
-    app.open(Path::new(FILE), None, &mut files).unwrap();
-    let main = app.window_ids().next().unwrap();
-    app.frame(main, &Input::default(), SIZE, &mut files);
-    (app, files, main)
-}
-
-fn layer(app: &App, name: &str) -> usize {
-    app.document()
-        .unwrap()
-        .layers()
-        .iter()
-        .position(|layer| layer.name == name)
-        .unwrap()
-}
-
-/// Window pixel at the center of canvas pixel `at`.
-fn window_point(app: &App, window: WindowId, at: (i32, i32)) -> (i32, i32) {
-    let state = app.window(window).unwrap();
-    let scene = app.document().unwrap().scene().unwrap();
-    let size = (
-        i32::from(scene.size().width()),
-        i32::from(scene.size().height()),
-    );
-    let placement = Placement::of(&state.view, state.area.unwrap(), size);
-    (
-        placement.origin.0 + at.0 * placement.zoom + placement.zoom / 2,
-        placement.origin.1 + at.1 * placement.zoom + placement.zoom / 2,
-    )
-}
-
-/// Presses at the first canvas pixel, drags through the others, releases at the last.
-fn stroke(app: &mut App, files: &mut MemoryFiles, window: WindowId, points: &[(i32, i32)]) {
-    for (step, point) in points.iter().enumerate() {
-        let at = window_point(app, window, *point);
-        let first = step == 0;
-        let input = Input {
-            pointer: Some(at),
-            pointer_anywhere: at,
-            down: Buttons {
-                left: true,
-                ..Buttons::default()
-            },
-            pressed: Buttons {
-                left: first,
-                ..Buttons::default()
-            },
-            ..Input::default()
-        };
-        app.frame(window, &input, SIZE, files);
-    }
-    let at = window_point(app, window, *points.last().unwrap());
-    let release = Input {
-        pointer: Some(at),
-        pointer_anywhere: at,
-        released: Buttons {
-            left: true,
-            ..Buttons::default()
-        },
-        ..Input::default()
-    };
-    app.frame(window, &release, SIZE, files);
-}
-
-fn shown_paint(app: &App, at: (i32, i32)) -> px_core::Paint {
-    let scene = app.document().unwrap().scene().unwrap();
-    let mut buffer = px_engine::FrameBuffer::new(scene);
-    let view = buffer.render(scene, px_core::Frame::new(0)).unwrap();
-    view.get(at.0, at.1).unwrap()
-}
+use px_ui::Input;
 
 #[test]
 fn the_ui_draws_the_same_pixels_every_time() {
     let (mut app, mut files, main) = open();
-    let pixels = app
-        .frame(main, &Input::default(), SIZE, &mut files)
-        .unwrap();
-    let bytes: Vec<u8> = pixels
-        .iter()
-        .flat_map(|pixel| pixel.to_le_bytes())
-        .collect();
-    if let Some(path) = std::env::var_os("PX_EDITOR_SNAPSHOT") {
-        let colors: Vec<px_core::Rgb> = pixels
-            .iter()
-            .map(|pixel| {
-                let [_, r, g, b] = pixel.to_be_bytes();
-                px_core::Rgb::new(r, g, b)
-            })
-            .collect();
-        let size = px_core::Size::new(1280, 800).unwrap();
-        let file = std::fs::File::create(path).unwrap();
-        px_export::write_png_colors(file, size, &colors, px_export::Scale::new(1).unwrap())
-            .unwrap();
-    }
-    let golden = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden/ui.txt");
-    let actual = format!("{:016x}\n", hash_bytes(&bytes));
-    if std::env::var_os("PX_BLESS").is_some() {
-        std::fs::write(&golden, &actual).unwrap();
-    }
-    assert_eq!(
-        actual,
-        std::fs::read_to_string(golden).unwrap_or_default(),
-        "rerun with PX_BLESS=1 if the UI change is intended"
-    );
+    common::check_golden(&mut app, &mut files, main, "ui.txt");
 }
 
 #[test]

@@ -8,29 +8,37 @@ The editor is a desktop app whose every pixel, icons included, is drawn by the e
 
 ## 0. Today: `pxe edit`
 
-> **Today (2026-10-30):** `cargo pxe edit <file.kdl> [--size WxH] [--scale N]` opens the editor (`--size` creates a new file with one empty pixel layer). Sections 1 onward describe the full design; this section is what exists.
+> **Today (2026-11-01):** `cargo pxe edit [file.kdl] [--size WxH] [--scale N]` opens the editor; without a file it opens on the Home tab (recent files, New, Open). Several files are open at once as tabs under the menu bar (D-016); files are chosen with the system's own dialogs (D-017). Sections 1 onward describe the full design; this section is what exists. The architecture is in [ARCHITECTURE.md §2.2](ARCHITECTURE.md#22-the-editor-today-d-012-d-015-d-016-d-017).
 
 **Architecture (D-015).** `px-ui` is a toolkit with no window or files: an indexed UI canvas in a theme palette ([`assets/theme-dark.kdl`](../crates/px-editor/assets/theme-dark.kdl), a light one too), the engine's pixel font, icons rendered from KDL scenes of `pixels` ([`assets/icons-*.kdl`](../crates/px-editor/assets/)), and immediate-mode widgets. `px-editor` holds the domain (documents, layers, commands, history), tools (one `Tool` type each), views (panels that only emit intents) and the app (windows, dispatch). `pxe edit` is the only adapter: minifb windows and the file system.
 
 **Source of truth (D-014).** The scene's KDL text. Every action is a node-level splice of the text followed by a reload, so `git diff` shows exactly what changed. One undo history (Ctrl+Z / Ctrl+Shift+Z, 200 steps) covers strokes, layer edits, clicks and typed code. A stroke previews in memory and becomes one entry when the button is released.
 
-**Finding things.** Every action is in the menu bar (File, Edit, Layer, Frame, View, Window, Help) with its shortcut, so nothing is reachable only through a key or a gesture. Tools sit down the left with the two colors below them; the bar under the menus names the current tool, says what the mouse does with it, shows its options (Filled, Every matching pixel, Use main color) and warns when the active layer can't be painted. F1 (Help menu) shows how to use everything. Menus, tooltips and dialogs draw on a top layer, above the canvas. The UI size follows the window (View > UI size to fix it), and the inspector folds into the Window menu when the window is narrow.
+**Finding things.** Every action is in the menu bar (File, Edit, Sprite, Layer, Frame, Palette, View, Window, Help) with its shortcut, so nothing is reachable only through a key or a gesture. Tools sit down the right; the color bar is down the left with the two paints (main and second) below it; the bar under the menus names the current tool, says what the mouse does with it, shows its options (Filled, Every matching pixel, Use main color) and warns when the active layer can't be painted. F1 (Help menu) shows how to use everything. Menus, tooltips and dialogs draw on a top layer, above the canvas. The UI size follows the window (View > UI size to fix it), and the inspector folds into the Window menu when the window is narrow.
 
 | Area | What it does |
 |---|---|
+| Home and tabs | Aseprite's arrangement: the Home tab (recent files, New, Open) and one tab per open file under the menu bar, `*` when unsaved, `x` or middle click closes (Ctrl+W asks first when dirty, Ctrl+Shift+W closes all), Ctrl+Tab and Ctrl+Shift+Tab cycle, Ctrl+Home shows the Home tab; the Window menu has the same entries. Each tab keeps its own tool, paints, selection, zoom and frame. |
+| Files | New (Ctrl+N: name, width, height, fps, frames, palette preset, background) makes an untitled tab, saved on first Save; Open (Ctrl+O), Save As (Ctrl+Shift+S) and every export path use the system file dialog; recent files and the last folder persist in `~/.config/px/editor.kdl`. |
+| Export | File > Export As (Ctrl+Alt+Shift+S) and Export Sprite Sheet (Ctrl+E, opens on the sheet kind): GIF (always opaque; all frames or the current one), the current frame as PNG, a PNG sequence numbered with four digits, or a sprite sheet for games (horizontal or vertical strip, rows or columns, border and shape padding, 1–16× scale, transparent background by keyed render (D-018), Aseprite-compatible JSON that Godot, Unity and Phaser read). Ctrl+Shift+X repeats the last export for the active file. |
 | Canvas | Integer zoom (wheel, `+`/`-`, `0` fits), pan with Space+drag or the middle button, pixel grid from 6× (toggle), onion skin of the previous and next cel, marching ants around the selection, a pixel cursor. Left button paints with the primary paint, right with the secondary. |
 | Tools | Pencil (pixel-perfect: L-corners are removed), eraser, fill (Shift: every matching pixel), line, rectangle, ellipse (outline or filled; Shift: 45° and squares), eyedropper, box select, lasso, move, pick. |
 | Selection | Ctrl+C / X / V, Delete, H / Shift+H flip, Ctrl+A, Ctrl+D / Esc. Tools only change selected pixels. |
 | Layers | Pixel layers (`layer` + `pixels`, FORMAT A.9) and shape layers in file order, top first: show/hide per window, lock, double click to rename, drag to reorder, opacity, add, delete, move. |
 | Timeline | Frames × pixel layers: a cel starts at a dot and holds through the bar. New cel (a copy), delete cel, add or remove a frame, play (Enter), step with `,` and `.`. |
-| Palette | The scene's ramps as swatches in their real colors. Click picks the paint (right click: secondary, X swaps); with the pick tool (O) and a picked object, one click rewrites that object's `paint=` in the file. Double click opens a color picker (RGB sliders, hex) that rewrites the color in the `palette` node, recoloring everything that uses it. |
+| Palette | Aseprite's color bar down the left. The scene's ramps as swatches in their real colors. Click picks the paint (right click: secondary, X swaps); with the pick tool (O) and a picked object, one click rewrites that object's `paint=` in the file. Double click opens a color picker (RGB sliders, hex) that rewrites the color in the `palette` node, recoloring everything that uses it. |
+| Palette editing | F4 (Palette menu; the menu also adds, removes and generates ramps and tones for the selected ramp) turns the color bar into the palette editor: add or remove ramps and tones, rename, pick colors with a hue bar and saturation/value square or a hex field, generate a ramp from one base color (steps, hue shift, contrast, saturation; PALETTES.md §5), import Lospec `.hex` or GIMP `.gpl`, save the palette as a standalone `.kdl`, or apply a shipped preset. Removing a ramp, or a tone, that someone uses is refused and the first user is named. Adding, renaming, recoloring or removing a ramp is one `ramp` line in the file; import and presets rewrite the `palette` node. Each edit is one undo step. |
+| Elements | Every node of the file as a tree (palette, ramps, scene, layers, pixels, shapes, `use`). Click selects: the inspector shows that node and the code view narrows to it; double click opens the code. |
+| Sprite menu | Canvas Size (C: width, height, 3×3 anchor; pixels outside are dropped; one undo step, D-022) and Properties (Ctrl+P: fps, frames, loop). |
 | Inspector | The picked object's properties (or the scene's): numbers, paints and expressions as text fields, booleans as toggles; Enter writes the property. |
-| Code | F2 cycles canvas / split / code. The KDL is edited live: after 300 ms without typing it loads; while it doesn't, the errors show below and the last good scene stays. Picking an object moves the cursor to its node. |
+| Code | F2 cycles canvas / split / code. With an element selected, only that node's text is shown and edited (Esc returns to the whole file); writing back replaces exactly that node (D-021). The KDL is edited live: after 300 ms without typing it loads; while it doesn't, the errors show below and the last good scene stays. Picking an object moves the cursor to its node. |
 | Windows | Ctrl+Shift+N opens another canvas window on the same document with its own zoom, frame, active layer and hidden layers; edits show in every window. Any panel tears off into its own window (its title-bar button, or drag the title out) and docks back when that window closes. The layout is kept in `~/.config/px/editor.kdl`. |
 
-Closing with unsaved changes keeps them in `<file>.unsaved.kdl` next to the file.
+Closing with unsaved changes keeps them in `<file>.unsaved.kdl` next to the file; untitled files go to `~/.config/px/unsaved/`.
 
 ## 1. Layout
+
+> **Today (2026-11-01):** menu bar, tab strip, context bar (tool options), the color bar left, the tool bar right with Layers, Elements and Inspector beside it, the timeline at the bottom and the status bar (`W×H | zoom | x,y | color | frame | layer`) under it, as in Aseprite. Panels still tear off into their own windows.
 
 ```
 ┌──────────────┬───────────────────────────────┬───────────────┐
@@ -229,7 +237,12 @@ Toggle from the preview toolbar or with `F1`–`F10`.
 | Disable / enable node (`/-`) | Ctrl/Cmd+/ |
 | Duplicate node | Ctrl/Cmd+D |
 | Bake selection | Ctrl/Cmd+B |
-| Export dialog | Ctrl/Cmd+Shift+E |
+| Export dialog | Ctrl/Cmd+E, Ctrl/Cmd+Alt+Shift+S (today) |
+| Repeat last export | Ctrl/Cmd+Shift+X |
+| New / Open / Save As / Close / Close all | Ctrl/Cmd+N / O / Shift+S / W / Shift+W |
+| Next / previous tab / Home tab | Ctrl/Cmd+Tab / Shift+Tab / Home |
+| Canvas size / Properties | C / Ctrl/Cmd+P |
+| Edit palette | F4 |
 | Command palette | Ctrl/Cmd+P |
 
 ---
@@ -244,6 +257,8 @@ Toggle from the preview toolbar or with `F1`–`F10`.
 ---
 
 ## 8. Export dialog
+
+> **Today (2026-11-01):** GIF, PNG (current frame), PNG sequence and sprite sheet (strip, rows, columns; border and shape padding; scale; transparent background; Aseprite JSON hash format). Clips, directions, tags, slices, trim, tilesets and parallax layers are still planned.
 
 | Option | Values |
 |---|---|

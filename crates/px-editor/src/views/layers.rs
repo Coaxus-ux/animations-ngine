@@ -125,7 +125,7 @@ fn layer_row(
     let response = list_row(ui, id, name, &format!("{}{kind}", layer.name), selected);
     if response.clicked {
         context.intents.push(Intent::SelectLayer(index));
-        if super::double_click(context, id, ui.input.time_ms) {
+        if response.double_clicked {
             context.intents.push(Intent::StartRename(index));
         }
     }

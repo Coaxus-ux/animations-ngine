@@ -4,8 +4,16 @@ use px_raster::Plot;
 use crate::area::{Area, Rect, rect};
 use crate::bitmap::Bitmap;
 
-/// The UI's own pixels, indexed into the theme palette, plus boxes of exact colors (the
-/// document's swatches) laid over them when presented. A second, mostly see-through layer
+/// Exact colors laid over the indexed canvas when it is presented: a box of one color, or
+/// an image of `area.width × area.height` pixels, row by row.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Overlay {
+    Box(Rect, Rgb),
+    Image(Rect, Vec<Rgb>),
+}
+
+/// The UI's own pixels, indexed into the theme palette, plus boxes and images of exact
+/// colors (the document's swatches, color pickers) laid over them when presented. A second, mostly see-through layer
 /// on top holds what must cover everything, the document included: menus, tooltips,
 /// dialogs.
 #[derive(Clone, Debug)]
@@ -14,9 +22,9 @@ pub struct UiCanvas {
     height: i32,
     cells: Vec<Paint>,
     clip: Rect,
-    overlays: Vec<(Rect, Rgb)>,
+    overlays: Vec<Overlay>,
     top: Vec<Option<Paint>>,
-    top_overlays: Vec<(Rect, Rgb)>,
+    top_overlays: Vec<Overlay>,
     on_top: bool,
 }
 
@@ -65,7 +73,7 @@ impl UiCanvas {
     }
 
     #[must_use]
-    pub fn top_overlays(&self) -> &[(Rect, Rgb)] {
+    pub fn top_overlays(&self) -> &[Overlay] {
         &self.top_overlays
     }
 
@@ -90,7 +98,7 @@ impl UiCanvas {
     }
 
     #[must_use]
-    pub fn overlays(&self) -> &[(Rect, Rgb)] {
+    pub fn overlays(&self) -> &[Overlay] {
         &self.overlays
     }
 
@@ -178,13 +186,34 @@ impl UiCanvas {
     /// A box of an exact color, drawn over the canvas when it is presented.
     pub fn rgb_box(&mut self, area: Rect, color: Rgb) {
         let area = area.intersect(self.clip);
-        if area.is_empty() {
+        if !area.is_empty() {
+            self.overlay(Overlay::Box(area, color));
+        }
+    }
+
+    /// An image of exact colors (`area.width × area.height` pixels, row by row) drawn over
+    /// the canvas when it is presented; pixels outside the clip are dropped.
+    pub fn rgb_image(&mut self, area: Rect, pixels: &[Rgb]) {
+        let visible = area.intersect(self.clip);
+        let stride = usize::try_from(area.width).unwrap_or(0);
+        if visible.is_empty() || pixels.len() < stride * usize::try_from(area.height).unwrap_or(0) {
             return;
         }
+        let column = usize::try_from(visible.x - area.x).unwrap_or(0);
+        let width = usize::try_from(visible.width).unwrap_or(0);
+        let cropped = (visible.y..visible.bottom())
+            .filter_map(|y| usize::try_from(y - area.y).ok())
+            .flat_map(|row| pixels[row * stride + column..row * stride + column + width].iter())
+            .copied()
+            .collect();
+        self.overlay(Overlay::Image(visible, cropped));
+    }
+
+    fn overlay(&mut self, overlay: Overlay) {
         if self.on_top {
-            self.top_overlays.push((area, color));
+            self.top_overlays.push(overlay);
         } else {
-            self.overlays.push((area, color));
+            self.overlays.push(overlay);
         }
     }
 

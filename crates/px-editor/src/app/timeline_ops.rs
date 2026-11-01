@@ -45,11 +45,7 @@ impl App {
 
     /// Makes the scene `delta` frames longer (or shorter), at least one frame.
     pub(super) fn resize_timeline(&mut self, delta: i64, store: &mut dyn FileStore) {
-        let Some(scene) = self
-            .document
-            .as_ref()
-            .and_then(crate::domain::Document::scene)
-        else {
+        let Some(scene) = self.document().and_then(crate::domain::Document::scene) else {
             return;
         };
         let frames = (i64::from(scene.timing().duration.get()) + delta).max(1);
@@ -62,11 +58,13 @@ impl App {
     }
 
     pub(super) fn run(&mut self, command: &Command, store: &mut dyn FileStore) {
-        if let Some(document) = &mut self.document {
-            match document.apply(command, store) {
-                Ok(()) => self.editing.status = format!("Done: {}", command.label()),
-                Err(error) => self.editing.status = error,
-            }
-        }
+        let Some(document) = self.document_mut() else {
+            return;
+        };
+        let result = document.apply(command, store);
+        self.editing.status = match result {
+            Ok(()) => format!("Done: {}", command.label()),
+            Err(error) => error,
+        };
     }
 }

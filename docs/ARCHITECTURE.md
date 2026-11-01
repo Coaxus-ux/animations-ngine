@@ -39,9 +39,9 @@ The engine name is not decided yet. Crates get a short common prefix (shown here
 | `px-packs` | Pack discovery and loading, registries, name resolution, std packs bundled into the binary |
 | `px-director` | Scenes, shots, sequences, camera, transitions, timeline, loop solver |
 | `px-script` | QuickJS bridge, TS type stripping, sandbox, value and event scripts |
-| `px-export` | GIF, PNG, MP4/WebM via ffmpeg, sprite sheets, tilesets with autotile metadata, parallax layer sets |
+| `px-export` | GIF, PNG, RGBA sprite sheets with Aseprite JSON (today); MP4/WebM via ffmpeg, tilesets with autotile metadata, parallax layer sets (planned) |
 | `px-engine` | Facade: open a project, resolve packs, build graphs, render frames, run exports, stream diagnostics, apply edits |
-| `px-editor` | egui application (preview, inspector, timeline, graph, library, console) |
+| `px-editor` | The editor, drawn by the engine through `px-ui` (D-012): documents as tabs, tools, panels, dialogs, export; see §2.2 |
 | `px-cli` | The `pxe` binary; commands in [CLI.md](CLI.md) |
 
 ### 2.1 Dependency graph
@@ -72,6 +72,45 @@ The engine name is not decided yet. Crates get a short common prefix (shown here
 - `px-script` depends on `px-graph`, not on render crates. Scripts only see values and the object API.
 
 ---
+
+
+### 2.2 The editor today (D-012, D-015, D-016, D-017)
+
+The full plan above still names egui and a node graph; what ships today is the engine-drawn editor below. Arrows point at what a layer may use; nothing below knows what is above.
+
+```
+ kernel    px-core  px-raster  px-expr         no_std data and math
+              ▲
+ engine    px-engine                           scene → indexed frame (no alloc)
+              ▲
+ formats   px-format (KDL ⇄ scene, Source)     px-export (pixels → PNG, GIF, RGBA sheets, JSON bytes)
+              ▲                                   ▲
+ toolkit   px-ui   widgets, modal, tabs, pickers → indexed UI canvas; no files, no windows
+              ▲
+ editor    px-editor
+            ├── domain/   Document, Command, PaletteModel, ExportJob, tree, resize, template, recent
+            ├── ports/    FileStore (read, write, stamp, write_bytes)
+            ├── app/      App: Documents (tabs), windows, dialogs, handler chain, Requests
+            └── views/    pure drawing: (Ui, Context) → pixels + Intents
+              ▲
+ adapter   px-cli `pxe edit`   minifb windows, std::fs, rfd dialogs: the only crate with side effects
+```
+
+**One-way data flow.** Input → views → `Vec<Intent>` → `App::apply` runs a fixed list of handlers (`dialogs → files → tabs → export → palette → nodes → paints → layers → canvas → workspace`), each `fn(&mut App, Intent, Targets, &Input, &mut dyn FileStore) -> Option<Intent>` that hands back what is not its own → a `Command` splices the KDL text (`px_format::edit::Source`, atomic: a bad result leaves the text untouched) → reload → views read the new `Scene`. Requests (`Open`, `Close`, `Title`, `PickFile`) are the only way out to the adapter, which answers a file dialog with `Intent::Picked`. Adding a feature adds one handler module and one line in the list.
+
+**State ownership.**
+
+| Fact | Owner |
+|---|---|
+| Scene text, undo history, dirty flag | `Document` |
+| Open files, the active one, each inactive file's `Editing` and main view | `Documents` (`Vec<Slot>`); the active file's live in `App` and are swapped on tab change in `tabs_ops.rs` |
+| Zoom, pan, frame, hidden layers, code mode, open dialog, selected element, palette edit mode | `Window` |
+| Theme, UI scale, recent files, last folder, last export | `App`, persisted in `~/.config/px/editor.kdl` |
+| Rendered pixels per (document, revision, frame, hidden layers) | `RenderCache`, one per window |
+
+**Invariants.** The KDL text is the truth (D-014); one undo history per document; every action has a menu entry with its shortcut; the editor and toolkit do no I/O and the adapter holds no logic (`tools/check.sh` forbids `std::fs`, `minifb` and `rfd` in `px-editor`/`px-ui`); outputs are deterministic; a failed edit changes nothing; every file stays under 400 lines.
+
+**Testing.** Domain modules carry unit tests; `app` is driven headless through `tests/common::MemoryFiles` and `App::dispatch`, asserting on the KDL text and on `take_requests()`; screens are golden pixel hashes; widgets are tested by driving `Ui::new` directly. The adapter is the only part not covered by `cargo test` and holds no logic.
 
 ## 3. Graph runtime
 
@@ -294,11 +333,11 @@ The coordinator is the only owner of mutable graph state. Workers get immutable 
 | `strsim` | "Did you mean" suggestions | Edit distance |
 | `rquickjs` | QuickJS bindings | Small, embeddable, modern JS |
 | `oxc` (transformer) | Strip TypeScript types | Fast and written in Rust |
-| `serde`, `serde_json` | Metadata | Sprite sheet/tileset metadata, editor state |
+| `serde`, `serde_json` | Metadata | Not used: sprite-sheet JSON is written by `px_export::JsonWriter` (D-019) and editor state is KDL |
 | `rayon` | Parallelism | Work-stealing pool, scoped tasks |
 | `crossbeam-channel` | Channels | Ordered export pipeline, coordinator messages |
 | `notify` + `notify-debouncer-mini` | File watching | Cross-platform hot reload |
-| `eframe` / `egui` | Editor UI | Immediate-mode UI, easy texture preview |
+| `eframe` / `egui` | Editor UI | Not used: the editor is drawn by the engine (D-012); `rfd` provides native file dialogs in `px-cli` (D-017) |
 | `egui-snarl` | Node graph widget | Node editor for egui |
 | `glam` | Vector math | Small, fast vector/matrix types for the 3D path |
 | `libm` | Deterministic math | The same transcendental results on every OS |

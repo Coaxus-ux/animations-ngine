@@ -89,7 +89,7 @@ impl GifFrameEncoder {
             size,
             scale,
             // GIF delays are whole centiseconds: 12 fps plays at 8 cs (≈ 12.5 fps).
-            delay: (100 + fps.get() / 2) / fps.get(),
+            delay: u16::try_from(fps.period(100)).unwrap_or(u16::MAX),
             ramp_spans: Vec::new(),
             transparent: None,
         }

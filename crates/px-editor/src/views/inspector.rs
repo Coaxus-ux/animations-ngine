@@ -8,14 +8,15 @@ use crate::domain::{Document, scene_path};
 
 const KEY: i32 = 58;
 
-/// The properties of the picked object (or of the scene): numbers, paints and expressions
-/// as text fields, booleans as toggles. Each change is one property write in the file.
+/// The properties of the selected element, else of the picked object, else of the scene:
+/// numbers, paints and expressions as text fields, booleans as toggles. Each change is one
+/// property write in the file.
 pub(super) fn inspector(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
     };
     let roles = ui.theme.roles;
-    let Some(path) = target(document, context.editing.picked) else {
+    let Some(path) = target(document, context.selected, context.editing.picked) else {
         label(
             ui,
             area.take_top(ROW).0,
@@ -71,8 +72,16 @@ pub(super) fn inspector(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) 
     ui.canvas.restore_clip(clip);
 }
 
-/// The node the inspector shows: the picked shape's, else the scene's.
-fn target(document: &Document, picked: Option<usize>) -> Option<NodePath> {
+/// The node the inspector shows: the selected element's, else the picked shape's, else the
+/// scene's.
+fn target(
+    document: &Document,
+    selected: Option<&NodePath>,
+    picked: Option<usize>,
+) -> Option<NodePath> {
+    if let Some(path) = selected {
+        return Some(path.clone());
+    }
     let loaded = document.loaded()?;
     let picked = picked
         .and_then(|shape| loaded.origins.get(shape))

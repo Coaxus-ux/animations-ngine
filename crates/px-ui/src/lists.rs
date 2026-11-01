@@ -1,6 +1,6 @@
 use crate::area::{Area, Rect, rect};
 use crate::ui::{Id, Response, Ui};
-use crate::widgets::{ROW, label};
+use crate::widgets::{ROW, SMALL_ICON, label};
 
 const SCROLLBAR: i32 = 5;
 const WHEEL_STEP: i32 = ROW;
@@ -50,6 +50,31 @@ pub fn scroll_area(ui: &mut Ui<'_>, id: Id, area: Rect, content_height: i32) -> 
 
 /// A selectable row with a text label; selected rows use the accent color.
 pub fn list_row(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, selected: bool) -> Response {
+    let response = row_face(ui, id, area, selected);
+    row_text(ui, area, text, selected);
+    response
+}
+
+pub fn list_row_icon(
+    ui: &mut Ui<'_>,
+    id: Id,
+    area: Rect,
+    icon: &str,
+    text: &str,
+    selected: bool,
+) -> Response {
+    let response = row_face(ui, id, area, selected);
+    let (slot, rest) = area.take_left(SMALL_ICON + 2);
+    if let Some(bitmap) = ui.icons.get(icon) {
+        let y = slot.y + (slot.height - bitmap.height()) / 2;
+        let tint = (!selected).then_some(ui.theme.roles.ink_dim);
+        ui.canvas.blit(bitmap, slot.x + 1, y, tint);
+    }
+    row_text(ui, rest, text, selected);
+    response
+}
+
+fn row_face(ui: &mut Ui<'_>, id: Id, area: Rect, selected: bool) -> Response {
     let roles = ui.theme.roles;
     let response = ui.interact(id, area);
     if selected {
@@ -57,14 +82,18 @@ pub fn list_row(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, selected: bool)
     } else if response.hovered {
         ui.canvas.dither(area, roles.panel_light);
     }
+    response
+}
+
+fn row_text(ui: &mut Ui<'_>, area: Rect, text: &str, selected: bool) {
+    let roles = ui.theme.roles;
     let ink = if selected { roles.ink } else { roles.ink_dim };
     label(
         ui,
-        area.take_left(area.width - 2).0.inset(0),
+        area.take_left(area.width - 2).0,
         &format!(" {text}"),
         ink,
     );
-    response
 }
 
 /// Where a row dragged from `from` would drop among `count` rows of height `row` laid out

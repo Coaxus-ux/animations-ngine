@@ -8,6 +8,8 @@ use px_format::{LoadOptions, Loaded, Sources, load};
 use super::command::Command;
 use super::history::History;
 use super::layers::{Layer, layers};
+use super::template::{NewSpec, new_text};
+use crate::assets::palettes;
 use crate::ports::FileStore;
 
 /// One open scene file. Its KDL text is the source of truth: every change edits the text
@@ -24,6 +26,8 @@ pub struct Document {
     revision: u64,
     saved: String,
     stamp: Option<u64>,
+    /// Made by `new_unsaved` and never saved: has no file yet.
+    untitled: bool,
     /// Files the scene `use`s, as last read.
     others: BTreeMap<PathBuf, String>,
 }
@@ -53,18 +57,46 @@ impl Document {
             revision: 0,
             saved: text,
             stamp: None,
+            untitled: false,
             others: BTreeMap::new(),
         };
         document.reload(store);
         Ok(document)
     }
 
-    /// A new scene file with one empty pixel layer and a 16-color palette.
+    /// A document for `text` that has no file yet: dirty until `save_to` gives it one.
+    ///
+    /// # Errors
+    /// A readable reason when `text` isn't KDL.
+    pub fn new_unsaved(
+        path: &Path,
+        text: String,
+        store: &mut dyn FileStore,
+    ) -> Result<Self, String> {
+        let mut document = Self::from_text(path, text, store)?;
+        document.saved = String::new();
+        document.untitled = true;
+        Ok(document)
+    }
+
+    /// A new scene file with one empty pixel layer and the default palette preset.
     #[must_use]
     pub fn blank_text(name: &str, width: u16, height: u16) -> String {
-        format!(
-            "palette \"{name}\" {{\n    ramp \"gray\" \"#0b0b10\" \"#2a2a35\" \"#55556a\" \"#9a9ab0\" \"#e8e8f0\"\n    ramp \"red\" \"#3a0d14\" \"#8a1f2a\" \"#d94a4a\" \"#ff9a8a\"\n    ramp \"green\" \"#0f2a14\" \"#2a6a2a\" \"#6ac24a\" \"#c8f08a\"\n    ramp \"blue\" \"#0d1430\" \"#24408a\" \"#4a8ad9\" \"#a8d8ff\"\n}}\n\nscene \"{name}\" palette=\"{name}\" width={width} height={height} fps=12 duration=\"1s\" loop=#true background=\"gray.0\" {{\n    layer \"layer-1\" {{\n        pixels \"layer-1-art\" x=0 y=0 {{\n            legend {{ }}\n        }}\n    }}\n}}\n"
+        let spec = NewSpec {
+            name: name.to_owned(),
+            width,
+            height,
+            ..NewSpec::default()
+        };
+        new_text(
+            &spec,
+            palettes::preset(palettes::DEFAULT_PRESET).unwrap_or_default(),
         )
+    }
+
+    #[must_use]
+    pub const fn is_untitled(&self) -> bool {
+        self.untitled
     }
 
     #[must_use]
@@ -132,9 +164,10 @@ impl Document {
             .as_ref()
             .map(|loaded| loaded.paint_names.clone())
             .unwrap_or_default();
-        let before = self.text().to_owned();
-        command.apply(&mut self.source, &names)?;
-        self.history.push(command.label(), before);
+        let mut draft = self.source.clone();
+        command.apply(&mut draft, &names)?;
+        let before = core::mem::replace(&mut self.source, draft);
+        self.history.push(command.label(), before.text().to_owned());
         self.reload(store);
         Ok(())
     }
@@ -204,8 +237,18 @@ impl Document {
         store.write(&self.path, self.source.text())?;
         self.saved = self.text().to_owned();
         self.stamp = store.stamp(&self.path);
+        self.untitled = false;
         self.revision += 1;
         Ok(())
+    }
+
+    /// Saves under a new path, which the document keeps.
+    ///
+    /// # Errors
+    /// A readable reason when it can't be written; the path doesn't change then.
+    pub fn save_to(&mut self, path: &Path, store: &mut dyn FileStore) -> Result<(), String> {
+        let previous = core::mem::replace(&mut self.path, path.to_path_buf());
+        self.save(store).inspect_err(|_| self.path = previous)
     }
 
     /// Reloads the file when it changed on disk and there is nothing unsaved; returns
@@ -283,5 +326,56 @@ impl Sources for DocumentSources<'_> {
         let text = self.store.read(path)?;
         self.others.insert(path.to_path_buf(), text.clone());
         Ok(text)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used, reason = "tests fail loudly")]
+
+    use super::*;
+
+    #[derive(Default)]
+    struct Memory(BTreeMap<PathBuf, String>);
+
+    impl FileStore for Memory {
+        fn read(&mut self, path: &Path) -> Result<String, String> {
+            self.0
+                .get(path)
+                .cloned()
+                .ok_or_else(|| "missing".to_owned())
+        }
+        fn write(&mut self, path: &Path, text: &str) -> Result<(), String> {
+            self.0.insert(path.to_path_buf(), text.to_owned());
+            Ok(())
+        }
+        fn stamp(&mut self, path: &Path) -> Option<u64> {
+            self.0.get(path).map(|text| text.len() as u64)
+        }
+    }
+
+    #[test]
+    fn an_unsaved_document_is_untitled_and_dirty_until_saved_somewhere() {
+        let mut store = Memory::default();
+        let text = Document::blank_text("fresh", 8, 8);
+        let mut document =
+            Document::new_unsaved(Path::new("untitled.kdl"), text.clone(), &mut store).unwrap();
+        assert!(document.is_untitled());
+        assert!(document.is_dirty());
+        assert!(document.errors().is_empty(), "{:?}", document.errors());
+        document
+            .save_to(Path::new("art/fresh.kdl"), &mut store)
+            .unwrap();
+        assert!(!document.is_untitled());
+        assert!(!document.is_dirty());
+        assert_eq!(document.path(), Path::new("art/fresh.kdl"));
+        assert_eq!(store.0[Path::new("art/fresh.kdl")], text);
+    }
+
+    #[test]
+    fn a_blank_scene_uses_the_default_preset_palette() {
+        let text = Document::blank_text("fresh", 8, 8);
+        assert!(text.starts_with(&format!("palette {:?}", palettes::DEFAULT_PRESET)));
+        assert!(text.contains("scene \"fresh\" palette=\"basic-16\" width=8 height=8"));
     }
 }

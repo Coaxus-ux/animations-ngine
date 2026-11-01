@@ -50,10 +50,11 @@ pub(crate) enum Command {
         #[command(flatten)]
         input: Input,
     },
-    /// Open the pixel-art editor on a scene file (creating it with `--size`).
+    /// Open the pixel-art editor, on a scene file when one is given (creating it with
+    /// `--size`).
     Edit {
         /// Scene file (.kdl).
-        file: PathBuf,
+        file: Option<PathBuf>,
         /// Canvas size for a new file, e.g. `--size 64x64`.
         #[arg(long, value_parser = parse_size)]
         size: Option<(u16, u16)>,

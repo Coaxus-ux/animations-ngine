@@ -1,6 +1,7 @@
 //! `pxe edit`: the editor's adapter. Only this code touches windows and files (D-015);
 //! everything else is `px-editor`.
 
+mod dialogs;
 mod files;
 mod host;
 
@@ -10,7 +11,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, anyhow};
-use px_editor::app::{App, Request, WindowId};
+use px_editor::app::{App, Intent, Request, WindowId};
 use px_editor::assets::ThemeChoice;
 use px_editor::ports::FileStore;
 
@@ -19,8 +20,9 @@ use host::Host;
 
 const FRAME: Duration = Duration::from_millis(16);
 
-/// Opens `file` in the editor; creates it first when it doesn't exist and `size` is given.
-pub(crate) fn edit(file: &Path, size: Option<(u16, u16)>, scale: Option<u8>) -> Result<()> {
+/// Opens the editor, on `file` when given; creates it first when it doesn't exist and
+/// `size` is given.
+pub(crate) fn edit(file: Option<&Path>, size: Option<(u16, u16)>, scale: Option<u8>) -> Result<()> {
     let mut files = DiskFiles;
     let mut app = App::new(ThemeChoice::Dark).map_err(|error| anyhow!(error))?;
     let layout = layout_path();
@@ -30,9 +32,11 @@ pub(crate) fn edit(file: &Path, size: Option<(u16, u16)>, scale: Option<u8>) -> 
     if let Some(scale) = scale {
         app.set_scale(Some(i32::from(scale)));
     }
-    app.open(file, size, &mut files)
-        .map_err(|error| anyhow!(error))
-        .with_context(|| format!("cannot open {}", file.display()))?;
+    if let Some(file) = file {
+        app.open(file, size, &mut files)
+            .map_err(|error| anyhow!(error))
+            .with_context(|| format!("cannot open {}", file.display()))?;
+    }
     run(&mut app, &mut files)?;
     if let Some(path) = layout {
         let _ = files.write(&path, &app.layout_text());
@@ -64,6 +68,16 @@ fn run(app: &mut App, files: &mut DiskFiles) -> Result<()> {
                         host.window.set_title(&title);
                     }
                 }
+                Request::PickFile {
+                    window,
+                    purpose,
+                    start,
+                    name,
+                    filters,
+                } => {
+                    let path = dialogs::pick(purpose, start.as_deref(), name.as_deref(), filters);
+                    app.dispatch(Intent::Picked { purpose, path }, window, files);
+                }
             }
         }
         if hosts.is_empty() || app.should_quit() {
@@ -94,19 +108,35 @@ fn run(app: &mut App, files: &mut DiskFiles) -> Result<()> {
     }
 }
 
-/// Writes unsaved changes next to the file instead of losing them on quit.
+/// Writes unsaved changes where they can be found again instead of losing them on quit:
+/// next to the file, or for a scene that never had one, under the user's config folder.
 fn keep_unsaved(app: &App, files: &mut DiskFiles) {
-    let Some(document) = app.document().filter(|document| document.is_dirty()) else {
-        return;
-    };
-    let path = document.path().with_extension("unsaved.kdl");
-    if files.write(&path, document.text()).is_ok() {
-        eprintln!("unsaved changes kept in {}", path.display());
+    for slot in app.documents().iter() {
+        let document = &slot.document;
+        if !document.is_dirty() {
+            continue;
+        }
+        let path = if document.is_untitled() {
+            let Some(name) = document.path().file_name() else {
+                continue;
+            };
+            let Some(folder) = config_dir() else { continue };
+            folder.join("unsaved").join(name)
+        } else {
+            document.path().with_extension("unsaved.kdl")
+        };
+        if files.write(&path, document.text()).is_ok() {
+            eprintln!("unsaved changes kept in {}", path.display());
+        }
     }
 }
 
 /// `~/.config/px/editor.kdl`: the window layout, kept per user.
 fn layout_path() -> Option<PathBuf> {
+    Some(config_dir()?.join("editor.kdl"))
+}
+
+fn config_dir() -> Option<PathBuf> {
     let home = std::env::var_os("HOME")?;
-    Some(PathBuf::from(home).join(".config/px/editor.kdl"))
+    Some(PathBuf::from(home).join(".config/px"))
 }

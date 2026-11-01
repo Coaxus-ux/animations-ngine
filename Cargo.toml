@@ -25,6 +25,7 @@ kdl = { version = "6.7", default-features = false, features = ["span"] }
 libm = "0.2"
 minifb = "0.29"
 png = "0.18"
+rfd = "0.17"
 
 [workspace.lints.rust]
 # Library crates additionally `#![forbid(unsafe_code)]`; see docs/engineering/DECISIONS.md D-002.

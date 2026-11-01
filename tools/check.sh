@@ -36,13 +36,13 @@ cargo test --workspace --locked --no-fail-fast
 step "tests with optimized debug assertions"
 cargo test --workspace --profile release-assertions --locked --no-fail-fast
 
-step "editor architecture (D-015): only px-cli touches windows and files"
+step "editor architecture (D-015, D-017): only px-cli touches windows, files and dialogs"
 for crate in px-editor px-ui; do
-    if cargo tree --locked -p "$crate" -e normal --prefix none | grep -q '^minifb '; then
-        echo "$crate must not depend on minifb" >&2
+    if cargo tree --locked -p "$crate" -e normal --prefix none | grep -qE '^(minifb|rfd) '; then
+        echo "$crate must not depend on minifb or rfd" >&2
         exit 1
     fi
-    if grep -rnE 'std::fs|std::net|minifb' "crates/$crate/src"; then
+    if grep -rnE 'std::fs|std::net|minifb|rfd' "crates/$crate/src"; then
         echo "$crate must reach files and windows only through its ports" >&2
         exit 1
     fi

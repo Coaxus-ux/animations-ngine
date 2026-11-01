@@ -163,6 +163,8 @@ Emissive pixels ignore ambient darkness and are not darkened by shadows. A light
 
 ## 5. Generating ramps (no color skills required)
 
+> **Today (2026-11-01):** the editor's palette editor (F4 > Generate) builds a ramp from one base color with these rules in HSV (`px_core::hsv_ramp`: value spread by a contrast amount, hue turned toward cool for dark tones and warm for light ones, saturation falling toward the light end) and writes plain `ramp` lines; the `ramp-gen` node and OKLab steps are still planned.
+
 Hand-picking 5 tones per ramp is an art skill. To avoid needing it, **`ramp-gen`** builds a ramp from a single base color using standard pixel art hue shifting:
 - **Shadows** shift hue toward blue/purple and gain a little saturation.
 - **Highlights** shift hue toward yellow and lose saturation.
@@ -208,7 +210,7 @@ palette "night-blue" {
 ```
 
 ### 6.1 Imports
-- **Lospec `.hex` / `.gpl`:** the importer clusters the colors into ramps by hue and sorts them by lightness. Then you name the ramps and alias them to roles. This step is a heuristic, so expect to adjust it.
+- **Lospec `.hex` / `.gpl`:** the importer clusters the colors into ramps by hue and sorts them by lightness. Then you name the ramps and alias them to roles. This step is a heuristic, so expect to adjust it. *Today* the editor imports both formats as ramps of at most eight tones in file order (`ramp-1`, `ramp-2`, …); clustering is planned.
 - **Mapping file:** an imported palette plus a small KDL file of `alias` and `twin` lines.
 
 ---
@@ -244,6 +246,8 @@ All operations work on role and tone indices, so the result always stays inside 
 ---
 
 ## 9. Shipped palettes
+
+> **Today (2026-11-01):** the editor ships four small presets for new files (`basic-16`, `gameboy-4`, `gray-8`, `dusk-12`, in `crates/px-editor/src/assets/palettes/`), with ramps only and no roles yet. The palettes below are the planned ones.
 
 Every shipped palette defines all tier 1 roles, `skin-1` … `skin-6`, the `books-*` groups, every `cloth-*` role, the exterior roles and twins for `wall`, `wood`, `paper` and `skin`.
 

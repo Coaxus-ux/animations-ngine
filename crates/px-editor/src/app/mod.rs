@@ -1,30 +1,42 @@
-//! The workspace: open documents, windows and their views, intents from views applied to
-//! the domain, and requests to the adapter for windows to open or close.
+//! The workspace: open documents as tabs, windows and their views, intents from views
+//! applied to the domain through a chain of handlers, and requests to the adapter.
 
 mod apply;
+mod dialog;
 mod document_ops;
+mod documents;
 mod editing;
+mod export_ops;
+mod file_ops;
 mod frame;
 mod intent;
 mod layout;
+mod node_ops;
+mod palette_ops;
 mod selection_ops;
 mod shortcuts;
 mod stroke;
+mod tabs_ops;
 mod timeline_ops;
+mod titles;
 mod view_ops;
 mod window;
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+pub use apply::Targets;
+pub use dialog::{Dialog, DialogKind, Form, PickPurpose, keys};
+pub use documents::{DocumentId, Documents, Slot, TabInfo};
 pub use editing::Editing;
 pub use intent::{Button, Intent};
+pub(crate) use shortcuts::neighbour_tab;
 pub use window::{
     CodeBuffer, CodeMode, PanelKind, Picker, Request, ViewState, Window, WindowId, WindowKind,
 };
 
 use crate::assets::{Assets, ThemeChoice};
-use crate::domain::Document;
+use crate::domain::{Document, ExportJob, Recent};
 use crate::ports::FileStore;
 use crate::views::RenderCache;
 use stroke::Stroke;
@@ -39,7 +51,9 @@ const PANEL_SIZE: (usize, usize) = (320, 420);
 pub struct App {
     assets: Assets,
     theme: ThemeChoice,
-    document: Option<Document>,
+    documents: Documents,
+    /// The active document's editing state (the status line also when none is open);
+    /// inactive documents keep theirs in their `Slot`.
     editing: Editing,
     stroke: Option<Stroke>,
     windows: Vec<Window>,
@@ -51,6 +65,9 @@ pub struct App {
     /// Window pixels per UI pixel, or `None` to choose by window size.
     scale: Option<i32>,
     quit: bool,
+    recent: Recent,
+    last_folder: Option<PathBuf>,
+    last_export: Option<ExportJob>,
 }
 
 impl App {
@@ -60,7 +77,7 @@ impl App {
         let mut app = Self {
             assets: Assets::load(theme)?,
             theme,
-            document: None,
+            documents: Documents::default(),
             editing: Editing::default(),
             stroke: None,
             windows: Vec::new(),
@@ -70,14 +87,17 @@ impl App {
             focused: WindowId(0),
             scale: None,
             quit: false,
+            recent: Recent::default(),
+            last_folder: None,
+            last_export: None,
         };
         let main = app.open_window(WindowKind::Main);
         app.focused = main;
         Ok(app)
     }
 
-    /// Opens a scene file in the main window, creating it from a blank template if it
-    /// doesn't exist and `create` gives a size.
+    /// Opens a scene file in a new tab (or activates its tab), creating it from a blank
+    /// template if it doesn't exist and `create` gives a size.
     ///
     /// # Errors
     /// A readable reason when it can't be read or created.
@@ -87,6 +107,10 @@ impl App {
         create: Option<(u16, u16)>,
         store: &mut dyn FileStore,
     ) -> Result<(), String> {
+        if let Some(index) = self.documents.position(path) {
+            self.switch_tab(index, store);
+            return Ok(());
+        }
         let document = match (store.read(path), create) {
             (Ok(_), _) => Document::open(path, store)?,
             (Err(_), Some((width, height))) => {
@@ -100,35 +124,32 @@ impl App {
             }
             (Err(error), None) => return Err(error),
         };
-        self.editing = Editing {
-            primary: first_paint(&document),
-            ..Editing::default()
-        };
-        if let Some(scene) = document.scene() {
-            let size = scene.size();
-            self.editing.selection =
-                crate::domain::Selection::none(i32::from(size.width()), i32::from(size.height()));
-        }
-        let first_layer = document
-            .layers()
-            .iter()
-            .position(crate::domain::Layer::paintable);
-        for window in &mut self.windows {
-            window.view.layer = first_layer;
-        }
-        self.document = Some(document);
-        self.retitle();
+        self.add_document(document, store);
         Ok(())
     }
 
     #[must_use]
-    pub const fn document(&self) -> Option<&Document> {
-        self.document.as_ref()
+    pub fn document(&self) -> Option<&Document> {
+        self.documents.active().map(|slot| &slot.document)
+    }
+
+    pub(crate) fn document_mut(&mut self) -> Option<&mut Document> {
+        self.documents.active_mut().map(|slot| &mut slot.document)
+    }
+
+    #[must_use]
+    pub const fn documents(&self) -> &Documents {
+        &self.documents
     }
 
     #[must_use]
     pub const fn editing(&self) -> &Editing {
         &self.editing
+    }
+
+    #[must_use]
+    pub const fn recent(&self) -> &Recent {
+        &self.recent
     }
 
     #[must_use]
@@ -151,7 +172,6 @@ impl App {
         }
     }
 
-    /// Requests for the adapter since the last call: windows to open, close or retitle.
     pub fn take_requests(&mut self) -> Vec<Request> {
         core::mem::take(&mut self.requests)
     }
@@ -214,34 +234,14 @@ impl App {
             .find(|window| window.kind == WindowKind::Main)
     }
 
-    fn title_for(&self, kind: WindowKind) -> String {
-        let name = self.document.as_ref().map_or_else(
-            || "px editor".to_owned(),
-            |document| {
-                let file = document
-                    .path()
-                    .file_name()
-                    .map_or_else(String::new, |name| name.to_string_lossy().into_owned());
-                let dirty = if document.is_dirty() { " *" } else { "" };
-                format!("{file}{dirty}")
-            },
-        );
-        match kind {
-            WindowKind::Main => format!("{name} - px editor"),
-            WindowKind::Canvas => format!("{name} - view"),
-            WindowKind::Panel(panel) => format!("{} - {name}", panel.title()),
-        }
-    }
-
-    fn retitle(&mut self) {
-        let titles: Vec<(WindowId, String)> = self
-            .windows
-            .iter()
-            .map(|window| (window.id, self.title_for(window.kind)))
-            .collect();
-        for (id, title) in titles {
-            self.requests.push(Request::Title { id, title });
-        }
+    fn title_key(&self) -> Option<(PathBuf, bool, u64)> {
+        self.document().map(|document| {
+            (
+                document.path().to_path_buf(),
+                document.is_dirty(),
+                document.revision(),
+            )
+        })
     }
 
     fn reload_assets(&mut self) {
@@ -249,13 +249,4 @@ impl App {
             self.assets = assets;
         }
     }
-}
-
-/// The first paint of the document's palette, to start drawing with.
-fn first_paint(document: &Document) -> Option<px_core::Paint> {
-    let scene = document.scene()?;
-    let names = &document.loaded()?.paint_names;
-    let (_, ramp) = names.ramps().next()?;
-    let tone = scene.palette().ramp(ramp).ok()?.len().saturating_sub(1);
-    scene.palette().paint(ramp, px_core::Tone::new(tone)).ok()
 }

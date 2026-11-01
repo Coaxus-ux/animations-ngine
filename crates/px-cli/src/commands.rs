@@ -23,7 +23,7 @@ pub(crate) fn run(command: &Command) -> Result<()> {
             jobs.unwrap_or_else(crate::parallel::default_jobs),
         ),
         Command::Watch { input } => crate::watch::watch(input, scale(input)?),
-        Command::Edit { file, size, scale } => crate::edit::edit(file, *size, *scale),
+        Command::Edit { file, size, scale } => crate::edit::edit(file.as_deref(), *size, *scale),
         Command::Timeline { input } => crate::timeline::print(input),
         Command::Bench {
             files,

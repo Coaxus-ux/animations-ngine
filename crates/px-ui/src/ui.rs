@@ -54,7 +54,15 @@ pub struct UiState {
     pub blocked: Vec<Rect>,
     /// Popups drawn this frame, which block from the next one.
     pub blocking: Vec<Rect>,
+    /// A dialog is open: only widgets drawn inside popups see the pointer.
+    pub modal: bool,
+    /// The last clicked widget and when, for double clicks.
+    pub last_click: Option<(Id, u64)>,
+    /// Text being typed into number fields, committed on Enter or focus loss.
+    pub drafts: BTreeMap<Id, String>,
 }
+
+const DOUBLE_CLICK_MS: u64 = 400;
 
 /// How the pointer met a widget this frame.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -70,6 +78,8 @@ pub struct Response {
     pub held: bool,
     /// Released over the widget it was pressed on.
     pub clicked: bool,
+    /// Clicked within `DOUBLE_CLICK_MS` of a click on the same widget.
+    pub double_clicked: bool,
     /// Released after being held, wherever the pointer is.
     pub released: bool,
     pub right_clicked: bool,
@@ -126,13 +136,13 @@ impl<'a> Ui<'a> {
         result
     }
 
-    /// Whether the pointer is over a popup this widget is not part of.
+    /// Whether a dialog or a popup this widget is not part of takes the pointer.
     fn blocked(&self) -> bool {
         !self.in_popup
-            && self
-                .input
-                .pointer
-                .is_some_and(|(x, y)| self.state.blocked.iter().any(|area| area.contains(x, y)))
+            && (self.state.modal
+                || self.input.pointer.is_some_and(|(x, y)| {
+                    self.state.blocked.iter().any(|area| area.contains(x, y))
+                }))
     }
 
     /// Whether the pointer is over `area` and not over a popup covering it.
@@ -165,11 +175,20 @@ impl<'a> Ui<'a> {
         } else {
             (0, 0)
         };
+        let clicked = released && hovered;
+        let double_clicked = clicked
+            && self.state.last_click.is_some_and(|(last, at)| {
+                last == id && input.time_ms.saturating_sub(at) <= DOUBLE_CLICK_MS
+            });
+        if clicked {
+            self.state.last_click = Some((id, input.time_ms));
+        }
         Response {
             hovered,
             pressed,
             held,
-            clicked: released && hovered,
+            clicked,
+            double_clicked,
             released,
             right_clicked: hovered && input.pressed.right,
             drag,

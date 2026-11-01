@@ -1,9 +1,13 @@
+use std::path::PathBuf;
+
 use kdl::KdlValue;
 use px_core::{Paint, Rgb};
 use px_format::edit::NodePath;
 
+use super::dialog::{DialogKind, PickPurpose};
 use super::window::{CodeMode, PanelKind};
 use crate::assets::ThemeChoice;
+use crate::domain::{Anchor, ExportJob, NewSpec};
 use crate::tools::ToolKind;
 
 /// Which mouse button drives a canvas stroke: left paints with the primary paint, right
@@ -117,4 +121,78 @@ pub enum Intent {
     /// Gives the picked object the primary paint.
     RecolorPicked,
     EditPrimaryColor,
+
+    ShowDialog(DialogKind),
+    CloseDialog,
+    /// The adapter's answer to `Request::PickFile`; `None` when the dialog was cancelled.
+    Picked {
+        purpose: PickPurpose,
+        path: Option<PathBuf>,
+    },
+
+    NewDocument(NewSpec),
+    OpenFile(PathBuf),
+    SaveAs(PathBuf),
+    ActivateTab(usize),
+    /// Closes a tab; `discard` skips the unsaved-changes question.
+    CloseTab {
+        index: usize,
+        discard: bool,
+    },
+    CloseAll,
+    GoHome,
+    Quit,
+    ForgetRecent(PathBuf),
+    ClearRecent,
+
+    Export(ExportJob),
+    RepeatExport,
+
+    ResizeCanvas {
+        width: u16,
+        height: u16,
+        anchor: Anchor,
+    },
+    SetTiming {
+        fps: u16,
+        duration: u32,
+        looping: bool,
+    },
+
+    TogglePaletteEdit,
+    AddRamp {
+        name: String,
+        colors: Vec<Rgb>,
+    },
+    RemoveRamp(String),
+    /// Rewrites one ramp: a rename, a tone added or removed, or a generated ramp.
+    SetRamp {
+        ramp: String,
+        name: String,
+        colors: Vec<Rgb>,
+    },
+    GenerateRamp {
+        ramp: String,
+        base: Rgb,
+        steps: u8,
+        hue_shift: f64,
+        contrast: f64,
+        saturation: f64,
+    },
+    ImportPalette(PathBuf),
+    SavePalette(PathBuf),
+    ApplyPreset(String),
+
+    SelectElement(Option<NodePath>),
+    ReplaceNode {
+        path: NodePath,
+        text: String,
+    },
+
+    /// The Confirm dialog's Save: saves tab `index` (asking where when it has no file yet),
+    /// closes it once it is clean and runs `then`.
+    SaveAndClose {
+        index: usize,
+        then: Option<Box<Intent>>,
+    },
 }

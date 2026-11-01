@@ -10,6 +10,7 @@ pub enum ExportError {
     Palette(PaletteError),
     Canvas(CanvasError),
     TooLarge,
+    Sheet(String),
 }
 
 impl fmt::Display for ExportError {
@@ -23,6 +24,7 @@ impl fmt::Display for ExportError {
             Self::Palette(error) => write!(f, "palette error: {error}"),
             Self::Canvas(error) => write!(f, "canvas error: {error}"),
             Self::TooLarge => f.write_str("upscaled image is too large for the format"),
+            Self::Sheet(message) => write!(f, "sprite sheet: {message}"),
         }
     }
 }

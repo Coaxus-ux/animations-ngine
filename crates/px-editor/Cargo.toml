@@ -10,12 +10,13 @@ publish.workspace = true
 kdl.workspace = true
 px-core.workspace = true
 px-engine.workspace = true
+px-export.workspace = true
 px-format.workspace = true
 px-raster.workspace = true
 px-ui.workspace = true
 
 [dev-dependencies]
-px-export.workspace = true
+png.workspace = true
 
 [lints]
 workspace = true

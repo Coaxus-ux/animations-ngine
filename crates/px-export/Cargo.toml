@@ -1,6 +1,6 @@
 [package]
 name = "px-export"
-description = "Resolves indexed canvases to RGB and writes PNG and GIF files."
+description = "Resolves indexed canvases to RGB and writes PNG, GIF, RGBA sprite sheets and Aseprite JSON."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

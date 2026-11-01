@@ -50,6 +50,12 @@ fn hex_value(byte: u8, index: usize) -> Result<u8, ColorParseError> {
     }
 }
 
+impl fmt::Display for Rgb {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "#{:02x}{:02x}{:02x}", self.r, self.g, self.b)
+    }
+}
+
 impl fmt::Display for ColorParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

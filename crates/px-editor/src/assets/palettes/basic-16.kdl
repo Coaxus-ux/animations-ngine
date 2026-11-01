@@ -1,0 +1,6 @@
+palette "basic-16" {
+    ramp "gray" "#0b0b10" "#2a2a35" "#55556a" "#9a9ab0" "#e8e8f0"
+    ramp "red" "#3a0d14" "#8a1f2a" "#d94a4a" "#ff9a8a"
+    ramp "green" "#0f2a14" "#2a6a2a" "#6ac24a" "#c8f08a"
+    ramp "blue" "#0d1430" "#24408a" "#4a8ad9" "#a8d8ff"
+}

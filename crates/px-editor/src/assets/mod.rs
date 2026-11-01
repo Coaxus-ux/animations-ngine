@@ -1,13 +1,15 @@
+pub mod palettes;
+
 use px_format::{Font, LoadOptions, MemorySources, load};
 use px_ui::{Bitmap, Icons, Theme};
 
-const DARK: &str = include_str!("../assets/theme-dark.kdl");
-const LIGHT: &str = include_str!("../assets/theme-light.kdl");
+const DARK: &str = include_str!("../../assets/theme-dark.kdl");
+const LIGHT: &str = include_str!("../../assets/theme-light.kdl");
 /// Each icon file, and the icons (scenes) it holds.
 const ICON_FILES: [(&str, &str, &[&str]); 3] = [
     (
         "icons-tools.kdl",
-        include_str!("../assets/icons-tools.kdl"),
+        include_str!("../../assets/icons-tools.kdl"),
         &[
             "pencil",
             "eraser",
@@ -24,17 +26,18 @@ const ICON_FILES: [(&str, &str, &[&str]); 3] = [
     ),
     (
         "icons-actions.kdl",
-        include_str!("../assets/icons-actions.kdl"),
+        include_str!("../../assets/icons-actions.kdl"),
         &[
             "undo", "redo", "save", "code", "window", "play", "pause", "onion", "grid",
         ],
     ),
     (
         "icons-small.kdl",
-        include_str!("../assets/icons-small.kdl"),
+        include_str!("../../assets/icons-small.kdl"),
         &[
             "eye", "eye-off", "lock", "unlock", "popout", "plus", "trash", "up", "down", "cel",
-            "hold",
+            "hold", "home", "close", "minus", "folder", "file", "swatch", "scene", "pixels",
+            "shape", "node",
         ],
     ),
 ];

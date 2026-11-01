@@ -44,6 +44,14 @@ impl FrameRate {
         self.0.get()
     }
 
+    /// One frame's length in `units_per_second` (1000 for milliseconds, 100 for GIF
+    /// centiseconds), rounded to the nearest unit: 24 fps is 42 ms, 12 fps is 8 cs.
+    #[must_use]
+    pub const fn period(self, units_per_second: u32) -> u32 {
+        let fps = self.get() as u32;
+        (units_per_second + fps / 2) / fps
+    }
+
     #[must_use]
     pub fn seconds_at(self, frame: Frame) -> f64 {
         f64::from(frame.index()) / f64::from(self.get())
@@ -76,5 +84,24 @@ impl fmt::Display for TimeError {
                 write!(f, "duration of {frames} frames is outside 1..={MAX_FRAMES}")
             }
         }
+    }
+}
+
+#[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    reason = "tests should fail loudly on unexpected errors"
+)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn frame_period_rounds_to_nearest() {
+        let period = |fps: u16, units: u32| FrameRate::new(fps).unwrap().period(units);
+        assert_eq!(period(24, 1000), 42);
+        assert_eq!(period(12, 1000), 83);
+        assert_eq!(period(12, 100), 8);
+        assert_eq!(period(1, 1000), 1000);
+        assert_eq!(period(MAX_FPS, 100), 1);
     }
 }

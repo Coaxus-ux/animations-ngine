@@ -67,8 +67,9 @@ impl App {
         }
         target.raster = raster;
         let command = target.command(&target.raster);
-        if let Some(document) = &mut self.document
-            && let Err(error) = document.apply(&command, store)
+        if let Some(Err(error)) = self
+            .document_mut()
+            .map(|document| document.apply(&command, store))
         {
             self.editing.status = error;
         }

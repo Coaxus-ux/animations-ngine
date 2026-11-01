@@ -1,7 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::PathBuf;
 
 use px_core::{Paint, Rgb};
+use px_format::edit::NodePath;
 use px_ui::{Id, UiCanvas, UiState};
+
+use super::dialog::{Dialog, PickPurpose};
 
 /// Identifies one of the app's windows to the adapter that shows it.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -14,15 +18,17 @@ pub enum PanelKind {
     Timeline,
     Inspector,
     Code,
+    Elements,
 }
 
 impl PanelKind {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Layers,
         Self::Palette,
         Self::Timeline,
         Self::Inspector,
         Self::Code,
+        Self::Elements,
     ];
 
     #[must_use]
@@ -33,6 +39,7 @@ impl PanelKind {
             Self::Timeline => "Timeline",
             Self::Inspector => "Inspector",
             Self::Code => "Code",
+            Self::Elements => "Elements",
         }
     }
 
@@ -45,6 +52,7 @@ impl PanelKind {
             Self::Timeline => "Timeline in its own window",
             Self::Inspector => "Inspector in its own window",
             Self::Code => "Code in its own window",
+            Self::Elements => "Elements in their own window",
         }
     }
 
@@ -147,8 +155,11 @@ pub struct Window {
     /// A layer being renamed, and the name so far.
     pub renaming: Option<usize>,
     pub help: bool,
-    /// The last widget clicked and when, to spot double-clicks.
-    pub last_click: Option<(Id, u64)>,
+    pub dialog: Option<Dialog>,
+    /// The element whose node the code view and inspector show.
+    pub selected: Option<NodePath>,
+    /// The palette panel is in edit mode (F4).
+    pub palette_edit: bool,
     /// What was drawn last: (document revision, input time bucket), to skip idle redraws.
     pub drawn: Option<(u64, u64)>,
 }
@@ -171,8 +182,10 @@ impl Window {
             picker: None,
             fields: BTreeMap::new(),
             renaming: None,
-            last_click: None,
             help: false,
+            dialog: None,
+            selected: None,
+            palette_edit: false,
             drawn: None,
         }
     }
@@ -193,5 +206,13 @@ pub enum Request {
     Title {
         id: WindowId,
         title: String,
+    },
+    /// Show a native file dialog; the answer comes back as `Intent::Picked`.
+    PickFile {
+        window: WindowId,
+        purpose: PickPurpose,
+        start: Option<PathBuf>,
+        name: Option<String>,
+        filters: &'static [(&'static str, &'static [&'static str])],
     },
 }

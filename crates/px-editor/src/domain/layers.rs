@@ -1,7 +1,6 @@
-use kdl::{KdlDocument, KdlNode};
 use px_engine::{Geometry, Param, PixelArt, Scene};
 use px_format::Origin;
-use px_format::edit::{NodePath, Source};
+use px_format::edit::{NodePath, Source, children_of, id_of};
 
 /// A row of the layers panel: a `layer` node of the scene, or a `pixels` node outside any.
 #[derive(Clone, Debug, PartialEq)]
@@ -44,18 +43,18 @@ pub fn layers(source: &Source, scene: &Scene, origins: &[Origin]) -> Vec<Layer> 
     let Some(node) = source.node(&root) else {
         return Vec::new();
     };
-    let children = node.children().map(KdlDocument::nodes).unwrap_or_default();
+    let children = children_of(node);
     let mut rows = Vec::new();
     for (child, kid) in children.iter().enumerate() {
         let name = id_of(kid).unwrap_or("").to_owned();
-        let path = root.child(kid.name().value(), id_of(kid), nth(children, child));
+        let path = Source::path_of(&root, children, kid);
         let art_path = match kid.name().value() {
             "layer" => {
-                let inner = kid.children().map(KdlDocument::nodes).unwrap_or_default();
+                let inner = children_of(kid);
                 inner
                     .iter()
-                    .position(|node| node.name().value() == "pixels")
-                    .map(|index| path.child("pixels", id_of(&inner[index]), nth(inner, index)))
+                    .find(|node| node.name().value() == "pixels")
+                    .map(|pixels| Source::path_of(&path, inner, pixels))
             }
             "pixels" => Some(path.clone()),
             _ => continue,
@@ -68,25 +67,6 @@ pub fn layers(source: &Source, scene: &Scene, origins: &[Origin]) -> Vec<Layer> 
         });
     }
     rows
-}
-
-fn id_of(node: &KdlNode) -> Option<&str> {
-    node.entries()
-        .first()
-        .filter(|entry| entry.name().is_none())
-        .and_then(|entry| entry.value().as_string())
-}
-
-/// Among `siblings`, how many before `index` share its name and id.
-fn nth(siblings: &[KdlNode], index: usize) -> usize {
-    fn key(node: &KdlNode) -> (&str, Option<&str>) {
-        (node.name().value(), id_of(node))
-    }
-    let target = key(&siblings[index]);
-    siblings[..index]
-        .iter()
-        .filter(|node| key(node) == target)
-        .count()
 }
 
 fn art(source: &Source, scene: &Scene, origins: &[Origin], path: NodePath) -> Option<Art> {

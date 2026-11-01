@@ -1,16 +1,17 @@
 use std::collections::BTreeSet;
 
 use px_core::{Frame, Paint, Palette};
-use px_engine::{FrameBuffer, Param, Scene};
+use px_engine::{FrameBuffer, Scene};
 use px_ui::{Rect, Roles, fill, pack};
 
-use crate::app::ViewState;
+use crate::app::{DocumentId, ViewState};
+use crate::domain::visibility::with_hidden_layers;
 use crate::domain::{Document, Selection};
 
 /// The document rendered for one window: rebuilt only when the document, the frame or the
 /// window's hidden layers change.
 pub struct RenderCache {
-    key: (u64, u32, BTreeSet<String>),
+    key: (Option<DocumentId>, u64, u32, BTreeSet<String>),
     scene: Option<Scene>,
     buffer: Option<FrameBuffer>,
 }
@@ -19,15 +20,20 @@ impl RenderCache {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            key: (u64::MAX, 0, BTreeSet::new()),
+            key: (None, u64::MAX, 0, BTreeSet::new()),
             scene: None,
             buffer: None,
         }
     }
 
     /// Renders `view.frame` of the document unless it is already rendered.
-    pub fn update(&mut self, document: &Document, view: &ViewState) {
-        let key = (document.revision(), view.frame, view.hidden.clone());
+    pub fn update(&mut self, id: DocumentId, document: &Document, view: &ViewState) {
+        let key = (
+            Some(id),
+            document.revision(),
+            view.frame,
+            view.hidden.clone(),
+        );
         if key == self.key {
             return;
         }
@@ -35,7 +41,8 @@ impl RenderCache {
         let Some(scene) = document.scene() else {
             return;
         };
-        let scene = hidden_scene(document, scene, &view.hidden).unwrap_or_else(|| scene.clone());
+        let scene =
+            with_hidden_layers(document, scene, &view.hidden).unwrap_or_else(|| scene.clone());
         let duration = scene.timing().duration.get().max(1);
         let mut buffer = FrameBuffer::new(&scene);
         if buffer
@@ -81,31 +88,6 @@ impl Default for RenderCache {
     fn default() -> Self {
         Self::new()
     }
-}
-
-/// The scene with every shape written inside a hidden layer made invisible.
-fn hidden_scene(document: &Document, scene: &Scene, hidden: &BTreeSet<String>) -> Option<Scene> {
-    if hidden.is_empty() {
-        return None;
-    }
-    let loaded = document.loaded()?;
-    let spans: Vec<(usize, usize)> = document
-        .layers()
-        .iter()
-        .filter(|layer| hidden.contains(&layer.name))
-        .filter_map(|layer| document.source().span(&layer.path))
-        .collect();
-    let mut spec = scene.spec().clone();
-    for (shape, origin) in spec.shapes.iter_mut().zip(&loaded.origins) {
-        if origin.file == 0
-            && spans
-                .iter()
-                .any(|(start, end)| origin.offset >= *start && origin.offset < *end)
-        {
-            shape.style.visible = Param::Fixed(0.0);
-        }
-    }
-    Scene::new(spec).ok()
 }
 
 /// Where the canvas lands in a view: `zoom` window pixels per canvas pixel, its top-left

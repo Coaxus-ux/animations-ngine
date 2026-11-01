@@ -9,7 +9,7 @@ use std::fmt;
 
 use kdl::{KdlDocument, KdlError, KdlNode, KdlValue};
 
-pub use path::{NodePath, Step};
+pub use path::{NodePath, Step, children_of, id_of};
 
 use text::{Lines, Span};
 
@@ -57,6 +57,16 @@ impl Source {
         path.find(&self.document)
     }
 
+    #[must_use]
+    pub fn nodes(&self) -> &[KdlNode] {
+        self.document.nodes()
+    }
+
+    #[must_use]
+    pub fn path_of(parent: &NodePath, siblings: &[KdlNode], node: &KdlNode) -> NodePath {
+        parent.step_to(siblings, node)
+    }
+
     /// The deepest node whose text contains byte `offset`.
     #[must_use]
     pub fn path_at(&self, offset: usize) -> Option<NodePath> {
@@ -66,7 +76,7 @@ impl Source {
         while let Some(node) = nodes.iter().find(|node| Span::of(node).contains(offset)) {
             path = path.step_to(nodes, node);
             found = Some(path.clone());
-            nodes = node.children().map(KdlDocument::nodes).unwrap_or_default();
+            nodes = children_of(node);
         }
         found
     }
@@ -86,6 +96,28 @@ impl Source {
         self.node(path)
             .map(|node| Lines(&self.text).indent_at(node.span().offset()).to_owned())
             .unwrap_or_default()
+    }
+
+    /// The node's text as it would be written at the top level: its own indentation taken
+    /// off every line after the first. `reindent` puts it back for `replace`.
+    #[must_use]
+    pub fn node_text(&self, path: &NodePath) -> Option<String> {
+        let (start, end) = self.span(path)?;
+        let indent = self.indent(path);
+        Some(dedented(&self.text[start..end], &indent))
+    }
+
+    /// `text` (one node, as `node_text` gives it) with `indent` added to every line after
+    /// the first, ready for `replace` at a node with that indentation.
+    #[must_use]
+    pub fn reindent(text: &str, indent: &str) -> String {
+        let (first, rest) = text.split_once('\n').unwrap_or((text, ""));
+        let mut out = first.to_owned();
+        if !rest.is_empty() {
+            out.push('\n');
+            out.push_str(&indented(rest, indent));
+        }
+        out.trim_end().to_owned()
     }
 
     /// Sets `key=value`, replacing the property if the node has it, else adding it after the
@@ -174,7 +206,7 @@ impl Source {
     pub fn insert(&mut self, parent: &NodePath, index: usize, text: &str) -> Result<(), EditError> {
         let node = self.found(parent)?;
         let lines = Lines(&self.text);
-        let children = node.children().map(KdlDocument::nodes).unwrap_or_default();
+        let children = children_of(node);
         let parent_indent = lines.indent_at(node.span().offset());
         let indent = children.first().map_or_else(
             || format!("{parent_indent}{INDENT}"),
@@ -189,9 +221,10 @@ impl Source {
             }
             (None, None) => {
                 let span = Span::of(node).trimmed(&self.text);
-                match self.text[span.start..span.end].rfind('}') {
-                    Some(brace) => (Span::at(lines.line_start(span.start + brace)), body),
-                    None => (Span::at(span.end), format!(" {{\n{body}{parent_indent}}}")),
+                if node.children().is_none() {
+                    (Span::at(span.end), format!(" {{\n{body}{parent_indent}}}"))
+                } else {
+                    self.inside_empty_block(span.end - 1, &body, parent_indent)
                 }
             }
         };
@@ -206,17 +239,34 @@ impl Source {
         to: usize,
     ) -> Result<(), EditError> {
         let node = self.found(parent)?;
-        let children = node.children().map(KdlDocument::nodes).unwrap_or_default();
+        let children = children_of(node);
         let child = children
             .get(from)
             .ok_or_else(|| EditError::NotFound(parent.clone()))?;
-        let span = Span::of(child).trimmed(&self.text);
-        let lines = Lines(&self.text);
-        let indent = lines.indent_at(span.start).to_owned();
-        let moved = dedented(&self.text[span.start..span.end], &indent);
         let path = parent.step_to(children, child);
+        let moved = self
+            .node_text(&path)
+            .ok_or_else(|| EditError::NotFound(path.clone()))?;
         self.remove(&path)?;
         self.insert(parent, to, &moved)
+    }
+
+    /// Where a body goes inside an empty block whose `}` is at `close`: on the brace's own
+    /// line when it has one, else between the `{` and `}` sharing the parent's line.
+    fn inside_empty_block(&self, close: usize, body: &str, parent_indent: &str) -> (Span, String) {
+        let lines = Lines(&self.text);
+        let own_line = self.text[lines.line_start(close)..close]
+            .chars()
+            .all(char::is_whitespace);
+        if own_line {
+            (Span::at(lines.line_start(close)), body.to_owned())
+        } else {
+            let start = self.text[..close].trim_end().len();
+            (
+                Span { start, end: close },
+                format!("\n{body}{parent_indent}"),
+            )
+        }
     }
 
     fn found(&self, path: &NodePath) -> Result<&KdlNode, EditError> {

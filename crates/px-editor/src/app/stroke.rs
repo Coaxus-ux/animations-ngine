@@ -86,7 +86,7 @@ impl PaintTarget {
 impl App {
     /// The cel window `window` paints on, or why there is none.
     pub(super) fn paint_target(&self, window: WindowId) -> Result<PaintTarget, String> {
-        let document = self.document.as_ref().ok_or("No document is open")?;
+        let document = self.document().ok_or("No document is open")?;
         let scene = document.scene().ok_or("The scene doesn't load")?;
         let view = &self.window(window).ok_or("No such window")?.view;
         let layer = view
@@ -134,11 +134,7 @@ impl App {
         input: &Input,
         store: &mut dyn FileStore,
     ) {
-        let Some(scene) = self
-            .document
-            .as_ref()
-            .and_then(crate::domain::Document::scene)
-        else {
+        let Some(scene) = self.document().and_then(crate::domain::Document::scene) else {
             return;
         };
         let size = scene.size();
@@ -246,16 +242,19 @@ impl App {
             };
         }
         let Some(target) = &stroke.target else { return };
-        let Some(document) = &mut self.document else {
+        let commit = effect.commit.then(|| target.command(&stroke.raster));
+        let preview = (!effect.commit && effect.repaint)
+            .then(|| (target.shape, target.cels_with(&stroke.raster)));
+        let Some(document) = self.document_mut() else {
             return;
         };
-        if effect.commit {
-            if let Err(error) = document.apply(&target.command(&stroke.raster), store) {
+        if let Some(command) = commit {
+            if let Err(error) = document.apply(&command, store) {
                 document.cancel_preview();
                 self.editing.status = error;
             }
-        } else if effect.repaint {
-            document.preview_cels(target.shape, target.cels_with(&stroke.raster));
+        } else if let Some((shape, cels)) = preview {
+            document.preview_cels(shape, cels);
         }
     }
 }

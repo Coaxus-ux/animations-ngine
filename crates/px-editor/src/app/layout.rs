@@ -1,17 +1,20 @@
 use std::fmt::Write as _;
+use std::path::PathBuf;
 
 use kdl::{KdlDocument, KdlNode};
 
 use super::App;
 use super::window::{PanelKind, WindowKind};
 use crate::assets::ThemeChoice;
+use crate::domain::{ExportJob, Recent};
 
 const MIN_SCALE: i32 = 1;
 const MAX_SCALE: i32 = 4;
 
 impl App {
     /// The workspace layout, as KDL, for the adapter to keep per user: theme, UI scale,
-    /// torn-off panels and extra canvas windows with their zoom.
+    /// torn-off panels, extra canvas windows with their zoom, recent files, the last
+    /// folder and the last export.
     #[must_use]
     pub fn layout_text(&self) -> String {
         let theme = match self.theme {
@@ -32,6 +35,13 @@ impl App {
                 }
                 WindowKind::Main => {}
             }
+        }
+        text.push_str(&self.recent.to_kdl());
+        if let Some(folder) = &self.last_folder {
+            let _ = writeln!(text, "    folder {:?}", folder.to_string_lossy());
+        }
+        if let Some(export) = &self.last_export {
+            text.push_str(&export.to_kdl());
         }
         text.push_str("}\n");
         text
@@ -63,6 +73,7 @@ impl App {
             self.theme = theme;
             self.reload_assets();
         }
+        self.recent = Recent::from_node(editor);
         for node in editor
             .children()
             .map(KdlDocument::nodes)
@@ -80,10 +91,18 @@ impl App {
                             super::Intent::PopOut(panel),
                             self.focused,
                             &px_ui::Input::default(),
-                            &mut NoFiles,
+                            &mut crate::ports::NoFiles,
                         );
                     }
                 }
+                "folder" => {
+                    self.last_folder = node
+                        .entries()
+                        .first()
+                        .and_then(|entry| entry.value().as_string())
+                        .map(PathBuf::from);
+                }
+                "export" => self.last_export = ExportJob::from_node(node),
                 "canvas" => {
                     let id = self.open_window(WindowKind::Canvas);
                     let zoom = integer(node, "zoom").and_then(|zoom| i32::try_from(zoom).ok());
@@ -104,21 +123,4 @@ impl App {
 
 fn integer(node: &KdlNode, key: &str) -> Option<i128> {
     node.entry(key).and_then(|entry| entry.value().as_integer())
-}
-
-/// Restoring a layout never touches files.
-struct NoFiles;
-
-impl crate::ports::FileStore for NoFiles {
-    fn read(&mut self, _path: &std::path::Path) -> Result<String, String> {
-        Err("no files while restoring a layout".to_owned())
-    }
-
-    fn write(&mut self, _path: &std::path::Path, _text: &str) -> Result<(), String> {
-        Err("no files while restoring a layout".to_owned())
-    }
-
-    fn stamp(&mut self, _path: &std::path::Path) -> Option<u64> {
-        None
-    }
 }

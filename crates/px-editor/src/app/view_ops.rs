@@ -59,19 +59,17 @@ impl App {
     }
 
     pub(super) fn layer(&self, index: usize) -> Option<&crate::domain::Layer> {
-        self.document.as_ref()?.layers().get(index)
+        self.document()?.layers().get(index)
     }
 
     pub(super) fn duration(&self) -> u32 {
-        self.document
-            .as_ref()
+        self.document()
             .and_then(crate::domain::Document::scene)
             .map_or(1, |scene| scene.timing().duration.get().max(1))
     }
 
     pub(super) fn canvas_size(&self) -> (i32, i32) {
-        self.document
-            .as_ref()
+        self.document()
             .and_then(crate::domain::Document::scene)
             .map_or((1, 1), |scene| {
                 (

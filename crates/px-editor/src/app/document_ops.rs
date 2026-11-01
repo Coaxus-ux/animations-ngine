@@ -2,6 +2,7 @@ use kdl::KdlValue;
 use px_engine::Geometry;
 
 use super::{App, WindowId};
+use crate::domain::palette_model::palette_path;
 use crate::domain::{Command, scene_path};
 use crate::ports::FileStore;
 
@@ -20,7 +21,7 @@ impl App {
     /// Rewrites the picked object's `paint` (shapes; pixel layers keep their own paints).
     pub(super) fn recolor_picked(&mut self, paint: px_core::Paint, store: &mut dyn FileStore) {
         let target = self.editing.picked.and_then(|shape| {
-            let document = self.document.as_ref()?;
+            let document = self.document()?;
             let loaded = document.loaded()?;
             let origin = loaded
                 .origins
@@ -52,7 +53,7 @@ impl App {
         color: px_core::Rgb,
         store: &mut dyn FileStore,
     ) {
-        let Some(document) = &self.document else {
+        let Some(document) = self.document() else {
             return;
         };
         let Some(loaded) = document.loaded() else {
@@ -61,20 +62,13 @@ impl App {
         let Some(ramp) = loaded.paint_names.ramp(paint.ramp) else {
             return;
         };
-        let palette = document
-            .source()
-            .node(&scene_path(&loaded.scene))
-            .and_then(|scene| scene.entry("palette"))
-            .and_then(|entry| entry.value().as_string())
-            .map(str::to_owned);
-        let Some(palette) = palette else { return };
-        let path = px_format::edit::NodePath::root()
-            .child("palette", Some(&palette), 0)
-            .child("ramp", Some(ramp), 0);
-        if document.source().node(&path).is_none() {
-            self.editing.status = format!("Palette \"{palette}\" lives in another file");
-            return;
-        }
+        let path = match palette_path(document) {
+            Ok(palette) => palette.child("ramp", Some(ramp), 0),
+            Err(status) => {
+                self.editing.status = status;
+                return;
+            }
+        };
         let tone = usize::from(paint.tone.index());
         self.run(
             &Command::SetColor {
@@ -87,7 +81,7 @@ impl App {
     }
 
     pub(super) fn add_layer(&mut self, window: WindowId, store: &mut dyn FileStore) {
-        let Some(document) = &self.document else {
+        let Some(document) = self.document() else {
             return;
         };
         let Some(scene) = document.scene() else {
@@ -108,7 +102,7 @@ impl App {
             name: name.clone(),
         };
         self.run(&command, store);
-        let index = self.document.as_ref().and_then(|document| {
+        let index = self.document().and_then(|document| {
             document
                 .layers()
                 .iter()
@@ -118,7 +112,7 @@ impl App {
     }
 
     pub(super) fn move_layer(&mut self, from: usize, to: usize, store: &mut dyn FileStore) {
-        let Some(document) = &self.document else {
+        let Some(document) = self.document() else {
             return;
         };
         let Some(scene) = document.scene() else {
@@ -139,15 +133,12 @@ impl App {
             to: target.child,
         };
         self.run(&command, store);
+        let last = self
+            .document()
+            .map_or(0, |document| document.layers().len().saturating_sub(1));
         for window in &mut self.windows {
             if window.view.layer == Some(from) {
-                window.view.layer = Some(
-                    to.min(
-                        self.document
-                            .as_ref()
-                            .map_or(0, |doc| doc.layers().len().saturating_sub(1)),
-                    ),
-                );
+                window.view.layer = Some(to.min(last));
             }
         }
     }
@@ -170,7 +161,7 @@ impl App {
     }
 
     pub(super) fn history(&mut self, undo: bool, store: &mut dyn FileStore) {
-        let Some(document) = &mut self.document else {
+        let Some(document) = self.document_mut() else {
             return;
         };
         let label = if undo {
@@ -187,7 +178,7 @@ impl App {
     }
 
     pub(super) fn save(&mut self, store: &mut dyn FileStore) {
-        let Some(document) = &mut self.document else {
+        let Some(document) = self.document_mut() else {
             return;
         };
         self.editing.status = match document.save(store) {

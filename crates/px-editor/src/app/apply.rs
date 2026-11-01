@@ -8,14 +8,37 @@ use super::{App, WindowId};
 use crate::domain::{Command, Selection};
 use crate::ports::FileStore;
 
+/// The windows an intent acts on: the one that sent it and the canvas window it means
+/// (that window when it has a canvas, else the canvas window last used).
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Targets {
+    pub source: WindowId,
+    pub canvas: WindowId,
+}
+
+/// One link of the chain: handles the intent, or hands it back for the next handler.
+type Handler = fn(&mut App, Intent, Targets, &Input, &mut dyn FileStore) -> Option<Intent>;
+
+/// Every handler in order; adding a feature adds a module and a line here.
+const HANDLERS: &[Handler] = &[
+    App::apply_dialogs,
+    App::apply_files,
+    App::apply_tabs,
+    App::apply_export,
+    App::apply_palette,
+    App::apply_nodes,
+    App::apply_paints,
+    App::apply_layers,
+    App::apply_canvas,
+    App::apply_workspace,
+];
+
 impl App {
     /// Applies `intent` as if window `source` asked for it: for scripts and tests.
     pub fn dispatch(&mut self, intent: Intent, source: WindowId, store: &mut dyn FileStore) {
         self.apply(intent, source, &Input::default(), store);
     }
 
-    /// Applies one intent from window `source`. Canvas intents act on that window; panel
-    /// intents on the canvas window last used.
     pub(super) fn apply(
         &mut self,
         intent: Intent,
@@ -27,25 +50,22 @@ impl App {
             Some(window) if window.kind.has_canvas() => source,
             _ => self.focused,
         };
-        let Some(intent) = self.apply_paints(intent, source, store) else {
-            return;
-        };
-        let Some(intent) = self.apply_layers(intent, source, canvas, store) else {
-            return;
-        };
-        let Some(intent) = self.apply_canvas(intent, canvas, input, store) else {
-            return;
-        };
-        self.apply_workspace(&intent, source, canvas, store);
+        let targets = Targets { source, canvas };
+        let mut pending = Some(intent);
+        for handler in HANDLERS {
+            let Some(intent) = pending.take() else { return };
+            pending = handler(self, intent, targets, input, store);
+        }
     }
 
-    /// Tools, paints and palette colors; returns the intent when it is about something else.
     fn apply_paints(
         &mut self,
         intent: Intent,
-        source: WindowId,
+        targets: Targets,
+        _input: &Input,
         store: &mut dyn FileStore,
     ) -> Option<Intent> {
+        let source = targets.source;
         match intent {
             Intent::Tool(tool) => {
                 self.editing.tool = tool;
@@ -60,8 +80,7 @@ impl App {
             Intent::Swatch(paint) => self.swatch(paint, store),
             Intent::OpenPicker(paint) => {
                 let color = self
-                    .document
-                    .as_ref()
+                    .document()
                     .and_then(crate::domain::Document::scene)
                     .and_then(|scene| scene.palette().resolve(paint).ok())
                     .unwrap_or_default();
@@ -87,14 +106,14 @@ impl App {
         None
     }
 
-    /// The layer list: selecting, showing, locking, adding, moving, renaming.
     fn apply_layers(
         &mut self,
         intent: Intent,
-        source: WindowId,
-        canvas: WindowId,
+        targets: Targets,
+        _input: &Input,
         store: &mut dyn FileStore,
     ) -> Option<Intent> {
+        let Targets { source, canvas } = targets;
         match intent {
             Intent::SelectLayer(layer) => self.view_mut(canvas, |view| view.layer = Some(layer)),
             Intent::ToggleHidden(name) => self.view_mut(canvas, |view| {
@@ -140,14 +159,14 @@ impl App {
         None
     }
 
-    /// Frames, the canvas view, strokes and the document's text and history.
     fn apply_canvas(
         &mut self,
         intent: Intent,
-        canvas: WindowId,
+        targets: Targets,
         input: &Input,
         store: &mut dyn FileStore,
     ) -> Option<Intent> {
+        let canvas = targets.canvas;
         match intent {
             Intent::Frame(frame) => {
                 let duration = self.duration();
@@ -182,7 +201,7 @@ impl App {
                 self.run(&Command::SetProperty { path, key, value }, store);
             }
             Intent::SetText(text) => {
-                if let Some(document) = &mut self.document {
+                if let Some(document) = self.document_mut() {
                     document.set_text(text, store);
                 }
             }
@@ -194,15 +213,15 @@ impl App {
         None
     }
 
-    /// Selections, windows and the theme.
     fn apply_workspace(
         &mut self,
-        intent: &Intent,
-        source: WindowId,
-        canvas: WindowId,
+        intent: Intent,
+        targets: Targets,
+        _input: &Input,
         store: &mut dyn FileStore,
-    ) {
-        match *intent {
+    ) -> Option<Intent> {
+        let Targets { source, canvas } = targets;
+        match intent {
             Intent::Copy => self.selection_op(canvas, SelectionOp::Copy, store),
             Intent::Cut => self.selection_op(canvas, SelectionOp::Cut, store),
             Intent::Paste => self.selection_op(canvas, SelectionOp::Paste, store),
@@ -244,8 +263,9 @@ impl App {
                 }
             }
             Intent::ToggleHelp => self.window_mut(source, |window| window.help = !window.help),
-            _ => {}
+            other => return Some(other),
         }
+        None
     }
 
     pub(super) fn window_mut(&mut self, id: WindowId, change: impl FnOnce(&mut super::Window)) {

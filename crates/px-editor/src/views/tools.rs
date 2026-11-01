@@ -2,19 +2,20 @@ use px_ui::{
     Area, Id, Rect, TOOL_BUTTON, Ui, button, checkbox, icon_button, label, rect, text_width,
 };
 
-use super::Context;
+use super::{Context, Placement};
 use crate::app::Intent;
 use crate::domain::Document;
 use crate::tools::ToolKind;
 
-/// The tools, one under another, and the two colors below them.
+/// Height of the two paint boxes under the color bar (UI pixels).
+pub(super) const PAINTS: i32 = 2 * TOOL_BUTTON;
+
+/// The tools, one under another, down the window's right edge.
 pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.header);
-    ui.canvas.fill(
-        rect(area.right() - 1, area.y, 1, area.height),
-        roles.panel_dark,
-    );
+    ui.canvas
+        .fill(rect(area.x, area.y, 1, area.height), roles.panel_dark);
     let id = Id::new("tools");
     let x = area.x + 3;
     let mut y = area.y + 3;
@@ -33,7 +34,14 @@ pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
         }
         y += TOOL_BUTTON + 1;
     }
-    y += 4;
+}
+
+/// The main and second colors, one over the other as in Aseprite, and the swap button.
+pub(super) fn paints(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
+    let roles = ui.theme.roles;
+    ui.canvas.fill(area, roles.panel);
+    ui.canvas
+        .fill(rect(area.x, area.y, area.width, 1), roles.panel_dark);
     let Some(palette) = context
         .document
         .and_then(Document::scene)
@@ -41,6 +49,7 @@ pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     else {
         return;
     };
+    let (x, y) = (area.x + 4, area.y + 4);
     let colors = [
         (
             context.editing.primary,
@@ -65,8 +74,13 @@ pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
             ui.tooltip(tip);
         }
     }
-    let swap = rect(x, y + 2 * TOOL_BUTTON - 2, TOOL_BUTTON, px_ui::ROW);
-    if button(ui, id.with_name("swap"), swap, "X") {
+    let swap = rect(
+        x + TOOL_BUTTON + 6,
+        y + TOOL_BUTTON / 2 - 2,
+        TOOL_BUTTON,
+        px_ui::ROW,
+    );
+    if button(ui, Id::new("tools").with_name("swap"), swap, "X") {
         context.intents.push(Intent::SwapPaints);
     }
 }
@@ -183,43 +197,27 @@ const fn how_to(tool: ToolKind) -> &'static str {
     }
 }
 
-/// File, pointer position, color, frame and zoom; the last message, or what F1 does.
-pub(super) fn status(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
+/// Aseprite's status line: size, zoom, pointer, color, frame and layer; after a separator,
+/// the file's first error, the last message, or what F1 does.
+pub(super) fn status(
+    ui: &mut Ui<'_>,
+    context: &mut Context<'_>,
+    area: Rect,
+    canvas_area: Option<Rect>,
+) {
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.header);
     ui.canvas
         .fill(rect(area.x, area.y, area.width, 1), roles.panel_dark);
-    let mut parts: Vec<String> = Vec::new();
-    if let Some(document) = context.document {
-        let file = document
-            .path()
-            .file_name()
-            .map_or_else(String::new, |name| name.to_string_lossy().into_owned());
-        let saved = if document.is_dirty() {
-            "  (not saved)"
-        } else {
-            ""
-        };
-        parts.push(format!("{file}{saved}"));
-        if let Some((x, y)) = context.hover {
-            parts.push(format!("x {x}  y {y}"));
-        }
-        if let (Some(paint), Some(loaded)) = (context.editing.primary, document.loaded()) {
-            parts.push(format!(
-                "color {}",
-                loaded.paint_names.paint(paint).unwrap_or_default()
-            ));
-        }
-        if let Some(scene) = document.scene() {
-            let frames = scene.timing().duration.get();
-            parts.push(format!(
-                "frame {}/{frames}",
-                context.view.frame % frames.max(1) + 1
-            ));
-        }
-    }
-    let (left, right) = area.inset(1).take_left(area.width / 2);
-    label(ui, left, &format!(" {}", parts.join("   ")), roles.ink);
+    let info = context
+        .document
+        .map(|document| facts(context, document, canvas_area).join(" | "))
+        .unwrap_or_default();
+    let info_width = (text_width(ui.font, &info) + 10).min(area.width * 2 / 3);
+    let (left, right) = area.inset(1).take_left(info_width);
+    label(ui, left, &format!(" {info}"), roles.ink);
+    ui.canvas
+        .fill(rect(left.right(), left.y, 1, left.height), roles.panel_dark);
     let (message, ink) = match context
         .document
         .and_then(|document| document.errors().first())
@@ -230,5 +228,55 @@ pub(super) fn status(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
         }
         None => (context.editing.status.clone(), roles.ink_dim),
     };
-    label(ui, right, &message, ink);
+    label(
+        ui,
+        rect(right.x + 4, right.y, right.width - 4, right.height),
+        &message,
+        ink,
+    );
+}
+
+fn facts(context: &Context<'_>, document: &Document, canvas_area: Option<Rect>) -> Vec<String> {
+    let mut parts = Vec::new();
+    let Some(scene) = document.scene() else {
+        return parts;
+    };
+    let size = (
+        i32::from(scene.size().width()),
+        i32::from(scene.size().height()),
+    );
+    parts.push(format!("{}x{}", size.0, size.1));
+    if let Some(area) = canvas_area {
+        let scale = context.scale;
+        let window = rect(
+            area.x * scale,
+            area.y * scale,
+            area.width * scale,
+            area.height * scale,
+        );
+        let zoom = Placement::of(context.view, window, size).zoom;
+        parts.push(format!("zoom {}%", zoom * 100));
+    }
+    if let Some((x, y)) = context.hover {
+        parts.push(format!("{x},{y}"));
+    }
+    if let (Some(paint), Some(loaded)) = (context.editing.primary, document.loaded()) {
+        parts.push(format!(
+            "color {}",
+            loaded.paint_names.paint(paint).unwrap_or_default()
+        ));
+    }
+    let frames = scene.timing().duration.get();
+    parts.push(format!(
+        "frame {}/{frames}",
+        context.view.frame % frames.max(1) + 1
+    ));
+    if let Some(layer) = context
+        .view
+        .layer
+        .and_then(|index| document.layers().get(index))
+    {
+        parts.push(format!("layer {}", layer.name));
+    }
+    parts
 }

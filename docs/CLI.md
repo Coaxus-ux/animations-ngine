@@ -13,7 +13,7 @@ The binary's working name is **`pxe`** (to be renamed with the project). All com
 | `pxe new <name>` | Create a project |
 | `pxe preview [scene]` | Open the editor (or a minimal preview window with `--lite`) |
 | `pxe render <scene>` | Render frames to PNG (debugging, stills) |
-| `pxe edit <file>` | The pixel-art editor: paint layers, animate cels, edit the scene visually or as code ([EDITOR.md](EDITOR.md) §0) |
+| `pxe edit [file]` | The pixel-art editor: open files as tabs, paint layers, animate cels, edit the scene visually or as code, export ([EDITOR.md](EDITOR.md) §0) |
 | `pxe export <target>` | Produce final outputs: animations, sprite sheets, tilesets, layers |
 | `pxe watch <file>` | Live preview window that reloads whenever the scene file changes |
 | `pxe check` | Validate the whole project without rendering |
@@ -99,7 +99,7 @@ pxe export --preset release-gifs
 
 MP4/WebM need `ffmpeg` (see §5).
 
-> **Today (2026-10-30):** `pxe export <file> [--scene NAME] [--scale N] [--param NAME=VALUE] [--out PATH] [--jobs N]` writes a GIF of a scene or a sequence; a sequence's GIF gives each frame its own color table, so shots in different palettes keep their exact colors. Frames are rendered and compressed on `--jobs` threads (default: every core) and stored as deltas, only the box that changed since the previous frame; the file is byte-identical for any `--jobs` (D-010). `cargo pxe …` runs the optimized CLI from the repository. `pxe render <file> --frame N` writes one PNG of either.
+> **Today (2026-10-30):** `pxe export <file> [--scene NAME] [--scale N] [--param NAME=VALUE] [--out PATH] [--jobs N]` writes a GIF of a scene or a sequence; a sequence's GIF gives each frame its own color table, so shots in different palettes keep their exact colors. Frames are rendered and compressed on `--jobs` threads (default: every core) and stored as deltas, only the box that changed since the previous frame; the file is byte-identical for any `--jobs` (D-010). `cargo pxe …` runs the optimized CLI from the repository. `pxe render <file> --frame N` writes one PNG of either. Sprite sheets (with Aseprite JSON), PNG sequences and transparent PNGs are exported from the editor's Export dialog ([EDITOR.md](EDITOR.md) §0); `--format` on the command line is still planned.
 
 ### 3.4 `watch`
 ```bash
@@ -146,6 +146,8 @@ pxe bake night-room "layer room/shelf[0]" --what repeat
 pxe palette import ~/Downloads/resurrect-64.hex --name resurrect
 ```
 Clusters colors into ramps by hue and lightness and writes `palettes/<name>.kdl` with a TODO list of roles to alias. `--ramps <n>` hints how many ramps to build.
+
+> **Today (2026-11-01):** importing happens in the editor's palette editor (F4 > Import .hex/.gpl), which splits the colors into ramps of at most eight tones in file order; the command-line importer and the hue clustering are still planned.
 
 ### 3.10 `bench`
 Golden-image tests for the benchmark scenes ([BENCHMARKS.md](BENCHMARKS.md)) and any scene with a `golden` node.
