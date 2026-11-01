@@ -20,6 +20,7 @@ scene "in-editor-fuji" palette="fuji-in-editor" width=640 height=360 fps=12 dura
         marker "page" at="1.5s"
         marker "pick" at="2.8s"
         marker "dive" at="6s"
+        marker "full" at="7.4s"
     }
     group "mouse" {
         anim x {
@@ -38,7 +39,7 @@ scene "in-editor-fuji" palette="fuji-in-editor" width=640 height=360 fps=12 dura
     group "dive" {
         anim x {
             k "dive" 0
-            k "7.4s" 1 interp="ease-in-out"
+            k "full" 1 interp="ease-in-out"
         }
     }
     ambient occlusion=1 key-light=330 {

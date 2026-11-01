@@ -20,6 +20,7 @@ scene "in-editor-fallen" palette="fallen-in-editor" width=640 height=360 fps=12 
         marker "body" at="4.1s"
         marker "hair" at="5.2s"
         marker "dive" at="6.6s"
+        marker "full" at="7.9s"
     }
     group "mouse" {
         anim x {
@@ -47,7 +48,7 @@ scene "in-editor-fallen" palette="fallen-in-editor" width=640 height=360 fps=12 
     group "dive" {
         anim x {
             k "dive" 0
-            k "7.9s" 1 interp="ease-in-out"
+            k "full" 1 interp="ease-in-out"
         }
     }
     ambient darkness=2

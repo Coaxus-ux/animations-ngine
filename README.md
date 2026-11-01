@@ -47,6 +47,7 @@ cargo pxe watch examples/lantern-night.kdl     # live preview, reloads on save
 cargo pxe edit examples/pixel-room.kdl         # the pixel-art editor
 cargo pxe export examples/trailer.kdl --scale 2 --jobs 4   # the engine's own trailer
 cargo pxe export examples/editor-trailer.kdl --scale 2     # the editor's trailer, 1280×720
+tools/export_mp4.sh examples/editor-trailer.kdl tools/scores/editor_trailer.py out/editor-trailer.mp4   # as MP4 with its chiptune score (macOS)
 ```
 
 `cargo pxe` is an alias for `cargo run --release -p px-cli --` ([`.cargo/config.toml`](.cargo/config.toml)).

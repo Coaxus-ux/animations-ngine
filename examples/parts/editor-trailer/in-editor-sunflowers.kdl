@@ -17,8 +17,11 @@ scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360
     timeline {
         marker "click" at="1s"
         marker "enter" at="1.3s"
+        marker "typing" at="1.45s"
+        marker "typed" at="2.672s"
         marker "load" at="2.97s"
         marker "dive" at="6.6s"
+        marker "full" at="7.9s"
     }
     group "mouse" {
         anim x {
@@ -39,7 +42,7 @@ scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360
             k "click" 336
             k "1.29s" 336
             k "1.3s" 315
-            k "1.450s" 315
+            k "typing" 315
             k "1.506s" 319
             k "1.561s" 323
             k "1.617s" 327
@@ -61,7 +64,7 @@ scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360
             k "2.506s" 413
             k "2.561s" 419
             k "2.617s" 425
-            k "2.672s" 431
+            k "typed" 431
         }
         anim y {
             k "click" 122
@@ -72,7 +75,7 @@ scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360
     group "dive" {
         anim x {
             k "dive" 0
-            k "7.9s" 1 interp="ease-in-out"
+            k "full" 1 interp="ease-in-out"
         }
     }
     ambient {

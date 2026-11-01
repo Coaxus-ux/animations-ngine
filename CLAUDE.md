@@ -27,7 +27,7 @@ crates/
   px-editor   the editor: domain, tools, views, app (no window, no files)
   px-cli      the `pxe` binary; `pxe edit` is the editor's only window/file/dialog adapter (minifb, std::fs, rfd)
 examples/     sample scenes and the trailer sequence; examples/parts/<example>/ holds the scenes each example places or shoots
-tools/        repo tooling (file size guard)
+tools/        repo tooling: guards, and MP4 export of a sequence with a synthesized chiptune score (tools/scores/)
 ```
 
 ## Commands
