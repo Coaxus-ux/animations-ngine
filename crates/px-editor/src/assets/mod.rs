@@ -5,7 +5,7 @@ use px_ui::{Bitmap, Icons, Theme};
 
 const DARK: &str = include_str!("../../assets/theme-dark.kdl");
 const LIGHT: &str = include_str!("../../assets/theme-light.kdl");
-const ICON_FILES: [(&str, &str, &[&str]); 3] = [
+const ICON_FILES: [(&str, &str, &[&str]); 4] = [
     (
         "icons-tools.kdl",
         include_str!("../../assets/icons-tools.kdl"),
@@ -36,8 +36,13 @@ const ICON_FILES: [(&str, &str, &[&str]); 3] = [
         &[
             "eye", "eye-off", "lock", "unlock", "popout", "plus", "trash", "up", "down", "cel",
             "hold", "home", "close", "minus", "folder", "file", "swatch", "scene", "pixels",
-            "shape", "node", "maximize", "restore", "side", "filter",
+            "shape", "node",
         ],
+    ),
+    (
+        "icons-header.kdl",
+        include_str!("../../assets/icons-header.kdl"),
+        &["maximize", "restore", "side", "filter"],
     ),
 ];
 const SWATCH: &str = "use \"theme.kdl\"\nscene \"theme\" palette=\"theme\" width=1 height=1 fps=1 duration=\"1f\" background=\"key.0\" {}\n";
