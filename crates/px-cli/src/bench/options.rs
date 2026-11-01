@@ -7,10 +7,9 @@ use crate::args::{DETAIL_HELP, Sweep, parse_detail, parse_size, parse_sweep};
 pub(crate) struct Options {
     #[arg(
         long,
-        default_value_t = 33.3,
-        help = "Slowest allowed frame, in milliseconds"
+        help = "Slowest allowed frame, in milliseconds, for every file [default: a sequence's `frame-budget`, else 33.3]"
     )]
-    pub(crate) budget_ms: f64,
+    pub(crate) budget_ms: Option<f64>,
     #[arg(
         long,
         default_value_t = 3,

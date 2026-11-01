@@ -1,0 +1,126 @@
+// The fallen warrior open in the editor: the pointer presses Play, then picks the scene's
+// parts one by one in Elements (roots, sword, body, hair) while the inspector follows and a
+// selection box frames each part on the canvas, and the camera dives into the canvas until
+// the warrior fills the frame.
+
+use "../../fallen-warrior.kdl"
+use "chrome.kdl"
+use "swatches.kdl"
+
+palette "fallen-in-editor" {
+    include "fallen"
+    include "editor"
+}
+
+scene "in-editor-fallen" palette="fallen-in-editor" width=640 height=360 fps=12 duration="10s" seed=13 background="ui-bar" {
+    timeline {
+        marker "play" at="0.7s"
+        marker "roots" at="1.9s"
+        marker "sword" at="3s"
+        marker "body" at="4.1s"
+        marker "hair" at="5.2s"
+        marker "dive" at="6.6s"
+    }
+    group "mouse" {
+        anim x {
+            k "0s" 360
+            k "0.6s" 148 interp="ease-in-out"
+            k "1.2s" 148
+            k "1.8s" 540 interp="ease-in-out"
+            k "sword" 540
+            k "body" 546 interp="ease-in-out"
+            k "hair" 552 interp="ease-in-out"
+            k "6.2s" 470 interp="ease-in-out"
+        }
+        anim y {
+            k "0s" 210
+            k "0.6s" 270 interp="ease-in-out"
+            k "1.2s" 270
+            k "1.8s" 196 interp="ease-in-out"
+            k "2.9s" 196
+            k "sword" 207 interp="ease-in-out"
+            k "body" 218 interp="ease-in-out"
+            k "hair" 229 interp="ease-in-out"
+            k "6.2s" 300 interp="ease-in-out"
+        }
+    }
+    group "dive" {
+        anim x {
+            k "dive" 0
+            k "7.9s" 1 interp="ease-in-out"
+        }
+    }
+    ambient darkness=2
+
+    use-scene "editor-chrome" file="fallen-warrior.kdl" tab=112 status="256x170 | zoom 100% | color night.3" help=226
+
+    text "night" x=2 y=72 paint="ui-ink"
+    text "root" x=2 y=83 paint="ui-ink"
+    text "skin" x=2 y=94 paint="ui-ink"
+    text "steel" x=2 y=105 paint="ui-ink"
+    text "cloth" x=2 y=116 paint="ui-ink"
+    text "blood" x=2 y=127 paint="ui-ink"
+    text "eye" x=2 y=138 paint="ui-ink"
+    use-scene "swatches-4" x=36 y=72 ramp="night"
+    use-scene "swatches-4" x=36 y=83 ramp="root"
+    use-scene "swatches-5" x=36 y=94 ramp="skin"
+    use-scene "swatches-6" x=36 y=105 ramp="steel"
+    use-scene "swatches-5" x=36 y=116 ramp="cloth"
+    use-scene "swatches-5" x=36 y=127 ramp="blood"
+    use-scene "swatches-1" x=36 y=138 ramp="eye"
+    rect x=65 y=71 width=11 height=11 paint="ui-accent-hi"
+    rect x=66 y=72 width=9 height=9 paint="night.3" emissive=#true
+    rect x=4 y=311 width=16 height=16 paint="ui-ink-hi"
+    rect x=5 y=312 width=14 height=14 paint="night.3" emissive=#true
+    rect x=9 y=327 width=16 height=16 paint="ui-ink-hi"
+    rect x=10 y=328 width=14 height=14 paint="ui-grid"
+
+    group x=131 y=45 width=352 height=207 clip=#true {
+        use-scene "fallen-warrior" x=179 y=63 speed=0 end="play"
+        use-scene "fallen-warrior" x=179 y=63 start="play"
+        use-scene "selection" x=189 y=63 width=245 height=170 start="roots" end="sword"
+        use-scene "selection" x=187 y=109 width=243 height=107 start="sword" end="body"
+        use-scene "selection" x=216 y=97 width=176 height=94 start="body" end="hair"
+        use-scene "selection" x=343 y=93 width=42 height=50 start="hair" end="dive"
+    }
+
+    group x=487 y=146 width=121 height=200 clip=#true {
+        use-scene "file-icon" x=489 y=159
+        text "scene \"fallen-warrior\"" x=502 y=159 paint="ui-ink-hi"
+        text "<> ambient" x=495 y=170 paint="ui-ink-hi"
+        text "* rect" x=495 y=181 paint="ui-ink-hi"
+        rect x=488 y="=191 + 11 * min(3, max(0, floor((t - 1.9) / 1.1)))" width=118 height=11 paint="ui-accent" visible="=t >= 1.9 && t < 6.6"
+        use-scene "file-icon" count=4 x=495 y="=192 + 11 * i"
+        text "\"fallen-roots\"" x=508 y=192 paint="ui-ink-hi"
+        text "\"fallen-sword\"" x=508 y=203 paint="ui-ink-hi"
+        text "\"fallen-body\"" x=508 y=214 paint="ui-ink-hi"
+        text "\"fallen-hair\"" x=508 y=225 paint="ui-ink-hi"
+        text "o light-point" x=495 y=236 paint="ui-ink-hi"
+
+        text "scene \"fallen-warrior\"" x=492 y=261 paint="ui-ink-hi" visible="=t < 1.9"
+        text "use-scene \"fallen-roots\"" x=490 y=261 paint="ui-ink-hi" visible="=t >= 1.9 && t < 3"
+        text "use-scene \"fallen-sword\"" x=490 y=261 paint="ui-ink-hi" visible="=t >= 3 && t < 4.1"
+        text "use-scene \"fallen-body\"" x=490 y=261 paint="ui-ink-hi" visible="=t >= 4.1 && t < 5.2"
+        text "use-scene \"fallen-hair\"" x=490 y=261 paint="ui-ink-hi" visible="=t >= 5.2"
+        use-scene "inspector-field" count=6 x=546 y="=272 + 12 * i"
+        text "palette\nwidth\nheight\nfps\nduration\nseed" x=492 y=273 paint="ui-ink" visible="=t < 1.9"
+        text "fallen\n256\n170\n12\n6s\n13" x=549 y=273 paint="ui-ink-hi" visible="=t < 1.9"
+        text "x\ny\nscale\nspeed\noffset\nloop" x=492 y=273 paint="ui-ink" visible="=t >= 1.9"
+        text "0\n0\n1\n1\n0\nyes" x=549 y=273 paint="ui-ink-hi" visible="=t >= 1.9"
+    }
+
+    use-scene "ruler" x=132 y=278
+    rect x="=177 + 4 * floor(mod(max(0, t - 0.7) * 12, 72))" y=288 width=4 height=58 paint="ui-raised"
+    rect x="=177 + 4 * floor(mod(max(0, t - 0.7) * 12, 72))" y=278 width=1 height=10 paint="ui-accent"
+    rect x=134 y=265 width=28 height=11 paint="ui-accent" visible="=t >= 0.7 && t < 0.9"
+    text "Play" x=139 y=266 paint="ui-ink-hi" visible="=t >= 0.7 && t < 0.9"
+
+    use-scene "click" x=148 y=270 start="play" end="0.95s"
+    use-scene "click" x=540 y=196 start="roots" end="2.15s"
+    use-scene "click" x=540 y=207 start="sword" end="3.25s"
+    use-scene "click" x=546 y=218 start="body" end="4.35s"
+    use-scene "click" x=552 y=229 start="hair" end="5.45s"
+    use-scene "pointer" x="=@mouse.x" y="=@mouse.y" end="dive"
+
+    camera x="=(307 - 320) * @dive.x" y="=(148 - 180) * @dive.x" zoom="=1 + 1.12 * @dive.x"
+}

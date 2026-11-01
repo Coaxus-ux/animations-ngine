@@ -1,0 +1,125 @@
+// Mount Fuji open in the editor, playing on its timeline from golden hour: the playhead pages
+// along the ruler past the markers and the keys of the scene's groups, the pointer picks the
+// "glow" group by one of its keys and the inspector shows it, then the camera dives into the
+// canvas as dusk turns to night and the lights come on. The host lights the scene as the
+// scene lights itself: its ambient darkness keys, at the same scene times.
+
+use "../../mount-fuji.kdl"
+use "chrome.kdl"
+use "swatches.kdl"
+use "fuji-track.kdl"
+
+palette "fuji-in-editor" {
+    include "fuji"
+    include "editor"
+}
+
+scene "in-editor-fuji" palette="fuji-in-editor" width=640 height=360 fps=12 duration="10s" seed=37 background="ui-bar" {
+    wind strength=1 gust=0.6 speed=2
+    timeline {
+        marker "page" at="1.5s"
+        marker "pick" at="2.8s"
+        marker "dive" at="6s"
+    }
+    group "mouse" {
+        anim x {
+            k "0s" 300
+            k "2.7s" 352 interp="ease-in-out"
+            k "3.3s" 352
+            k "4.4s" 260 interp="ease-in-out"
+        }
+        anim y {
+            k "0s" 200
+            k "2.7s" 334 interp="ease-in-out"
+            k "3.3s" 334
+            k "4.4s" 220 interp="ease-in-out"
+        }
+    }
+    group "dive" {
+        anim x {
+            k "dive" 0
+            k "7.4s" 1 interp="ease-in-out"
+        }
+    }
+    ambient occlusion=1 key-light=330 {
+        anim darkness {
+            k "4s" 0
+            k "5.1s" 0.6
+            k "6s" 2
+            k "7.5s" 2.8
+            k "8.5s" 3.2
+        }
+    }
+
+    use-scene "editor-chrome" file="mount-fuji.kdl" tab=94 status="480x180 | zoom 100% | color sky-day.7" help=244
+
+    group x=0 y=45 width=44 height=261 clip=#true {
+        text "sky-day\nsky-gold\nsky-dusk\nsky-night\nsun\nmoon\nstar\ngalaxy\nsnow\nsnow-glow\nrock\nrock-glow\nridge\nridge-glow\nforest\nforest-glow\ncloud\ncloud-glow\nwater\nwater-glow" x=2 y=72 paint="ui-ink"
+    }
+    group x=0 y=45 width=127 height=261 clip=#true {
+        use-scene "swatches-8" x=46 y=72 ramp="sky-day"
+        use-scene "swatches-8" x=46 y=83 ramp="sky-gold"
+        use-scene "swatches-8" x=46 y=94 ramp="sky-dusk"
+        use-scene "swatches-8" x=46 y=105 ramp="sky-night"
+        use-scene "swatches-5" x=46 y=116 ramp="sun"
+        use-scene "swatches-4" x=46 y=127 ramp="moon"
+        use-scene "swatches-4" x=46 y=138 ramp="star"
+        use-scene "swatches-4" x=46 y=149 ramp="galaxy"
+        use-scene "swatches-8" x=46 y=160 ramp="snow"
+        use-scene "swatches-8" x=46 y=171 ramp="snow-glow"
+        use-scene "swatches-8" x=46 y=182 ramp="rock"
+        use-scene "swatches-8" x=46 y=193 ramp="rock-glow"
+        use-scene "swatches-8" x=46 y=204 ramp="ridge"
+        use-scene "swatches-8" x=46 y=215 ramp="ridge-glow"
+        use-scene "swatches-8" x=46 y=226 ramp="forest"
+        use-scene "swatches-8" x=46 y=237 ramp="forest-glow"
+        use-scene "swatches-8" x=46 y=248 ramp="cloud"
+        use-scene "swatches-8" x=46 y=259 ramp="cloud-glow"
+        use-scene "swatches-8" x=46 y=270 ramp="water"
+        use-scene "swatches-8" x=46 y=281 ramp="water-glow"
+    }
+    rect x=4 y=311 width=16 height=16 paint="ui-ink-hi"
+    rect x=5 y=312 width=14 height=14 paint="sky-day.7" emissive=#true
+    rect x=9 y=327 width=16 height=16 paint="ui-ink-hi"
+    rect x=10 y=328 width=14 height=14 paint="ui-grid"
+
+    group x=131 y=45 width=352 height=207 clip=#true {
+        use-scene "mount-fuji" x=67 y=58 offset=4.5
+    }
+
+    group x=487 y=45 width=121 height=300 clip=#true {
+        use-scene "eye" count=5 x=489 y="=58 + 11 * i"
+        text "near (shapes)\nshore (shapes)\nheadland (shapes)\nlake (shapes)\nwoods (shapes)" x=514 y=58 paint="ui-ink"
+        rect x=488 y=213 width=118 height=11 paint="ui-accent" visible="=t >= 2.8 && t < 6"
+        use-scene "file-icon" x=489 y=159
+        text "scene \"mount-fuji\"" x=502 y=159 paint="ui-ink-hi"
+        text "~ wind\n@ timeline\n# group \"gold\"\n# group \"dusk\"\n# group \"glow\"\n# group \"sun\"\n# group \"moon\"" x=495 y=170 paint="ui-ink-hi"
+        text "scene \"mount-fuji\"" x=492 y=261 paint="ui-ink-hi" visible="=t < 2.8"
+        text "group \"glow\"" x=492 y=261 paint="ui-ink-hi" visible="=t >= 2.8"
+        use-scene "inspector-field" count=6 x=546 y="=272 + 12 * i"
+        text "palette\nwidth\nheight\nfps\nduration\nseed" x=492 y=273 paint="ui-ink" visible="=t < 2.8"
+        text "fuji\n480\n180\n12\n16s\n37" x=549 y=273 paint="ui-ink-hi" visible="=t < 2.8"
+        text "x\ny\nwidth\nheight\nclip\nround" x=492 y=273 paint="ui-ink" visible="=t >= 2.8"
+        text "7 keys\n0\n0\n0\nno\nno" x=549 y=273 paint="ui-ink-hi" visible="=t >= 2.8"
+    }
+
+    use-scene "ruler" x=132 y=278 from="4.5s" end="page"
+    use-scene "ruler" x=132 y=278 start="page" from="6.0s" l0="|6s" l1="|7s" l2="|8s" l3="|9s" l4="|10s" l5="|11s" l6="|12s"
+    text "markers" x=137 y=290 paint="ui-ink"
+    text "gold" x=137 y=300 paint="ui-ink"
+    text "dusk" x=137 y=310 paint="ui-ink"
+    text "night" x=137 y=320 paint="ui-ink"
+    text "glow" x=137 y=330 paint="ui-ink"
+    text "sun" x=137 y=340 paint="ui-ink"
+    group x=176 y=288 width=306 height=58 clip=#true {
+        rect x="=177 + 4 * floor(((4.5 + t) - 6 * step(6, (4.5 + t))) * 12)" y=288 width=4 height=58 paint="ui-raised"
+        use-scene "fuji-track" end="page"
+        use-scene "fuji-track" x=-288 start="page"
+    }
+    rect x="=177 + 4 * floor(((4.5 + t) - 6 * step(6, (4.5 + t))) * 12)" y=278 width=1 height=10 paint="ui-accent"
+
+    use-scene "click" x=352 y=334 start="pick" end="3.05s"
+    use-scene "pointer" x="=@mouse.x" y="=@mouse.y" end="dive"
+
+    camera x="=(307 - 320) * @dive.x" y="=(148 - 180) * @dive.x" zoom="=1 + 0.82 * @dive.x"
+}

@@ -826,6 +826,15 @@ palette "night" {
 
 A twin must have as many tones as its base ramp. Up to 8 light colors per palette.
 
+**Including palettes.** `include "name"` copies another palette's ramps (with their names, in order) and twins into this one, at that spot among its own `ramp` lines; included light colors with the same name become one. A ramp name defined twice is an error, and so are palettes that include each other. A scene of an included palette can be placed in a scene of the including one (A.6), so a host can show a scene in its own colors next to its own:
+
+```kdl
+palette "fuji-in-editor" {
+    include "fuji"     // the scene's colors, twins included
+    include "editor"   // the host's own
+}
+```
+
 ### A.5 Keyframes
 
 `anim <prop>` works on every animatable prop above, with everything in §8: interpolations, relative times, `loop`, `blend`. A `replace` track also satisfies a required prop. References (`@id.prop`) see the animated value. Key times can name timeline markers: `k "close-up" 1`.
@@ -862,7 +871,7 @@ scene "street" palette="festival" width=320 height=180 duration="12s" loop=#true
 
 `count`, `seed`, `flip`, `start`, `end`, `offset` and `speed` are read once per copy when the file loads: they can use `i`, `n` and `$params`, not `t`.
 
-- The placed scene must use the host's palette. A scene can't place itself, and scenes nest at most 8 deep.
+- The placed scene must use the host's palette or one the host's palette includes (A.4); its paints are looked up by name in the host's palette. A scene can't place itself, and scenes nest at most 8 deep.
 - Its layers become host layers. Its objects outside layers go into the layer the `use-scene` is in, inside the host's clip groups.
 - The host owns `camera`, `ambient` and `wind`; a placed scene's own are only used when it is previewed alone (which is how a part file is developed: `pxe watch parts/walker.kdl`).
 - In a looping host, a looping placed scene that plays through the whole loop must fit a whole number of its loops into it (`speed × host duration` a multiple of its duration). Otherwise the load warns that the loop will show a seam.
@@ -877,6 +886,8 @@ light-point attach="hero.carried" y=7 reach=40 intensity=2 color="warm"   // a l
 An object can only attach to something written before it, and not to a `use-scene` that places several copies.
 
 **Text params in paints.** `paint="$coat"` or `paint="$coat.lit"` uses a text param as the ramp name, so one scene can be placed with different colors (`coat="coat-red"`). Works in every paint prop (`outline-paint`, `fog-paint` too).
+
+**Passing params on.** A param value written `"$name"` on a `use-scene` passes the host's param `name` on to the placed scene (`use-scene "card" title="$title"`), so a scene can wrap another one and keep its params.
 
 `pxe timeline <file>` prints the markers and every placed scene on a time ruler (CLI.md §3.11).
 
@@ -929,6 +940,7 @@ sequence "trailer" {
 
 | Node | Props |
 |---|---|
+| `sequence "name"` | `frame-budget` (a time, e.g. `"70ms"`): the slowest frame `pxe bench` allows for it; without it, the bench's default |
 | `shot "scene"` | `duration` (required), `from` (scene time or one of the scene's markers; 0), `speed` 1; any other prop sets the scene's param of that name |
 | `transition "kind"` | `duration` (required except for `cut`); `from` `left` \| `right` \| `top` \| `bottom` for `wipe` |
 

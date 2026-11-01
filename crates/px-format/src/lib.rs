@@ -16,6 +16,7 @@ mod markup;
 mod names;
 mod objects;
 mod palette;
+mod palettes;
 mod params;
 mod pixels;
 mod props;

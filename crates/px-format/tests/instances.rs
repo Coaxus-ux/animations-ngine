@@ -133,6 +133,30 @@ fn params_are_overridden_per_placement_and_can_name_paints() {
 }
 
 #[test]
+fn a_host_param_can_be_passed_on_to_a_placed_scene() {
+    let part = scene(
+        "tag",
+        "",
+        "param color \"ink\"\nparam width 2\nrect x=0 y=0 width=\"=$width\" height=1 paint=\"$color\"",
+    );
+    let host = scene(
+        "main",
+        "",
+        "param tint \"red\"\nparam span 3\nuse-scene \"tag\" color=\"$tint\" width=\"$span\"",
+    );
+    let cells = frame(&load(&format!("{PALETTE}\n{part}{host}")), 0);
+    let red = cells[0];
+    assert_eq!(&cells[..3], &[red; 3]);
+    assert_ne!(cells[3], red);
+    let unknown = format!("{PALETTE}\n{part}{}", host.replace("$tint", "$tnt"));
+    assert!(
+        errors(&unknown)[0].contains("unknown param `$tnt`"),
+        "{:?}",
+        errors(&unknown)
+    );
+}
+
+#[test]
 fn placements_play_only_inside_their_window() {
     let text = format!(
         "{PALETTE}\n{}{}",

@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
-use std::collections::btree_map::Entry;
 use std::path::Path;
+use std::time::Duration;
 
 use kdl::KdlNode;
 use px_director::Sequence;
@@ -9,12 +9,12 @@ use px_engine::{Detail, Scene};
 use crate::diagnostic::{Diagnostic, Diagnostics, LoadError, Severity};
 use crate::font::{self, DEFAULT_FONT, Fonts};
 use crate::library::Library;
-use crate::palette::{self, NamedPalette};
+use crate::palette::NamedPalette;
 use crate::scene::Overrides;
 use crate::source_map::{Origin, PaintNames};
 use crate::sources::{FsSources, MemorySources, SourceFile, Sources};
 use crate::timeline::Timeline;
-use crate::{scene, sequence, suggest};
+use crate::{palettes, scene, sequence, suggest};
 
 const MEMORY_FILE: &str = "scene.kdl";
 
@@ -31,6 +31,7 @@ pub struct Loaded {
 #[derive(Debug)]
 pub struct LoadedSequence {
     pub sequence: Sequence,
+    pub frame_budget: Option<Duration>,
     pub warnings: Vec<Diagnostic>,
     pub files: Vec<SourceFile>,
 }
@@ -101,8 +102,9 @@ pub fn load_work(
             origins: built.origins,
             paint_names: built.paint_names,
         }))),
-        (Ok(warnings), Some(Built::Sequence(sequence))) => Ok(Work::Sequence(LoadedSequence {
-            sequence,
+        (Ok(warnings), Some(Built::Sequence(parsed))) => Ok(Work::Sequence(LoadedSequence {
+            sequence: parsed.sequence,
+            frame_budget: parsed.frame_budget,
             warnings,
             files,
         })),
@@ -112,7 +114,7 @@ pub fn load_work(
 
 enum Built {
     Scene(Box<BuiltScene>),
-    Sequence(Sequence),
+    Sequence(sequence::Parsed),
 }
 
 struct BuiltScene {
@@ -152,11 +154,13 @@ fn build(
                     "params are set per shot in a sequence; --param is ignored",
                 );
             }
-            sequence::parse(node, file, catalog, diags)?
+            let parsed = sequence::parse(node, file, catalog, diags)?;
+            parsed
+                .sequence
                 .with_detail(options.detail)
                 .map_err(|error| diags.error(node.span().offset(), error.to_string()))
                 .ok()
-                .map(Built::Sequence)
+                .map(|sequence| Built::Sequence(sequence::Parsed { sequence, ..parsed }))
         }
     }
 }
@@ -169,6 +173,7 @@ enum Target<'l> {
 
 pub(crate) struct Catalog<'l> {
     pub(crate) palettes: BTreeMap<String, NamedPalette>,
+    palette_nodes: Vec<(usize, &'l KdlNode)>,
     pub(crate) fonts: Fonts,
     pub(crate) scenes: BTreeMap<&'l str, (usize, &'l KdlNode)>,
     sequences: BTreeMap<&'l str, (usize, &'l KdlNode)>,
@@ -179,6 +184,7 @@ impl<'l> Catalog<'l> {
     fn index(library: &'l Library, diags: &mut Diagnostics) -> Self {
         let mut catalog = Self {
             palettes: BTreeMap::new(),
+            palette_nodes: Vec::new(),
             fonts: Fonts::new(),
             scenes: BTreeMap::new(),
             sequences: BTreeMap::new(),
@@ -191,6 +197,7 @@ impl<'l> Catalog<'l> {
             }
             diags.in_file(previous);
         }
+        catalog.palettes = palettes::build(&catalog.palette_nodes, diags);
         if !catalog.fonts.contains_key(DEFAULT_FONT)
             && let Some(font) = font::default_font()
         {
@@ -203,19 +210,7 @@ impl<'l> Catalog<'l> {
         let offset = node.span().offset();
         match node.name().value() {
             "use" => {}
-            "palette" => {
-                if let Some((name, palette)) = palette::parse(node, diags) {
-                    match self.palettes.entry(name) {
-                        Entry::Vacant(slot) => {
-                            slot.insert(palette);
-                        }
-                        Entry::Occupied(slot) => diags.error(
-                            offset,
-                            format!("palette \"{}\" is defined twice", slot.key()),
-                        ),
-                    }
-                }
-            }
+            "palette" => self.palette_nodes.push((file, node)),
             "font" => {
                 if let Some((name, font)) = font::parse(node, diags)
                     && self.fonts.insert(name.clone(), font).is_some()

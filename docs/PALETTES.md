@@ -209,6 +209,8 @@ palette "night-blue" {
 }
 ```
 
+*Today* the loader reads `ramp`, `twin` and `include "other"`, which copies another palette's ramps and twins in place, so a scene can be placed inside a host whose palette includes its own ([FORMAT.md A.4](FORMAT.md#a4-palette-twins)).
+
 ### 6.1 Imports
 - **Lospec `.hex` / `.gpl`:** the importer clusters the colors into ramps by hue and sorts them by lightness. Then you name the ramps and alias them to roles. This step is a heuristic, so expect to adjust it. *Today* the editor imports both formats by this rule: colors with HSV saturation below 0.12 form `gray`; the rest are binned by hue into `red` (345–15°), `orange` (15–45°), `yellow` (45–70°), `green` (70–165°), `cyan` (165–200°), `blue` (200–260°), `purple` (260–300°) and `magenta` (300–345°), each sorted dark to light by value then luma and split into `family`, `family-2`, … past eight tones, in that order with `gray` last; roles are still named by hand.
 - **Mapping file:** an imported palette plus a small KDL file of `alias` and `twin` lines.

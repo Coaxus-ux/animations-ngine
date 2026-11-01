@@ -26,14 +26,13 @@ pub(crate) fn expand(
     let host_file = diags.in_file(file);
     let header = scene::header(node, builder.catalog, diags);
     diags.in_file(host_file);
-    if header
-        .palette_name
-        .is_some_and(|palette| palette != builder.palette_name)
-    {
+    if header.palette_name.is_some_and(|palette| {
+        palette != builder.palette_name && !builder.palette.includes(palette)
+    }) {
         diags.error(
             request.offset,
             format!(
-                "\"{name}\" uses another palette; a placed scene must use \"{}\"",
+                "\"{name}\" uses another palette; a placed scene must use \"{}\" or a palette it includes",
                 builder.palette_name
             ),
         );

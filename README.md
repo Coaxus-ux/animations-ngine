@@ -46,6 +46,7 @@ cargo pxe render examples/hello.kdl --frame 6  # → out/hello-6.png
 cargo pxe watch examples/lantern-night.kdl     # live preview, reloads on save
 cargo pxe edit examples/pixel-room.kdl         # the pixel-art editor
 cargo pxe export examples/trailer.kdl --scale 2 --jobs 4   # the engine's own trailer
+cargo pxe export examples/editor-trailer.kdl --scale 2     # the editor's trailer, 1280×720
 ```
 
 `cargo pxe` is an alias for `cargo run --release -p px-cli --` ([`.cargo/config.toml`](.cargo/config.toml)).
@@ -90,6 +91,7 @@ The full command design is in [docs/CLI.md](docs/CLI.md).
 | [`misty-lake`](examples/misty-lake.kdl) | Camera drift, parallax, fog, reflections with ripples |
 | [`koi-pond`](examples/koi-pond.kdl), [`night-train`](examples/night-train.kdl), [`aurora-cabin`](examples/aurora-cabin.kdl), [`town-festival`](examples/town-festival.kdl) | Larger showcase scenes built from placed parts |
 | [`trailer`](examples/trailer.kdl) | A sequence of shots and transitions |
+| [`editor-trailer`](examples/editor-trailer.kdl) | The editor redrawn as scenes at 640×360, with Mount Fuji, the sunflower field and the fallen warrior playing inside it |
 | [`typography`](examples/typography.kdl) | Text in the engine's pixel font |
 
 ## Project layout

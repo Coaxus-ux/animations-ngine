@@ -1,0 +1,82 @@
+// `pxe edit` at 640×360, redrawn as a scene for the trailer: menu bar, file tab, tool hint,
+// the Palette, Layers, Elements and Inspector panels, the timeline, the tool bar and the
+// status bar, at the pixel positions the real editor uses at that size. Whatever is open in
+// it (the scene in the canvas, its swatches, layers and keys) is drawn by the host on top.
+
+use "editor-palette.kdl"
+use "panel-parts.kdl"
+
+scene "editor-chrome" palette="editor" width=640 height=360 fps=12 duration="1s" loop=#true background="ui-bar" {
+    param file "untitled.kdl"
+    param tab 112
+    param hint "Choose a pixel layer in Layers to paint on (or Layer > New pixel layer)"
+    param status "64x64 | zoom 100%"
+    param help 200
+
+    rect x=0 y=0 width=640 height=14 paint="ui-title"
+    text "File" x=8 y=2 paint="ui-ink-hi"
+    text "Edit" x=36 y=2 paint="ui-ink-hi"
+    text "Sprite" x=66 y=2 paint="ui-ink-hi"
+    text "Layer" x=108 y=2 paint="ui-ink-hi"
+    text "Frame" x=149 y=2 paint="ui-ink-hi"
+    text "Palette" x=190 y=2 paint="ui-ink-hi"
+    text "View" x=238 y=2 paint="ui-ink-hi"
+    text "Window" x=269 y=2 paint="ui-ink-hi"
+    text "Help" x=312 y=2 paint="ui-ink-hi"
+
+    polygon x=5 y=16 points="4,0 8,4 7,4 7,8 1,8 1,4 0,4" paint="ui-ink"
+    rect x=16 y=14 width="=$tab" height=14 paint="ui-panel"
+    rect x=16 y=14 width="=$tab" height=1 paint="ui-accent"
+    text "$file" x=20 y=17 paint="ui-ink-hi"
+
+    rect x=0 y=28 width=640 height=15 paint="ui-panel"
+    text "Pencil" x=4 y=31 paint="ui-accent-hi"
+    text "$hint" x=46 y=31 paint="ui-warning"
+
+    rect x=1 y=45 width=126 height=261 paint="ui-panel"
+    use-scene "panel-title" x=0 y=45 width=127 title="Palette"
+    rect x=4 y=57 width=37 height=12 paint="ui-raised"
+    rect x=42 y=57 width=44 height=12 paint="ui-title"
+    rect x=87 y=57 width=37 height=12 paint="ui-title"
+    text "Color" x=10 y=60 paint="ui-ink-hi"
+    text "Recolor" x=45 y=60 paint="ui-ink-hi"
+    text "Ramps" x=91 y=60 paint="ui-ink-hi"
+    rect x=1 y=308 width=126 height=39 paint="ui-panel"
+    rect x=30 y=319 width=19 height=11 paint="ui-title"
+    text "X" x=37 y=321 paint="ui-ink-hi"
+
+    rect x=131 y=45 width=352 height=207 paint="ui-window"
+
+    rect x=132 y=252 width=350 height=94 paint="ui-panel"
+    use-scene "panel-title" x=131 y=252 width=352 title="Timeline"
+    use-scene "button" x=134 y=265 width=29 label="Play"
+    use-scene "button" x=166 y=265 width=45 label="New cel"
+    use-scene "button" x=214 y=265 width=59 label="Delete cel"
+    use-scene "button" x=276 y=265 width=48 label="+ Frame"
+    use-scene "button" x=327 y=265 width=47 label="- Frame"
+    rect x=378 y=268 width=7 height=7 paint="ui-ink-hi"
+    rect x=379 y=269 width=5 height=5 paint="ui-panel"
+    text "Onion" x=391 y=266 paint="ui-ink-hi"
+    text "frame 1..." x=435 y=266 paint="ui-ink"
+    rect x=132 y=278 width=350 height=10 paint="ui-bar"
+
+    rect x=487 y=45 width=125 height=101 paint="ui-panel"
+    use-scene "panel-title" x=487 y=45 width=125 title="Layers"
+    use-scene "button" x=488 y=115 width=39 label="New"
+    use-scene "button" x=529 y=115 width=40 label="Rename" enabled=#false
+    use-scene "button" x=570 y=115 width=40 label="Delete" enabled=#false
+    use-scene "button" x=489 y=130 width=59 label="Move up" enabled=#false
+    use-scene "button" x=550 y=130 width=60 label="Move down" enabled=#false
+    rect x=487 y=146 width=125 height=100 paint="ui-panel"
+    use-scene "panel-title" x=487 y=146 width=125 title="Elements"
+    rect x=487 y=247 width=125 height=99 paint="ui-panel"
+    use-scene "panel-title" x=487 y=247 width=125 title="Inspector"
+
+    rect x=615 y=45 width=25 height=301 paint="ui-title"
+    use-scene "tool-bar" x=618 y=48
+
+    rect x=0 y=348 width=640 height=12 paint="ui-title"
+    text "$status" x=6 y=349 paint="ui-ink-hi"
+    text "|" x="=$help - 8" y=349 paint="ui-ink"
+    text "F1: help and shortcuts" x="=$help" y=349 paint="ui-ink"
+}

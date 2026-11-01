@@ -18,20 +18,21 @@ mod table;
 pub(crate) use options::Options;
 use table::Table;
 
+const DEFAULT_BUDGET: Duration = Duration::from_micros(33_300);
+
 #[derive(Debug)]
 pub(crate) struct OverBudget {
-    scenes: Vec<String>,
-    budget_ms: f64,
+    scenes: Vec<(String, Duration)>,
 }
 
 impl fmt::Display for OverBudget {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "over the {:.1} ms frame budget: {}",
-            self.budget_ms,
-            self.scenes.join(", ")
-        )
+        let scenes: Vec<String> = self
+            .scenes
+            .iter()
+            .map(|(label, budget)| format!("{label} ({:.1} ms)", budget.as_secs_f64() * 1000.0))
+            .collect();
+        write!(f, "over the frame budget: {}", scenes.join(", "))
     }
 }
 
@@ -91,7 +92,7 @@ pub(crate) fn bench(files: &[PathBuf], options: &Options) -> Result<()> {
     } else {
         files.to_vec()
     };
-    let budget = Duration::from_secs_f64(budget_ms.max(0.0) / 1000.0);
+    let chosen = budget_ms.map(|ms| Duration::from_secs_f64(ms.max(0.0) / 1000.0));
     let runs: Vec<Option<(String, String)>> = match sweep {
         Some(sweep) => sweep
             .values
@@ -107,7 +108,7 @@ pub(crate) fn bench(files: &[PathBuf], options: &Options) -> Result<()> {
                 .map(move |run| (file, run, label(file, run.as_ref())))
         })
         .collect();
-    let mut table = Table::new(jobs.iter().map(|(_, _, label)| label.as_str()), budget);
+    let mut table = Table::new(jobs.iter().map(|(_, _, label)| label.as_str()));
     let mut over = Vec::new();
     for (file, run, label) in jobs {
         let params: Vec<(String, String)> = run.iter().cloned().collect();
@@ -116,31 +117,35 @@ pub(crate) fn bench(files: &[PathBuf], options: &Options) -> Result<()> {
             detail,
             ..LoadOptions::default()
         };
-        let (counts, timing) = match editor {
-            Some(window) => editor::time_editor(file, window, rounds, detail)?,
+        let (counts, timing, own) = match editor {
+            Some(window) => {
+                let (counts, timing) = editor::time_editor(file, window, rounds, detail)?;
+                (counts, timing, None)
+            }
             None => time_work(file, options, rounds)?,
         };
-        table.row(&label, &counts, &timing);
+        let budget = chosen.or(own).unwrap_or(DEFAULT_BUDGET);
+        table.row(&label, &counts, &timing, budget);
         if timing.worst > budget {
-            over.push(label);
+            over.push((label, budget));
         }
     }
     table.finish();
     match (over.first(), sweep) {
         (None, _) => Ok(()),
-        (Some(first), Some(_)) => {
-            println!("first over the {budget_ms:.1} ms budget: {first}");
+        (Some((first, _)), Some(_)) => {
+            println!("first over budget: {first}");
             Ok(())
         }
-        (Some(_), None) => Err(OverBudget {
-            scenes: over,
-            budget_ms,
-        }
-        .into()),
+        (Some(_), None) => Err(OverBudget { scenes: over }.into()),
     }
 }
 
-fn time_work(file: &Path, options: LoadOptions<'_>, rounds: u32) -> Result<(Counts, Timing)> {
+fn time_work(
+    file: &Path,
+    options: LoadOptions<'_>,
+    rounds: u32,
+) -> Result<(Counts, Timing, Option<Duration>)> {
     Ok(match source::load_work_file(file, options)? {
         Work::Scene(loaded) => {
             let scene = &loaded.scene;
@@ -148,7 +153,11 @@ fn time_work(file: &Path, options: LoadOptions<'_>, rounds: u32) -> Result<(Coun
             let timing = time_frames(scene.timing().duration.get(), rounds, |frame| {
                 buffer.render(scene, frame).map(drop)
             })?;
-            (Counts::of(scene, scene.timing().duration.get()), timing)
+            (
+                Counts::of(scene, scene.timing().duration.get()),
+                timing,
+                None,
+            )
         }
         Work::Sequence(loaded) => {
             let sequence = &loaded.sequence;
@@ -156,7 +165,7 @@ fn time_work(file: &Path, options: LoadOptions<'_>, rounds: u32) -> Result<(Coun
             let timing = time_frames(sequence.duration().get(), rounds, |frame| {
                 player.render(sequence, frame).map(drop)
             })?;
-            (Counts::of_sequence(sequence), timing)
+            (Counts::of_sequence(sequence), timing, loaded.frame_budget)
         }
     })
 }

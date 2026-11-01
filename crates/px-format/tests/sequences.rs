@@ -116,3 +116,30 @@ fn sequence_mistakes_are_explained() {
             .contains("colour")
     );
 }
+
+#[test]
+fn a_sequence_can_set_its_own_frame_budget() {
+    let budget = |props: &str| match work(&format!(
+        "sequence \"film\"{props} {{\n    shot \"dawn\" duration=\"1s\"\n}}"
+    ))
+    .unwrap()
+    {
+        Work::Sequence(loaded) => loaded.frame_budget,
+        Work::Scene(_) => None,
+    };
+    assert_eq!(budget(""), None);
+    assert_eq!(
+        budget(" frame-budget=\"70ms\""),
+        Some(std::time::Duration::from_millis(70))
+    );
+    assert_eq!(
+        budget(" frame-budget=\"0.5s\""),
+        Some(std::time::Duration::from_millis(500))
+    );
+    let zero =
+        errors("sequence \"film\" frame-budget=\"0ms\" {\n    shot \"dawn\" duration=\"1s\"\n}");
+    assert!(
+        zero.contains("invalid frame budget \"0ms\": use a time above zero"),
+        "{zero}"
+    );
+}

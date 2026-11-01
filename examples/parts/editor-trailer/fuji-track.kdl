@@ -1,0 +1,35 @@
+// The rows under Mount Fuji's ruler in the trailer's editor: the scene's markers, and a key
+// diamond at every key of its "gold", "dusk", "night", "glow" and "sun" groups, laid out
+// 48 px per second from the ruler's 0 s tick so the shot can page it along.
+
+use "panel-parts.kdl"
+
+scene "fuji-track" palette="editor" width=768 height=60 fps=12 duration="1s" loop=#true background="ui-panel" {
+    rect x=225 y=290 width=1 height=9 paint="ui-accent-hi"
+    text "afternoon" x=227 y=290 paint="ui-ink-hi"
+    rect x=417 y=290 width=1 height=9 paint="ui-accent-hi"
+    text "golden" x=419 y=290 paint="ui-ink-hi"
+    rect x=561 y=290 width=1 height=9 paint="ui-accent-hi"
+    text "sunset" x=563 y=290 paint="ui-ink-hi"
+    rect x=681 y=290 width=1 height=9 paint="ui-accent-hi"
+    text "dusk" x=683 y=290 paint="ui-ink-hi"
+    rect x=801 y=290 width=1 height=9 paint="ui-accent-hi"
+    text "night" x=803 y=290 paint="ui-ink-hi"
+    rect x=849 y=290 width=1 height=9 paint="ui-accent-hi"
+    text "wish" x=851 y=290 paint="ui-ink-hi"
+    use-scene "key" x=227 y=302
+    use-scene "key" x=419 y=302
+    use-scene "key" x=563 y=312
+    use-scene "key" x=683 y=312
+    use-scene "key" x=683 y=322
+    use-scene "key" x=803 y=322
+    use-scene "key" x=227 y=332
+    use-scene "key" x=323 y=332
+    use-scene "key" x=419 y=332
+    use-scene "key" x=563 y=332
+    use-scene "key" x=640 y=332
+    use-scene "key" x=683 y=332
+    use-scene "key" x=731 y=332
+    use-scene "key" x=179 y=342
+    use-scene "key" x=683 y=342
+}
