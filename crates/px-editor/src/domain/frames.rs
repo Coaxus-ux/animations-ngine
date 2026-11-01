@@ -93,5 +93,8 @@ pub fn keyed(scene: &Scene) -> Result<(Scene, RampId), String> {
         ramp: key,
         tone: Tone::new(0),
     };
-    Ok((Scene::new(spec).map_err(message)?, key))
+    let scene = Scene::new(spec)
+        .and_then(|keyed| keyed.with_detail(scene.detail()))
+        .map_err(message)?;
+    Ok((scene, key))
 }

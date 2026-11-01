@@ -1,6 +1,6 @@
 use px_ui::{Area, ROW, Rect, Ui, label, pack, rect};
 
-use super::{Context, RenderCache};
+use super::{Context, Image, RenderCache};
 use crate::app::{CodeMode, PanelKind, WindowKind};
 
 pub(super) fn strip(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) -> Rect {
@@ -9,7 +9,12 @@ pub(super) fn strip(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) -> R
         WindowKind::Main => context.view.code == CodeMode::Only,
         WindowKind::Canvas => false,
     };
-    let Some((width, height, _, _)) = context.cache.image().filter(|_| wanted) else {
+    let Some((width, height)) = context
+        .cache
+        .image()
+        .filter(|_| wanted)
+        .map(|image| image.size)
+    else {
         return area;
     };
     let scale = context.scale.max(1);
@@ -34,7 +39,13 @@ pub fn paint_preview(
     scale: i32,
     cache: &RenderCache,
 ) {
-    let Some((width, height, cells, palette)) = cache.image() else {
+    let Some(Image {
+        size: (width, height),
+        cells,
+        palette,
+        ..
+    }) = cache.image()
+    else {
         return;
     };
     let clip = rect(

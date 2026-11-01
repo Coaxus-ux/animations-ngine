@@ -98,6 +98,7 @@ pub(crate) fn render(
         surface,
         mask,
         placed,
+        memo,
     } = target;
     surface.cells.fill(scene.background());
     surface.depth.fill(0);
@@ -116,9 +117,10 @@ pub(crate) fn render(
         x: pass.eval(&world.camera.x)?,
         y: pass.eval(&world.camera.y)?,
         zoom: pass.eval(&world.camera.zoom)?,
+        detail: scene.detail().get(),
         center: [
-            f64::from(surface.width) / 2.0,
-            f64::from(surface.height) / 2.0,
+            f64::from(scene.spec().size.width()) / 2.0,
+            f64::from(scene.spec().size.height()) / 2.0,
         ],
     };
     pass.layers = [view.through(1.0); MAX_LAYERS];
@@ -131,7 +133,11 @@ pub(crate) fn render(
         light: key_light(world.ambient.key_light),
     };
     draw_shapes(&mut pass, &context, mask, surface, capture)?;
-    light_scene(&mut pass, surface, mask.distance)?;
+    let scratch = lighting::Scratch {
+        window: mask.distance,
+        memo,
+    };
+    light_scene(&mut pass, surface, scratch)?;
     reflect_scene(&mut pass, surface)
 }
 
@@ -177,7 +183,7 @@ fn reflect_scene(pass: &mut Pass<'_, '_>, surface: &mut Surface<'_>) -> Result<(
 fn light_scene(
     pass: &mut Pass<'_, '_>,
     surface: &mut Surface<'_>,
-    scratch: &mut [u16],
+    scratch: lighting::Scratch<'_>,
 ) -> Result<(), RenderError> {
     let world = pass.scene.environment();
     let ambient = lighting::Ambient {
@@ -234,6 +240,7 @@ fn light_scene(
         &ambient,
         &lits[..count],
         scratch,
+        pass.scene.detail().grain(),
     );
     Ok(())
 }
@@ -242,6 +249,7 @@ struct View {
     x: f64,
     y: f64,
     zoom: f64,
+    detail: f64,
     center: [f64; 2],
 }
 
@@ -250,10 +258,10 @@ impl View {
         let along =
             |pan: f64, center: f64| -pan * parallax * self.zoom + center * (1.0 - self.zoom);
         Transform {
-            scale: self.zoom,
+            scale: self.zoom * self.detail,
             flip: false,
-            dx: along(self.x, self.center[0]),
-            dy: along(self.y, self.center[1]),
+            dx: along(self.x, self.center[0]) * self.detail,
+            dy: along(self.y, self.center[1]) * self.detail,
         }
     }
 }

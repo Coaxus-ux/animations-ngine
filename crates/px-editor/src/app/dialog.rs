@@ -25,6 +25,7 @@ pub mod keys {
     pub const SHAPE: &str = "shape";
     pub const JSON: &str = "json";
     pub const SCALE: &str = "scale";
+    pub const DETAIL: &str = "detail";
     pub const TRANSPARENT: &str = "transparent";
     pub const TRIM: &str = "trim";
     pub const SPLIT_LAYERS: &str = "split-layers";

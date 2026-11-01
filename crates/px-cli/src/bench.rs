@@ -9,11 +9,13 @@ use px_director::{Player, Sequence};
 use px_engine::{FrameBuffer, Scene};
 use px_format::{LoadOptions, Work};
 
-use crate::args::Sweep;
 use crate::source;
 
+mod editor;
+mod options;
 mod table;
 
+pub(crate) use options::Options;
 use table::Table;
 
 #[derive(Debug)]
@@ -75,12 +77,15 @@ impl Counts {
     }
 }
 
-pub(crate) fn bench(
-    files: &[PathBuf],
-    budget_ms: f64,
-    rounds: u32,
-    sweep: Option<&Sweep>,
-) -> Result<()> {
+pub(crate) fn bench(files: &[PathBuf], options: &Options) -> Result<()> {
+    let Options {
+        budget_ms,
+        rounds,
+        detail,
+        ref sweep,
+        editor,
+    } = *options;
+    let sweep = sweep.as_ref();
     let files = if files.is_empty() {
         default_files()
     } else {
@@ -108,25 +113,12 @@ pub(crate) fn bench(
         let params: Vec<(String, String)> = run.iter().cloned().collect();
         let options = LoadOptions {
             params: &params,
+            detail,
             ..LoadOptions::default()
         };
-        let (counts, timing) = match source::load_work_file(file, options)? {
-            Work::Scene(loaded) => {
-                let scene = &loaded.scene;
-                let mut buffer = FrameBuffer::new(scene);
-                let timing = time_frames(scene.timing().duration.get(), rounds, |frame| {
-                    buffer.render(scene, frame).map(drop)
-                })?;
-                (Counts::of(scene, scene.timing().duration.get()), timing)
-            }
-            Work::Sequence(loaded) => {
-                let sequence = &loaded.sequence;
-                let mut player = Player::new(sequence);
-                let timing = time_frames(sequence.duration().get(), rounds, |frame| {
-                    player.render(sequence, frame).map(drop)
-                })?;
-                (Counts::of_sequence(sequence), timing)
-            }
+        let (counts, timing) = match editor {
+            Some(window) => editor::time_editor(file, window, rounds, detail)?,
+            None => time_work(file, options, rounds)?,
         };
         table.row(&label, &counts, &timing);
         if timing.worst > budget {
@@ -146,6 +138,27 @@ pub(crate) fn bench(
         }
         .into()),
     }
+}
+
+fn time_work(file: &Path, options: LoadOptions<'_>, rounds: u32) -> Result<(Counts, Timing)> {
+    Ok(match source::load_work_file(file, options)? {
+        Work::Scene(loaded) => {
+            let scene = &loaded.scene;
+            let mut buffer = FrameBuffer::new(scene);
+            let timing = time_frames(scene.timing().duration.get(), rounds, |frame| {
+                buffer.render(scene, frame).map(drop)
+            })?;
+            (Counts::of(scene, scene.timing().duration.get()), timing)
+        }
+        Work::Sequence(loaded) => {
+            let sequence = &loaded.sequence;
+            let mut player = Player::new(sequence);
+            let timing = time_frames(sequence.duration().get(), rounds, |frame| {
+                player.render(sequence, frame).map(drop)
+            })?;
+            (Counts::of_sequence(sequence), timing)
+        }
+    })
 }
 
 fn label(file: &Path, run: Option<&(String, String)>) -> String {
@@ -173,7 +186,12 @@ where
         }
         times.push(best);
     }
+    Ok(summarize(times))
+}
+
+fn summarize(mut times: Vec<Duration>) -> Timing {
     let total: Duration = times.iter().sum();
+    let count = u32::try_from(times.len()).unwrap_or(u32::MAX);
     times.sort_unstable();
     let rank = |share: usize| {
         times
@@ -182,12 +200,12 @@ where
             .div_ceil(100)
             .saturating_sub(1)
     };
-    Ok(Timing {
-        mean: total / frames.max(1),
+    Timing {
+        mean: total / count.max(1),
         p95: times.get(rank(95)).copied().unwrap_or_default(),
         worst: times.last().copied().unwrap_or_default(),
         total,
-    })
+    }
 }
 
 fn default_files() -> Vec<PathBuf> {

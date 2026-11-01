@@ -1,0 +1,273 @@
+// Mount Fuji from a lake shore, from late afternoon into the night. The camera drifts along
+// the panorama while the sun sinks behind the western ridges: the sky passes through golden
+// hour and dusk to a starry night (four sky ramps cross-faded in dithered quarter steps), the
+// low sun paints the snow, clouds, water and blossoms rose and gold through `glow` twins, the
+// land darkens, the Milky Way and the moon come out, and the pagoda on the wooded point, the
+// lakeside village and the stone lantern light up one by one and shimmer in the lake.
+//
+// Shows: timeline markers driving every change through keyframed groups, `count` copies with
+// per-copy params, eight-tone ramps, light twins, animated ambient darkness, a reflection on
+// the water ramp, parallax over a panning camera, particles for stars, petals and the Milky
+// Way. Plays once over 16 seconds; render it big with `--detail 4`.
+
+use "parts/fuji/fuji-palette.kdl"
+use "parts/fuji/sky-band.kdl"
+use "parts/fuji/fuji.kdl"
+use "parts/fuji/hills.kdl"
+use "parts/fuji/village.kdl"
+use "parts/fuji/wooded-point.kdl"
+use "parts/fuji/sakura-tree.kdl"
+use "parts/fuji/sakura-bough.kdl"
+
+scene "mount-fuji" palette="fuji" width=480 height=180 fps=12 duration="16s" seed=37 background="sky-day.4" {
+    wind strength=1 gust=0.6 speed=2
+
+    timeline {
+        marker "afternoon" at="1s"
+        marker "golden" at="5s"
+        marker "sunset" at="8s"
+        marker "dusk" at="10.5s"
+        marker "night" at="13s"
+        marker "wish" at="14s"
+    }
+
+    group "gold" {
+        anim x {
+            k "afternoon" 0
+            k "golden" 1 interp="ease-in-out"
+        }
+    }
+    group "dusk" {
+        anim x {
+            k "sunset" 0
+            k "dusk" 1 interp="ease-in-out"
+        }
+    }
+    group "night" {
+        anim x {
+            k "dusk" 0
+            k "night" 1 interp="ease-in-out"
+        }
+    }
+    group "glow" {
+        anim x {
+            k "afternoon" 0
+            k "3s" 0.6
+            k "golden" 1.2
+            k "sunset" 1.8
+            k "9.6s" 1.4
+            k "dusk" 0.6
+            k "11.5s" 0
+        }
+    }
+    group "sun" {
+        anim x {
+            k "0s" 372
+            k "dusk" 434 interp="ease-in"
+        }
+        anim y {
+            k "0s" 18
+            k "dusk" 140 interp="ease-in"
+        }
+    }
+    group "moon" {
+        anim x {
+            k "dusk" 84
+            k "16s" 112 interp="ease-out"
+        }
+        anim y {
+            k "dusk" 112
+            k "16s" 30 interp="ease-out"
+        }
+    }
+
+    ambient occlusion=1 key-light=330 {
+        anim darkness {
+            k "8.5s" 0
+            k "9.6s" 0.6
+            k "dusk" 2
+            k "12s" 2.8
+            k "night" 3.2
+        }
+    }
+    camera {
+        k "0s" x=-24
+        k "16s" x=24 interp="ease-in-out"
+    }
+
+    layer "sky" parallax=0 {
+        use-scene "sky-band" count=29 x=-4 y="=-12 + i * 5" until=5
+        use-scene "sky-band" count=29 x=-4 y="=-12 + i * 5" ramp="sky-gold" from=1 to=5 until=10.5
+        use-scene "sky-band" count=29 x=-4 y="=-12 + i * 5" ramp="sky-dusk" from=8 to=10.5 until=13
+        use-scene "sky-band" count=29 x=-4 y="=-12 + i * 5" ramp="sky-night" from=10.5 to=13
+        ellipse x="=@sun.x - 150" y=100 width=300 height=56 paint="sky-dusk.7" emissive=#true opacity="=0.55 * @gold.x * (1 - @night.x)" visible="=@gold.x > 0.04 && @night.x < 0.96"
+        ellipse x="=@sun.x - 90" y=110 width=180 height=36 paint="sun.2" emissive=#true opacity="=0.4 * @gold.x * (1 - @dusk.x)" visible="=@gold.x > 0.04 && @dusk.x < 0.96"
+        blob x=4 y=136 circles="0,-2,15 24,-7,13 48,-20,13 72,-25,15 96,-38,13 120,-43,13 144,-56,15 168,-61,13 192,-74,13 216,-79,15 240,-92,13 264,-97,13 288,-110,15 312,-115,13 336,-128,13 360,-133,15" smooth=8 paint="galaxy.1" emissive=#true opacity="=0.6 * @night.x" visible="=@night.x > 0.04"
+        blob x=4 y=136 circles="0,-1,8 24,-8,6 48,-19,6 72,-26,8 96,-37,6 120,-44,6 144,-55,8 168,-62,6 192,-73,6 216,-80,8 240,-91,6 264,-98,6 288,-109,8 312,-116,6 336,-127,6 360,-134,8" smooth=6 paint="galaxy.2" emissive=#true opacity="=0.5 * @night.x" visible="=@night.x > 0.04"
+        particles x=-8 y=120 width=48 height=24 count=80 size=0.25 life="99s" paint="star.2" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=40 y=102 width=48 height=24 count=80 size=0.25 life="99s" paint="star.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=88 y=84 width=48 height=24 count=80 size=0.25 life="99s" paint="star.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=136 y=66 width=48 height=24 count=80 size=0.25 life="99s" paint="star.2" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=184 y=48 width=48 height=24 count=80 size=0.25 life="99s" paint="star.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=232 y=30 width=48 height=24 count=80 size=0.25 life="99s" paint="star.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=280 y=12 width=48 height=24 count=80 size=0.25 life="99s" paint="star.2" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=328 y=-6 width=48 height=24 count=80 size=0.25 life="99s" paint="star.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=-60 y=-12 width=600 height=136 count=520 size=0.25 life="99s" paint="star.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04"
+        particles x=-60 y=-12 width=600 height=120 count=160 size=0.25 life="99s" paint="star.2" emissive=#true opacity="=smoothstep(0.2, 1, @dusk.x)" visible="=@dusk.x > 0.3"
+        particles x=-60 y=-12 width=600 height=110 count=28 size=0.5 life="99s" paint="star.3" emissive=#true visible="=@dusk.x > 0.7"
+        rect x=311 y=19 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(3s, 0.2) < 0.5"
+        rect x=29 y=9 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(4s, 0.1) < 0.5"
+        rect x=354 y=74 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(2s, 0.2) < 0.5"
+        rect x=199 y=4 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(2s, 0.15) < 0.5"
+        rect x=408 y=8 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(2s, 0.1) < 0.5"
+        rect x=414 y=7 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(4s, 0.1) < 0.5"
+        rect x=208 y=80 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(4s, 0.2) < 0.5"
+        rect x=43 y=73 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(4s, 0.15) < 0.5"
+        rect x=30 y=28 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(2s, 0.2) < 0.5"
+        rect x=116 y=37 width=1 height=1 paint="star.3" emissive=#true visible="=@night.x > 0.5 && pulse(3s, 0.1) < 0.5"
+        line x1="=300 - 180 * (t - 14)" y1="=8 + 70 * (t - 14)" x2="=@self.x1 + 14" y2="=@self.y1 - 5" paint="star.3" emissive=#true visible="=between(14s, 14.6s)"
+        ellipse x="=@moon.x - 24" y="=@moon.y - 24" width=48 height=48 paint="sky-night.7" emissive=#true opacity="=0.5 * @night.x" visible="=@night.x > 0.04"
+        ellipse x="=@moon.x - 14" y="=@moon.y - 14" width=28 height=28 paint="moon.0" emissive=#true opacity="=0.35 * @night.x" visible="=@night.x > 0.04"
+        ellipse x="=@moon.x - 8" y="=@moon.y - 8" width=16 height=16 paint="moon.2" emissive=#true visible="=t >= 10.5"
+        ellipse x="=@moon.x - 4" y="=@moon.y - 4" width=5 height=4 paint="moon.1" emissive=#true visible="=t >= 10.5"
+        ellipse x="=@moon.x + 1" y="=@moon.y + 1" width=4 height=4 paint="moon.1" emissive=#true visible="=t >= 10.5"
+        ellipse x="=@sun.x - 24" y="=@sun.y - 24" width=48 height=48 paint="sky-day.7" emissive=#true opacity="=0.25 * (1 - @gold.x)" visible="=@gold.x < 0.96"
+        ellipse x="=@sun.x - 36" y="=@sun.y - 36" width=72 height=72 paint="sun.1" emissive=#true opacity="=0.2 * @gold.x * (1 - @dusk.x)" visible="=@gold.x > 0.04 && @dusk.x < 0.96"
+        ellipse x="=@sun.x - 18" y="=@sun.y - 18" width=36 height=36 paint="sun.2" emissive=#true opacity="=0.5 * @gold.x * (1 - @dusk.x)" visible="=@gold.x > 0.04 && @dusk.x < 0.96"
+        ellipse x="=@sun.x - 16" y="=@sun.y - 16" width=32 height=32 paint="sky-day.7" emissive=#true opacity="=0.5 * (1 - @gold.x)" visible="=@gold.x < 0.96"
+        ellipse x="=@sun.x - 9" y="=@sun.y - 9" width=18 height=18 paint="sun.3" emissive=#true visible="=@gold.x >= 0.5"
+        ellipse x="=@sun.x - 8" y="=@sun.y - 8" width=16 height=16 paint="sun.4" emissive=#true visible="=@gold.x < 0.5"
+        ellipse x="=@sun.x - 6" y="=@sun.y - 6" width=12 height=12 paint="sun.4" emissive=#true visible="=@gold.x >= 0.5"
+    }
+    layer "clouds" parallax=0.05 {
+        capsule "cirrus0" x1="=10 + 2 * t" y1=34 x2="=@self.x1 + 90" y2=34 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus0.x1 + 30" y1=32 x2="=@self.x1 + 60" y2=32 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus0.x1 - 22" y1=36 x2="=@self.x1 + 45" y2=36 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus0.x1 + 15" y1=33 x2="=@self.x1 + 30" y2=33 radius=0.8 paint="cloud.7"
+        capsule "cirrus1" x1="=130 + 1 * t" y1=22 x2="=@self.x1 + 140" y2=22 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus1.x1 + 46" y1=20 x2="=@self.x1 + 93" y2=20 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus1.x1 - 35" y1=24 x2="=@self.x1 + 70" y2=24 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus1.x1 + 23" y1=21 x2="=@self.x1 + 46" y2=21 radius=0.8 paint="cloud.7"
+        capsule "cirrus2" x1="=300 + 2 * t" y1=40 x2="=@self.x1 + 120" y2=40 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus2.x1 + 40" y1=38 x2="=@self.x1 + 80" y2=38 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus2.x1 - 30" y1=42 x2="=@self.x1 + 60" y2=42 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus2.x1 + 20" y1=39 x2="=@self.x1 + 40" y2=39 radius=0.8 paint="cloud.7"
+        capsule "cirrus3" x1="=60 + 1.5 * t" y1=58 x2="=@self.x1 + 70" y2=58 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus3.x1 + 23" y1=56 x2="=@self.x1 + 46" y2=56 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus3.x1 - 17" y1=60 x2="=@self.x1 + 35" y2=60 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus3.x1 + 11" y1=57 x2="=@self.x1 + 23" y2=57 radius=0.8 paint="cloud.7"
+        capsule "cirrus4" x1="=360 + 2 * t" y1=14 x2="=@self.x1 + 110" y2=14 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus4.x1 + 36" y1=12 x2="=@self.x1 + 73" y2=12 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus4.x1 - 27" y1=16 x2="=@self.x1 + 55" y2=16 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus4.x1 + 18" y1=13 x2="=@self.x1 + 36" y2=13 radius=0.8 paint="cloud.7"
+        capsule "cirrus5" x1="=230 + 2 * t" y1=64 x2="=@self.x1 + 60" y2=64 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus5.x1 + 20" y1=62 x2="=@self.x1 + 40" y2=62 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus5.x1 - 15" y1=66 x2="=@self.x1 + 30" y2=66 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus5.x1 + 10" y1=63 x2="=@self.x1 + 20" y2=63 radius=0.8 paint="cloud.7"
+        capsule "cirrus6" x1="=420 + 1 * t" y1=56 x2="=@self.x1 + 90" y2=56 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus6.x1 + 30" y1=54 x2="=@self.x1 + 60" y2=54 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus6.x1 - 22" y1=58 x2="=@self.x1 + 45" y2=58 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus6.x1 + 15" y1=55 x2="=@self.x1 + 30" y2=55 radius=0.8 paint="cloud.7"
+        capsule "cirrus7" x1="=-40 + 1 * t" y1=74 x2="=@self.x1 + 80" y2=74 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus7.x1 + 26" y1=72 x2="=@self.x1 + 53" y2=72 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus7.x1 - 20" y1=76 x2="=@self.x1 + 40" y2=76 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus7.x1 + 13" y1=73 x2="=@self.x1 + 26" y2=73 radius=0.8 paint="cloud.7"
+        capsule "cirrus8" x1="=170 + 2 * t" y1=48 x2="=@self.x1 + 50" y2=48 radius=1.5 paint="cloud.5"
+        capsule x1="=@cirrus8.x1 + 16" y1=46 x2="=@self.x1 + 33" y2=46 radius=1 paint="cloud.6"
+        capsule x1="=@cirrus8.x1 - 12" y1=50 x2="=@self.x1 + 25" y2=50 radius=0.8 paint="cloud.4"
+        capsule x1="=@cirrus8.x1 + 8" y1=47 x2="=@self.x1 + 16" y2=47 radius=0.8 paint="cloud.7"
+    }
+    layer "volcano" parallax=0.12 {
+        use-scene "fuji" x=240 y=40
+        ellipse x="=206 + osc(16s, -3, 3)" y=24 width=68 height=7 paint="cloud.5" shading="dome" outline="selective"
+        ellipse x="=214 + osc(16s, -2, 2)" y=20 width=50 height=6 paint="cloud.6" shading="dome"
+        ellipse x="=224 + osc(16s, -1, 1)" y=17 width=30 height=4 paint="cloud.7"
+    }
+    layer "ridges" parallax=0.2 {
+        use-scene "far-ridges"
+        ellipse x="=-70 + 1.5 * t" y=116 width=120 height=5 paint="cloud.5" shading="dome"
+        ellipse x="=-40 + 1.5 * t" y=115 width=60 height=3 paint="cloud.6"
+        ellipse x="=20 + 1 * t" y=119 width=90 height=4 paint="cloud.5" shading="dome"
+        ellipse x="=42 + 1 * t" y=118 width=45 height=2 paint="cloud.6"
+        ellipse x="=300 + -1 * t" y=118 width=110 height=5 paint="cloud.5" shading="dome"
+        ellipse x="=327 + -1 * t" y=117 width=55 height=3 paint="cloud.6"
+        ellipse x="=400 + -1.5 * t" y=120 width=130 height=4 paint="cloud.5" shading="dome"
+        ellipse x="=432 + -1.5 * t" y=119 width=65 height=2 paint="cloud.6"
+        ellipse x="=180 + 1 * t" y=121 width=70 height=3 paint="cloud.5" shading="dome"
+        ellipse x="=197 + 1 * t" y=120 width=35 height=1 paint="cloud.6"
+    }
+    layer "woods" parallax=0.35 {
+        use-scene "wooded-hills"
+        use-scene "house" count=6 x="=110 + i * 15 + 4 * sin(i * 2.3)" y="=128 - (i % 3 == 1)" lights-on=10.5
+        use-scene "house" count=5 x="=320 + i * 16 + 3 * sin(i * 1.7)" y=128 lights-on=11
+    }
+    layer "lake" parallax=0 {
+        rect x=-40 y=128 width=560 height=52 paint="water.6" gradient="down" gradient-steps=-5
+        rect x="=@sun.x - 5 + osc(1s, -2, 2)" y=130 width=10 height=1 paint="sun.2" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 0)"
+        rect x="=@sun.x - 8 + osc(2s, -2, 2)" y=132 width=16 height=1 paint="sun.3" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 1)"
+        rect x="=@sun.x - 6 + osc(3s, -2, 2)" y=135 width=12 height=1 paint="sun.2" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 2)"
+        rect x="=@sun.x - 11 + osc(1s, -2, 2)" y=138 width=22 height=1 paint="sun.3" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 3)"
+        rect x="=@sun.x - 8 + osc(2s, -2, 2)" y=142 width=16 height=1 paint="sun.2" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 4)"
+        rect x="=@sun.x - 14 + osc(3s, -2, 2)" y=146 width=28 height=1 paint="sun.3" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 5)"
+        rect x="=@sun.x - 10 + osc(1s, -2, 2)" y=151 width=20 height=1 paint="sun.2" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 6)"
+        rect x="=@sun.x - 17 + osc(2s, -2, 2)" y=157 width=34 height=1 paint="sun.3" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 7)"
+        rect x="=@sun.x - 13 + osc(3s, -2, 2)" y=164 width=26 height=1 paint="sun.2" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 8)"
+        rect x="=@sun.x - 20 + osc(1s, -2, 2)" y=172 width=40 height=1 paint="sun.3" emissive=#true opacity="=0.85 * (1 - @dusk.x)" visible="=@dusk.x < 0.96 && chance(0.75, floor(t * 6) + 9)"
+        rect x="=@moon.x - 3 + osc(1s, -1, 1)" y=130 width=6 height=1 paint="moon.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 0)"
+        rect x="=@moon.x - 5 + osc(2s, -1, 1)" y=133 width=10 height=1 paint="moon.2" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 1)"
+        rect x="=@moon.x - 4 + osc(1s, -1, 1)" y=137 width=8 height=1 paint="moon.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 2)"
+        rect x="=@moon.x - 7 + osc(2s, -1, 1)" y=141 width=14 height=1 paint="moon.2" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 3)"
+        rect x="=@moon.x - 5 + osc(1s, -1, 1)" y=146 width=10 height=1 paint="moon.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 4)"
+        rect x="=@moon.x - 9 + osc(2s, -1, 1)" y=152 width=18 height=1 paint="moon.2" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 5)"
+        rect x="=@moon.x - 7 + osc(1s, -1, 1)" y=159 width=14 height=1 paint="moon.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 6)"
+        rect x="=@moon.x - 12 + osc(2s, -1, 1)" y=167 width=24 height=1 paint="moon.2" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 7)"
+        rect x="=@moon.x - 9 + osc(1s, -1, 1)" y=175 width=18 height=1 paint="moon.1" emissive=#true opacity="=@night.x" visible="=@night.x > 0.04 && chance(0.7, floor(t * 4) + 8)"
+        rect x="=272 + osc(4s, -3, 3)" y=173 width=14 height=1 paint="water.7"
+        rect x="=29 + osc(5s, -3, 3)" y=168 width=10 height=1 paint="water.7"
+        rect x="=10 + osc(4s, -3, 3)" y=172 width=14 height=1 paint="water.7"
+        rect x="=328 + osc(4s, -3, 3)" y=167 width=21 height=1 paint="water.7"
+        rect x="=218 + osc(4s, -3, 3)" y=170 width=22 height=1 paint="water.7"
+        rect x="=133 + osc(5s, -3, 3)" y=148 width=13 height=1 paint="water.7"
+        rect x="=379 + osc(5s, -3, 3)" y=148 width=10 height=1 paint="water.7"
+    }
+    reflection x=-80 y=128 width=640 height=52 axis=128 ripple=1 speed=2 tone-shift=-1 on="water"
+
+    layer "headland" parallax=0.6 {
+        use-scene "wooded-point" id="point"
+    }
+    layer "shore" parallax=1 {
+        polygon x=0 y=0 points="360,180 380,170 404,162 430,156 460,152 500,150 540,150 570,152 570,180" paint="forest.2" texture=0.45 texture-scale=2 shading="soft" outline="selective"
+        polygon x=0 y=0 points="-60,180 -60,158 -20,156 30,158 80,163 130,170 170,180" paint="forest.1" texture=0.5 texture-scale=2 shading="soft" outline="selective"
+        rope x1=456 y1=152 x2="=454 + wind(456) * 2" y2=144 sag=0 width=1 paint="forest.4"
+        rope x1=467 y1=152 x2="=465 + wind(467) * 2" y2=143 sag=0 width=1 paint="forest.4"
+        rope x1=453 y1=152 x2="=451 + wind(453) * 2" y2=144 sag=0 width=1 paint="forest.3"
+        rope x1=410 y1=162 x2="=408 + wind(410) * 2" y2=154 sag=0 width=1 paint="forest.4"
+        rope x1=422 y1=162 x2="=420 + wind(422) * 2" y2=156 sag=0 width=1 paint="forest.3"
+        rope x1=505 y1=152 x2="=503 + wind(505) * 2" y2=145 sag=0 width=1 paint="forest.3"
+        rope x1=551 y1=152 x2="=549 + wind(551) * 2" y2=148 sag=0 width=1 paint="forest.4"
+        rope x1=467 y1=152 x2="=465 + wind(467) * 2" y2=143 sag=0 width=1 paint="forest.4"
+        rope x1=532 y1=152 x2="=530 + wind(532) * 2" y2=145 sag=0 width=1 paint="forest.4"
+        use-scene "stone-lantern" x=414 y=162 lights-on=12
+    }
+    layer "near" parallax=1.25 {
+        use-scene "sakura-tree" x=-6 y=184
+        use-scene "sakura-bough" x=524 y=-6
+        particles x=280 y=-10 width=300 height=50 count=60 vx=-18 vy=9 life="16s" size=1 wind=10 paint="sakura.5" opacity="=1 - 0.4 * @night.x"
+    }
+
+    light-rect x=-80 y=-20 width=640 height=220 reach=1 intensity="=@glow.x" color="glow"
+    light-point x="=@moon.x" y="=@moon.y" reach=320 intensity="=0.6 * @night.x"
+    light-point attach="point.pagoda" x=-16 y=-10 reach=30 intensity="=step(11, t) * (2 + wiggle(0.3, 3))" color="warm"
+    light-point attach="point.pagoda" x=16 y=-10 reach=30 intensity="=step(11, t) * (2 + wiggle(0.3, 3))" color="warm"
+    light-point x=414 y=149 reach=28 intensity="=step(12, t) * (2.2 + wiggle(0.3, 2))" color="warm"
+    group "birds" {
+        line "bird0" x1="=-30 + 26 * (t - 4)" y1="=40 + 3 * sin(t + 0)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3 + 0))" paint="ink" visible="=between(4s, 11s)"
+        line x1="=@bird0.x2" y1="=@bird0.y2" x2="=@bird0.x1 + 5" y2="=@bird0.y1" paint="ink" visible="=between(4s, 11s)"
+        line "bird1" x1="=-44 + 26 * (t - 4)" y1="=46 + 3 * sin(t + 1)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3 + 0.3))" paint="ink" visible="=between(4s, 11s)"
+        line x1="=@bird1.x2" y1="=@bird1.y2" x2="=@bird1.x1 + 5" y2="=@bird1.y1" paint="ink" visible="=between(4s, 11s)"
+        line "bird2" x1="=-38 + 26 * (t - 4)" y1="=52 + 3 * sin(t + 2)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3 + 0.6))" paint="ink" visible="=between(4s, 11s)"
+        line x1="=@bird2.x2" y1="=@bird2.y2" x2="=@bird2.x1 + 5" y2="=@bird2.y1" paint="ink" visible="=between(4s, 11s)"
+        line "bird3" x1="=-56 + 26 * (t - 4)" y1="=38 + 3 * sin(t + 3)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3 + 0.15))" paint="ink" visible="=between(4s, 11s)"
+        line x1="=@bird3.x2" y1="=@bird3.y2" x2="=@bird3.x1 + 5" y2="=@bird3.y1" paint="ink" visible="=between(4s, 11s)"
+    }
+}

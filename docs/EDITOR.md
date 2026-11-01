@@ -8,7 +8,7 @@ The editor is a desktop app whose every pixel, icons included, is drawn by the e
 
 ## 0. Today: `pxe edit`
 
-> **Today (2026-11-01):** `cargo pxe edit [file.kdl] [--size WxH] [--scale N]` opens the editor; without a file it opens on the Home tab (recent files, New, Open). Several files are open at once as tabs under the menu bar (D-016); files are chosen with the system's own dialogs (D-017). Sections 1 onward describe the full design; this section is what exists. The architecture is in [ARCHITECTURE.md §2.2](ARCHITECTURE.md#22-the-editor-today-d-012-d-015-d-016-d-017).
+> **Today (2026-11-01):** `cargo pxe edit [file.kdl] [--size WxH] [--scale N]` opens the editor; without a file it opens on the Home tab (recent files, New, Open). Several files are open at once as tabs under the menu bar (D-016); files are chosen with the system's own dialogs (D-017). View > Detail 1x–4x redraws the canvas at that detail (D-025) while tools, hover and picking keep working in scene pixels; frames rendered during playback are kept packed in memory (up to 320 MB) so later loops play without rendering, and playback follows the clock, skipping frames when a render falls behind instead of slowing down. Sections 1 onward describe the full design; this section is what exists. The architecture is in [ARCHITECTURE.md §2.2](ARCHITECTURE.md#22-the-editor-today-d-012-d-015-d-016-d-017).
 
 **Architecture (D-015).** `px-ui` is a toolkit with no window or files: an indexed UI canvas in a theme palette ([`assets/theme-dark.kdl`](../crates/px-editor/assets/theme-dark.kdl), a light one too), the engine's pixel font, icons rendered from KDL scenes of `pixels` ([`assets/icons-*.kdl`](../crates/px-editor/assets/)), and immediate-mode widgets. `px-editor` holds the domain (documents, layers, commands, history), tools (one `Tool` type each), views (panels that only emit intents) and the app (windows, dispatch). `pxe edit` is the only adapter: minifb windows and the file system.
 
@@ -258,7 +258,7 @@ Toggle from the preview toolbar or with `F1`–`F10`.
 
 ## 8. Export dialog
 
-> **Today (2026-11-01):** GIF, PNG (current frame), PNG sequence and sprite sheet (strip, rows, columns; border and shape padding; scale; transparent background; Aseprite JSON hash format). Clips, directions, tags, slices, trim, tilesets and parallax layers are still planned.
+> **Today (2026-11-01):** GIF, PNG (current frame), PNG sequence and sprite sheet (strip, rows, columns; border and shape padding; scale; detail 1–8, which redraws the scene at that many pixels per scene pixel before scaling; transparent background; Aseprite JSON hash format). Clips, directions, tags, slices, trim, tilesets and parallax layers are still planned.
 
 | Option | Values |
 |---|---|

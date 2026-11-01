@@ -42,6 +42,7 @@ fn options(input: &Input) -> LoadOptions<'_> {
     LoadOptions {
         scene: input.scene.as_deref(),
         params: &input.params,
+        detail: input.detail,
     }
 }
 

@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use px_core::{Paint, Rgb};
+use px_engine::Detail;
 use px_format::edit::NodePath;
 use px_ui::{Id, UiCanvas, UiState};
 
@@ -105,6 +106,7 @@ pub struct ViewState {
     pub onion: bool,
     pub grid: bool,
     pub code: CodeMode,
+    pub detail: Detail,
 }
 
 #[derive(Clone, Debug, Default)]

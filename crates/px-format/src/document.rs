@@ -4,7 +4,7 @@ use std::path::Path;
 
 use kdl::KdlNode;
 use px_director::Sequence;
-use px_engine::Scene;
+use px_engine::{Detail, Scene};
 
 use crate::diagnostic::{Diagnostic, Diagnostics, LoadError, Severity};
 use crate::font::{self, DEFAULT_FONT, Fonts};
@@ -45,6 +45,7 @@ pub enum Work {
 pub struct LoadOptions<'a> {
     pub scene: Option<&'a str>,
     pub params: &'a [(String, String)],
+    pub detail: Detail,
 }
 
 pub fn load_file(path: &Path, options: LoadOptions<'_>) -> Result<Loaded, LoadError> {
@@ -133,6 +134,7 @@ fn build(
             let overrides = Overrides::Cli(options.params);
             let parsed = scene::parse(node, catalog, overrides, diags)?;
             let scene = Scene::new(parsed.spec)
+                .and_then(|scene| scene.with_detail(options.detail))
                 .map_err(|error| diags.error(node.span().offset(), error.to_string()))
                 .ok()?;
             Some(Built::Scene(Box::new(BuiltScene {
@@ -150,7 +152,11 @@ fn build(
                     "params are set per shot in a sequence; --param is ignored",
                 );
             }
-            sequence::parse(node, file, catalog, diags).map(Built::Sequence)
+            sequence::parse(node, file, catalog, diags)?
+                .with_detail(options.detail)
+                .map_err(|error| diags.error(node.span().offset(), error.to_string()))
+                .ok()
+                .map(Built::Sequence)
         }
     }
 }

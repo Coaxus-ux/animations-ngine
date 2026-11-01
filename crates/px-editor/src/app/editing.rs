@@ -19,5 +19,6 @@ pub struct Editing {
     pub locked: BTreeSet<String>,
     pub playing: bool,
     pub played_at: u64,
+    pub played_frames: u64,
     pub status: Status,
 }

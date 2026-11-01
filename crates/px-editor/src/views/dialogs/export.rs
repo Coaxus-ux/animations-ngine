@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use px_engine::{Detail, MAX_DETAIL};
 use px_export::{Padding, SheetLayout, place};
 use px_ui::{
     Area, DialogAction, Id, ROW, Rect, Ui, button, checkbox, label, number_field, ok_cancel,
@@ -57,7 +58,9 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
     if kind == SHEET {
         sheet_rows(ui, &mut rows, form, &mut order);
     }
-    let scale_field = labeled(ui, rows.next(), "Scale");
+    let sizes = rows.next();
+    let (scale_row, detail_row) = sizes.take_left(sizes.width / 2);
+    let scale_field = labeled(ui, scale_row, "Scale");
     number_field(
         ui,
         id(keys::SCALE),
@@ -66,6 +69,15 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
         (1, i64::from(MAX_SCALE)),
     );
     order.push(id(keys::SCALE));
+    let detail_field = labeled(ui, detail_row, "Detail");
+    number_field(
+        ui,
+        id(keys::DETAIL),
+        detail_field,
+        form.number(keys::DETAIL, 1),
+        (1, i64::from(MAX_DETAIL)),
+    );
+    order.push(id(keys::DETAIL));
     toggle(
         ui,
         rows.next(),
@@ -221,6 +233,7 @@ fn job_from(form: &mut Form, current: u32) -> ExportJob {
     ExportJob {
         kind,
         scale: u8::try_from(*form.number(keys::SCALE, 1)).unwrap_or(1),
+        detail: Detail::whole(u8::try_from(*form.number(keys::DETAIL, 1)).unwrap_or(1)),
         transparent: *form.flag(keys::TRANSPARENT, true),
         trim: kind != ExportKind::Gif && *form.flag(keys::TRIM, false),
         split_layers: kind.splits() && *form.flag(keys::SPLIT_LAYERS, false),
@@ -237,7 +250,9 @@ fn preview(document: Option<&Document>, job: &ExportJob) -> String {
     let Some(scene) = document.and_then(Document::scene) else {
         return "No scene to export".to_owned();
     };
-    let size = scene.size();
+    let Some(size) = job.detail.scale(scene.size()) else {
+        return "Too large at this detail".to_owned();
+    };
     let count = frame_count(job.frames, scene.timing().duration.get());
     let scale = u32::from(job.scale);
     let scaled = |(width, height): (u32, u32)| format!("{}x{} px", width * scale, height * scale);

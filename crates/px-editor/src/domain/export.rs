@@ -7,6 +7,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 pub use kdl::{KIND_NAMES, LAYOUT_NAMES};
+use px_engine::Detail;
 use px_export::{Padding, Scale, SheetLayout};
 pub use tags::frame_tags;
 
@@ -40,6 +41,7 @@ pub enum FrameScope {
 pub struct ExportJob {
     pub kind: ExportKind,
     pub scale: u8,
+    pub detail: Detail,
     pub transparent: bool,
     pub trim: bool,
     pub split_layers: bool,
@@ -62,6 +64,7 @@ impl Default for ExportJob {
                 json: true,
             },
             scale: 1,
+            detail: Detail::NATIVE,
             transparent: true,
             trim: false,
             split_layers: false,

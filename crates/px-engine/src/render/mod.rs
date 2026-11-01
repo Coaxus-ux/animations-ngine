@@ -1,4 +1,5 @@
 mod buffer;
+mod casters;
 mod composite;
 mod draw;
 mod frame;
@@ -9,6 +10,7 @@ mod pixels;
 mod placement;
 mod reflection;
 mod report;
+mod shadow;
 mod stamp;
 mod surface;
 mod text;

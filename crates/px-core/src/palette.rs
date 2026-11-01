@@ -42,6 +42,28 @@ pub struct Paint {
     pub tone: Tone,
 }
 
+const TONE_BITS: u32 = MAX_TONES.trailing_zeros();
+const TONE_MASK: u16 = (1 << TONE_BITS) - 1;
+
+impl Paint {
+    #[must_use]
+    pub fn packed(self) -> u16 {
+        debug_assert!(
+            usize::from(self.tone.index()) < MAX_TONES,
+            "a packed paint keeps tones below MAX_TONES"
+        );
+        self.ramp.0 << TONE_BITS | u16::from(self.tone.index()) & TONE_MASK
+    }
+
+    #[must_use]
+    pub fn unpacked(bits: u16) -> Self {
+        Self {
+            ramp: RampId(bits >> TONE_BITS),
+            tone: Tone::new(u8::try_from(bits & TONE_MASK).unwrap_or(0)),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Ramp {
     colors: [Rgb; MAX_TONES],

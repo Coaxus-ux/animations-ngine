@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use kdl::KdlValue;
 use px_core::{Paint, Rgb};
+use px_engine::Detail;
 use px_format::edit::NodePath;
 
 use super::dialog::{DialogKind, PickPurpose};
@@ -56,6 +57,7 @@ pub enum Intent {
     TogglePlay,
     ToggleOnion,
     ToggleGrid,
+    SetDetail(Detail),
     NewCel,
     DeleteCel,
     AddFrame,

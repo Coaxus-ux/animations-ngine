@@ -15,7 +15,7 @@ use common::{Kit, bounds, expr, fixed, kit, rect, shape, world};
 use counting_alloc::assert_no_heap_activity;
 use px_core::{Frame, Paint};
 use px_engine::{
-    Ambient, Anchor, Bounds, Camera, Clip, Environment, FrameBuffer, Geometry, Gradient,
+    Ambient, Anchor, Bounds, Camera, Clip, Detail, Environment, FrameBuffer, Geometry, Gradient,
     GradientDirection, Instance, Layer, Light, LightKind, Outline, Particles, Reflection, Segment,
     Shading, Shape, Style, Text, TextCell, Texture, Window,
 };
@@ -299,11 +299,19 @@ fn rendering_performs_no_heap_activity() {
         y: expr("t"),
     });
     let scene = world(&kit, (32, 32), 24, shapes, environment);
+    let detailed = scene
+        .clone()
+        .with_detail(Detail::new(2.5).unwrap())
+        .unwrap();
     let mut buffer = FrameBuffer::new(&scene);
+    let mut detailed_buffer = FrameBuffer::new(&detailed);
 
     assert_no_heap_activity(|| {
         for frame in 0..48 {
             buffer.render(&scene, Frame::new(frame)).unwrap();
+            detailed_buffer
+                .render(&detailed, Frame::new(frame))
+                .unwrap();
         }
     });
 }

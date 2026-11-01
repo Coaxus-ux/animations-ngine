@@ -20,12 +20,7 @@ pub(crate) fn run(command: &Command) -> Result<()> {
         Command::Watch { input } => crate::watch::watch(input, scale(input)?),
         Command::Edit { file, size, scale } => crate::edit::edit(file.as_deref(), *size, *scale),
         Command::Timeline { input } => crate::timeline::print(input),
-        Command::Bench {
-            files,
-            budget_ms,
-            rounds,
-            sweep,
-        } => crate::bench::bench(files, *budget_ms, *rounds, sweep.as_ref()),
+        Command::Bench { files, options } => crate::bench::bench(files, options),
     }
 }
 

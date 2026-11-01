@@ -5,6 +5,7 @@ use super::frame::render;
 use super::mask::Mask;
 use super::placement::Placed;
 use super::report::FrameReport;
+use super::shadow::{Memo, memo_cells};
 use super::stamp::{Capture, Stamps};
 use super::surface::{Surface, Target};
 use crate::model::{MAX_INSTANCES, Scene};
@@ -21,6 +22,7 @@ pub struct FrameBuffer {
     noise: Vec<i8>,
     paints: Vec<Paint>,
     placed: Vec<Placed>,
+    memo: Vec<Memo>,
     report: FrameReport,
 }
 
@@ -39,6 +41,7 @@ impl FrameBuffer {
             noise: vec![0; count],
             paints: vec![scene.background(); count],
             placed: vec![Placed::root(px_expr::Env::default()); MAX_INSTANCES],
+            memo: vec![Memo::EMPTY; memo_cells(usize::from(scene.size().width()))],
             report: FrameReport::default(),
         }
     }
@@ -95,6 +98,7 @@ impl FrameBuffer {
             surface: &mut surface,
             mask: &mut mask,
             placed: &mut self.placed,
+            memo: &mut self.memo,
         };
         render(scene, frame, target, &mut self.report, capture)
     }

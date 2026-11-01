@@ -2,8 +2,9 @@ use px_engine::Geometry;
 use px_ui::{Area, Id, Input, Key, Rect, Theme, Ui, WHEEL_NOTCH, pack, rect};
 
 use super::doc_view::{
-    Placement, RenderCache, ViewPixels, draw_cursor, draw_document, draw_grid, draw_selection,
+    Placement, ViewPixels, draw_cursor, draw_document, draw_grid, draw_selection,
 };
+use super::render_cache::RenderCache;
 use super::{Context, unavailable};
 use crate::app::{Button, Editing, Intent, ViewState};
 use crate::domain::Document;
@@ -97,10 +98,9 @@ pub fn paint_canvas(
         area.width * scale,
         area.height * scale,
     );
-    let Some((canvas_width, canvas_height, _, _)) = paint.cache.image() else {
+    let Some(canvas) = paint.cache.image().map(|image| image.canvas) else {
         return;
     };
-    let canvas = (canvas_width, canvas_height);
     let placement = Placement::of(paint.view, clip, canvas);
     let palette = &paint.theme.palette;
     let roles = paint.theme.roles;

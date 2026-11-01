@@ -1,3 +1,4 @@
+use px_engine::Detail;
 use px_ui::{Menu, MenuItem, Rect, Ui, menu_bar};
 
 use super::{Context, menus_file, menus_palette};
@@ -199,6 +200,16 @@ fn frame<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
     ]
 }
 
+fn detail<'a>(label: &'a str, factor: u8, context: &Context<'_>) -> Entry<'a> {
+    let detail = Detail::whole(factor);
+    check(
+        label,
+        "",
+        context.view.detail == detail,
+        Some(Intent::SetDetail(detail)),
+    )
+}
+
 fn view<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
     let at = context.raw.pointer.unwrap_or_default();
     let code = context.view.code;
@@ -214,6 +225,11 @@ fn view<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
             context.view.grid,
             Some(Intent::ToggleGrid),
         ),
+        separator(),
+        detail("Detail 1x (scene pixels)", 1, context),
+        detail("Detail 2x", 2, context),
+        detail("Detail 3x", 3, context),
+        detail("Detail 4x", 4, context),
         separator(),
         check(
             "Canvas only",

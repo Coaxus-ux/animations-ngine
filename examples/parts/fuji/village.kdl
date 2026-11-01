@@ -1,0 +1,30 @@
+// Lakeside buildings, each standing on the shore at (0, 0); odd copies are wider. Their
+// windows light up one by one after `lights-on` (host seconds), so a row of copies comes
+// alive at nightfall.
+
+use "fuji-palette.kdl"
+
+scene "house" palette="fuji" width=24 height=16 fps=12 duration="16s" background="sky-day.5" {
+    param lights-on 10
+    camera x=-12 y=-12
+
+    rect x=0 y=-3 width="=6 + 2 * (i % 2)" height=3 paint="plaster.2" shading="soft"
+    polygon x=0 y=-3 points="-1,0 1,-2 5,-2 7,0" paint="tile.1" visible="=i % 2 == 0"
+    polygon x=0 y=-3 points="-1,0 1,-2 7,-2 9,0" paint="tile.1" visible="=i % 2 == 1"
+    rect x=1 y=-2 width=1 height=1 paint="lamp.3" emissive=#true visible="=t > $lights-on + 2.5 * rand(1)"
+    rect x=3 y=-2 width=1 height=1 paint="lamp.2" emissive=#true visible="=t > $lights-on + 2.5 * rand(2)"
+    rect x=5 y=-2 width=1 height=1 paint="lamp.3" emissive=#true visible="=i % 2 == 1 && t > $lights-on + 2.5 * rand(3)"
+}
+
+scene "stone-lantern" palette="fuji" width=16 height=24 fps=12 duration="16s" background="sky-day.5" {
+    param lights-on 10
+    camera x=-8 y=-20
+
+    rect x=-1 y=-8 width=3 height=8 paint="plaster.1" shading="soft"
+    rect x=-3 y=-1 width=7 height=1 paint="plaster.0"
+    rect x=-3 y=-10 width=7 height=2 paint="plaster.2"
+    rect x=-2 y=-14 width=5 height=4 paint="plaster.1"
+    rect x=-1 y=-13 width=3 height=2 paint="lamp.3" emissive=#true visible="=t > $lights-on"
+    polygon x=0 y=-14 points="-5,0 -1,-3 2,-3 6,0" paint="plaster.2" shading="soft"
+    rect x=0 y=-18 width=1 height=2 paint="plaster.2"
+}

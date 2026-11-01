@@ -1,3 +1,4 @@
+mod detail;
 mod instance;
 mod param;
 mod pixels;
@@ -6,6 +7,7 @@ mod shape;
 mod text;
 mod world;
 
+pub use detail::{Detail, DetailError, MAX_DETAIL};
 pub use instance::{Anchor, Instance, Window};
 pub use param::Param;
 pub use pixels::{Cel, PixelArt};

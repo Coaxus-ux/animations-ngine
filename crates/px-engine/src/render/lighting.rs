@@ -2,10 +2,10 @@ use px_core::{LightColor, Paint, Palette};
 use px_raster::Rect;
 
 use super::composite::shifted;
-use super::surface::{CASTS_SHADOW, EMISSIVE, Surface};
+use super::shadow::{Memo, Shadows};
+use super::surface::{EMISSIVE, Surface};
 use crate::model::MAX_LIGHTS;
 
-const MAX_SHADOW_STEPS: f64 = 160.0;
 const CONE_SOFTNESS: f64 = 0.45;
 const CONE_EDGE: f64 = 0.12;
 const REACH_MARGIN: f64 = 1.0 + 1e-9;
@@ -28,6 +28,11 @@ pub(crate) struct Lit {
     pub(crate) shadows: bool,
 }
 
+pub(crate) struct Scratch<'a> {
+    pub(crate) window: &'a mut [u16],
+    pub(crate) memo: &'a mut [Memo],
+}
+
 pub(crate) struct Ambient {
     pub(crate) darkness: f64,
     pub(crate) occlusion: f64,
@@ -38,14 +43,18 @@ pub(crate) fn light(
     palette: &Palette,
     ambient: &Ambient,
     lights: &[Lit],
-    window: &mut [u16],
+    scratch: Scratch<'_>,
+    grain: i32,
 ) {
+    let Scratch { window, memo } = scratch;
     if ambient.darkness == 0.0 && ambient.occlusion == 0.0 && lights.is_empty() {
         return;
     }
     if ambient.occlusion > 0.0 {
         nearest_in_rows(surface, window);
     }
+    let casting = lights.iter().any(|lamp| lamp.shadows);
+    let mut shadows = Shadows::new(surface, casting, memo, grain);
     let reaches = lights.iter().map(Reach::of);
     let mut boxes = [Reach::EVERYWHERE; MAX_LIGHTS];
     for (target, reach) in boxes.iter_mut().zip(reaches) {
@@ -74,12 +83,22 @@ pub(crate) fn light(
             }
             let center_x = f64::from(x) + 0.5;
             let mut strongest: (f64, Option<LightColor>) = (0.0, None);
-            for ((lamp, reach), in_row) in lights.iter().zip(&boxes).zip(lit_row) {
+            for (light, ((lamp, reach), in_row)) in
+                lights.iter().zip(&boxes).zip(lit_row).enumerate()
+            {
                 if !in_row || reach.misses_column(center_x) {
                     continue;
                 }
                 let amount = contribution(lamp, x, y);
-                if amount <= 0.0 || (lamp.shadows && shadowed(surface, x, y, lamp)) {
+                if amount <= 0.0
+                    || (lamp.shadows
+                        && shadows.blocked(
+                            surface,
+                            light,
+                            (x, y),
+                            source_point(lamp, center_x, f64::from(y) + 0.5),
+                        ))
+                {
                     continue;
                 }
                 steps += amount;
@@ -197,35 +216,6 @@ fn source_point(lamp: &Lit, px: f64, py: f64) -> (f64, f64) {
         ),
         _ => (lamp.x, lamp.y),
     }
-}
-
-fn shadowed(surface: &Surface<'_>, x: i32, y: i32, lamp: &Lit) -> bool {
-    let Some(own) = surface.index(x, y).map(|index| surface.depth[index]) else {
-        return false;
-    };
-    let (px, py) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
-    let (lx, ly) = source_point(lamp, px, py);
-    let distance = libm::hypot(lx - px, ly - py).min(MAX_SHADOW_STEPS);
-    #[expect(
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss,
-        reason = "bounded by MAX_SHADOW_STEPS"
-    )]
-    let steps = distance as u32;
-    (1..steps).any(|step| {
-        let t = f64::from(step) / f64::from(steps);
-        #[expect(
-            clippy::cast_possible_truncation,
-            reason = "on-canvas sample positions fit i32"
-        )]
-        let (sx, sy) = (
-            px_core::floor(px + (lx - px) * t) as i32,
-            px_core::floor(py + (ly - py) * t) as i32,
-        );
-        surface
-            .index(sx, sy)
-            .is_some_and(|i| surface.flags[i] & CASTS_SHADOW != 0 && surface.depth[i] > own)
-    })
 }
 
 fn occluded(surface: &Surface<'_>, window: &[u16], x: i32, y: i32) -> f64 {
