@@ -1,0 +1,10 @@
+// One 6-pixel band of the dusk sky, its top left corner at (0, 0). A host stacks 29 of them
+// with `count`, overlapping: copy `i` shows sky tone `i / 4` mixed a quarter step at a time with the next
+// tone, so eight tones become a smooth dithered gradient from indigo down to the pale horizon.
+
+use "sunflower-palette.kdl"
+
+scene "dusk-band" palette="sunflower" width=176 height=6 fps=12 duration="16s" loop=#true background="sky.0" {
+    rect x=0 y=0 width=176 height=6 paint="sky.0" tone-shift="=floor(i / 4)" emissive=#true
+    rect x=0 y=0 width=176 height=6 paint="sky.0" tone-shift="=min(7, floor(i / 4) + 1)" emissive=#true opacity="=(i % 4) / 4" visible="=i % 4 > 0"
+}

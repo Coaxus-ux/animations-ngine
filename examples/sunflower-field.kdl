@@ -1,0 +1,73 @@
+// A sunflower field at summer dusk, in portrait. Plum clouds lit gold from below drift over an
+// indigo sky that pales to a peach horizon; the field runs from a haze of tiny far heads down
+// to big flowers at the bottom edge, and a breeze rolls across it as a wave of sway that
+// travels left to right. Pollen drifts up and a few birds cross on their way home.
+//
+// Shows: a dithered sky gradient stacked from `count` bands, perspective rows of placed scenes
+// whose `offset` follows their position so the sway becomes a travelling gust, clouds whose
+// layered blobs make a lit rim, and a seamless 16 s loop (every motion divides it).
+
+use "parts/sunflowers/sunflower-palette.kdl"
+use "parts/sunflowers/dusk-sky.kdl"
+use "parts/sunflowers/clouds.kdl"
+use "parts/sunflowers/sunflower.kdl"
+
+scene "sunflower-field" palette="sunflower" width=160 height=224 fps=12 duration="16s" loop=#true seed=11 background="sky.0" {
+    layer "sky" {
+        use-scene "dusk-band" count=29 x=-8 y="=-2 + i * 5.2"
+        ellipse x=-50 y=118 width=260 height=48 paint="dawn.5" emissive=#true opacity="=0.45 + 0.05 * sin(tau * t / 16)"
+        ellipse x=-30 y=130 width=220 height=30 paint="dawn.4" emissive=#true opacity=0.6
+        ellipse x=-10 y=139 width=180 height=16 paint="dawn.3" emissive=#true opacity=0.7
+        rect x=0 y=145 width=160 height=4 paint="dawn.2" emissive=#true opacity=0.8
+    }
+    layer "clouds" {
+        use-scene "cloud-bank" x="=-24 + osc(16s, -3, 3)" y=26 scale=1.5
+        use-scene "cloud-heap" flip=#true x="=168 + osc(16s, 2, -2)" y=40 scale=1.3 offset=2
+        use-scene "cloud-wisp" x="=56 + osc(16s, -2, 2)" y=58 scale=0.9 offset=5
+        use-scene "cloud-bank" flip=#true x="=176 + osc(16s, -3, 3)" y=88 scale=1.1 offset=3
+        use-scene "cloud-wisp" x="=-6 + osc(16s, 2, -2)" y=104 scale=1.3 offset=6
+        use-scene "cloud-streak" x="=-14 + osc(16s, 2, -2)" y=134 scale=0.9 offset=3
+        use-scene "cloud-streak" x="=70 + osc(16s, -2, 2)" y=139 scale=0.7 offset=9
+        use-scene "cloud-heap" x="=92 + osc(16s, -2, 2)" y=128 scale=0.9 offset=1
+    }
+    layer "horizon" {
+        rect x=0 y=147 width=160 height=2 paint="dawn.0" emissive=#true
+        blob x=0 y=148 circles="-4,0,6 4,-3,5 10,-1,4 16,0,3" smooth=2 paint="tree.1" texture=0.5 texture-scale=1
+        blob x=128 y=148 circles="0,0,3 8,-2,5 16,-4,6 26,-3,6 36,0,5" smooth=2 paint="tree.1" texture=0.5 texture-scale=1
+        rect x=0 y=149 width=160 height=75 paint="leaf.1" texture=0.5 texture-scale=2
+    }
+    layer "far-field" {
+        use-scene "far-sunflower" count=42 x="=-2 + i * 4 + 2 * rand(i)" y="=151 + rand(i + 100)" scale=0.5 offset="=mod(-i * 0.1, 4)"
+        use-scene "far-sunflower" count=34 x="=-3 + i * 5 + 2 * rand(i + 200)" y="=154 + rand(i + 300)" scale=0.65 offset="=mod(-i * 0.125, 4)"
+        use-scene "far-sunflower" count=26 x="=-4 + i * 6.5 + 3 * rand(i + 400)" y="=158 + 2 * rand(i + 500)" scale=0.8 offset="=mod(-i * 0.16, 4)"
+        use-scene "far-sunflower" count=22 x="=-5 + i * 8 + 3 * rand(i + 600)" y="=162 + 2 * rand(i + 700)" scale=1 offset="=mod(-i * 0.2, 4)"
+    }
+    layer "near-field" {
+        use-scene "leaf-clump" count=14 x="=-4 + i * 12 + 4 * rand(i + 800)" y="=168 + 1 * rand(i + 900)" scale=0.35 offset="=mod(-i * 0.2, 4)"
+        use-scene "sunflower" count=18 x="=-10 + i * 10 + 3 * rand(i + 1000)" y="=168 + 1 * rand(i + 1100)" scale=0.34 offset="=mod(-i * 0.22, 4)"
+        use-scene "leaf-clump" count=13 x="=-3 + i * 14 + 4 * rand(i + 1200)" y="=174 + 2 * rand(i + 1300)" scale=0.5 offset="=mod(-i * 0.3, 4)"
+        use-scene "sunflower" count=12 x="=-10 + i * 14 + 4 * rand(i + 1400)" y="=177 + 1 * rand(i + 1500)" scale=0.45 offset="=mod(-i * 0.3, 4)"
+        use-scene "leaf-clump" count=10 x="=-0.5 + i * 19 + 6 * rand(i + 1600)" y="=183 + 2 * rand(i + 1700)" scale=0.65 offset="=mod(-i * 0.4, 4)"
+        use-scene "sunflower" count=9 x="=-10 + i * 19 + 6 * rand(i + 1800)" y="=188 + 2 * rand(i + 1900)" scale=0.6 offset="=mod(-i * 0.4, 4)"
+        use-scene "sunflower" count=4 sx=0.6 x="=9 + i * 38 + 11 * rand(i + 2000)" y="=190 + 2 * rand(i + 2100)" scale=0.6 offset="=mod(-i * 0.8, 4)"
+        use-scene "leaf-clump" count=8 x="=3 + i * 26 + 8 * rand(i + 2200)" y="=196 + 3 * rand(i + 2300)" scale=0.9 offset="=mod(-i * 0.5, 4)"
+        use-scene "sunflower" count=7 x="=-10 + i * 26 + 8 * rand(i + 2400)" y="=202 + 2 * rand(i + 2500)" scale=0.8 offset="=mod(-i * 0.55, 4)"
+        use-scene "sunflower" count=4 sx=0.55 sy=0.95 x="=16 + i * 52 + 16 * rand(i + 2600)" y="=204 + 2 * rand(i + 2700)" scale=0.8 offset="=mod(-i * 1.1, 4)"
+        use-scene "leaf-clump" count=6 x="=8 + i * 36 + 11 * rand(i + 2800)" y="=212 + 4 * rand(i + 2900)" scale=1.2 offset="=mod(-i * 0.75, 4)"
+        use-scene "sunflower" count=6 x="=-10 + i * 36 + 11 * rand(i + 3000)" y="=222 + 3 * rand(i + 3100)" scale=1.1 offset="=mod(-i * 0.8, 4)"
+        use-scene "sunflower" count=3 sy=0.6 x="=26 + i * 72 + 22 * rand(i + 3200)" y="=225 + 3 * rand(i + 3300)" scale=1.1 offset="=mod(-i * 1.6, 4)"
+        use-scene "leaf-clump" count=5 x="=14 + i * 48 + 14 * rand(i + 3400)" y="=232 + 5 * rand(i + 3500)" scale=1.6 offset="=mod(-i * 1.0, 4)"
+        use-scene "sunflower" count=2 sx=0.6 x="=30 + i * 80 + 24 * rand(i + 3600)" y="=244 + 5 * rand(i + 3700)" scale=1.7 offset="=mod(-i * 2.0, 4)"
+        use-scene "sunflower" count=3 x="=-10 + i * 80 + 24 * rand(i + 3800)" y="=252 + 6 * rand(i + 3900)" scale=1.9 offset="=mod(-i * 1.7, 4)"
+    }
+
+    layer "air" {
+        particles x=0 y=150 width=160 height=74 count=28 vx=3 vy=-5 life="4s" size=1 paint="petal.6" emissive=#true fade=#true
+        line "bird0" x1="=mod(t * 15, 240) - 40" y1="=72 + 2 * sin(tau * t / 4)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3))" paint="ink"
+        line x1="=@bird0.x2" y1="=@bird0.y2" x2="=@bird0.x1 + 4" y2="=@bird0.y1" paint="ink"
+        line "bird1" x1="=mod(t * 15 - 9, 240) - 40" y1="=77 + 2 * sin(tau * t / 4 + 1)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3 + 0.4))" paint="ink"
+        line x1="=@bird1.x2" y1="=@bird1.y2" x2="=@bird1.x1 + 4" y2="=@bird1.y1" paint="ink"
+        line "bird2" x1="=mod(t * 15 - 15, 240) - 40" y1="=69 + 2 * sin(tau * t / 4 + 2)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + on2(square(t * 3 + 0.7))" paint="ink"
+        line x1="=@bird2.x2" y1="=@bird2.y2" x2="=@bird2.x1 + 4" y2="=@bird2.y1" paint="ink"
+    }
+}
