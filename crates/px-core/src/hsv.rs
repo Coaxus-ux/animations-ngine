@@ -1,8 +1,6 @@
 use crate::color::Rgb;
 use crate::palette::MAX_TONES;
 
-/// A color as hue (degrees, `0..360`), saturation and value (`0..=1`), for pickers and
-/// ramp generation. Plain `f64` arithmetic through `libm`, so results match on every OS.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Hsv {
     pub h: f64,
@@ -68,10 +66,6 @@ impl Hsv {
     }
 }
 
-/// A ramp of `steps` tones from dark to light around `base`, the pixel-art way: the value
-/// spreads by `contrast`, dark tones turn their hue by `-hue_shift` (toward cool colors)
-/// and light tones by `+hue_shift` (toward warm ones), and saturation falls by
-/// `saturation` toward the light end.
 #[must_use]
 pub fn ramp(
     base: Rgb,
@@ -109,7 +103,6 @@ fn wrap_hue(h: f64) -> f64 {
     }
 }
 
-/// Which of the six hue sectors `sector` (0..6) falls in.
 fn sector_index(sector: f64) -> u8 {
     let mut index = 0;
     while index < 5 && f64::from(index + 1) <= sector {

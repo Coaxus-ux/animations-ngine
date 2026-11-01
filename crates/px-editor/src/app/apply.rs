@@ -8,18 +8,14 @@ use super::{App, WindowId};
 use crate::domain::{Command, Selection};
 use crate::ports::FileStore;
 
-/// The windows an intent acts on: the one that sent it and the canvas window it means
-/// (that window when it has a canvas, else the canvas window last used).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Targets {
     pub source: WindowId,
     pub canvas: WindowId,
 }
 
-/// One link of the chain: handles the intent, or hands it back for the next handler.
 type Handler = fn(&mut App, Intent, Targets, &Input, &mut dyn FileStore) -> Option<Intent>;
 
-/// Every handler in order; adding a feature adds a module and a line here.
 const HANDLERS: &[Handler] = &[
     App::apply_dialogs,
     App::apply_files,
@@ -34,7 +30,6 @@ const HANDLERS: &[Handler] = &[
 ];
 
 impl App {
-    /// Applies `intent` as if window `source` asked for it: for scripts and tests.
     pub fn dispatch(&mut self, intent: Intent, source: WindowId, store: &mut dyn FileStore) {
         self.apply(intent, source, &Input::default(), store);
     }

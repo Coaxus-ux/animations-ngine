@@ -1,4 +1,3 @@
-//! The editor driven headless: an in-memory file store and scripted input, no window.
 #![allow(
     dead_code,
     clippy::unwrap_used,
@@ -21,7 +20,6 @@ pub fn example(name: &str) -> String {
     std::fs::read_to_string(path).unwrap()
 }
 
-/// The app with the pixel-room example open, its main window drawn once.
 pub fn open() -> (App, MemoryFiles, WindowId) {
     let mut files = MemoryFiles::default();
     files
@@ -51,7 +49,6 @@ pub fn layer(app: &App, name: &str) -> usize {
         .unwrap()
 }
 
-/// Window pixel at the center of canvas pixel `at`.
 pub fn window_point(app: &App, window: WindowId, at: (i32, i32)) -> (i32, i32) {
     let state = app.window(window).unwrap();
     let scene = app.document().unwrap().scene().unwrap();
@@ -66,7 +63,6 @@ pub fn window_point(app: &App, window: WindowId, at: (i32, i32)) -> (i32, i32) {
     )
 }
 
-/// Presses at the first canvas pixel, drags through the others, releases at the last.
 pub fn stroke(app: &mut App, files: &mut MemoryFiles, window: WindowId, points: &[(i32, i32)]) {
     for (step, point) in points.iter().enumerate() {
         let at = window_point(app, window, *point);
@@ -133,8 +129,6 @@ pub fn shown_paint(app: &App, at: (i32, i32)) -> px_core::Paint {
     view.get(at.0, at.1).unwrap()
 }
 
-/// Compares the drawn window against a golden hash; `PX_BLESS=1` rewrites it and
-/// `PX_EDITOR_SNAPSHOT=file.png` also saves the picture.
 pub fn check_golden(app: &mut App, files: &mut MemoryFiles, window: WindowId, golden: &str) {
     let pixels = app.frame(window, &Input::default(), SIZE, files).unwrap();
     let bytes: Vec<u8> = pixels

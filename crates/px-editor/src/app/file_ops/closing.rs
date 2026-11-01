@@ -1,6 +1,3 @@
-//! Closing tabs that may have unsaved changes: the Confirm dialog, pinned to the tab it
-//! asks about, and its Save that waits for a native pick when the tab has no file yet.
-
 use px_ui::Input;
 
 use super::super::App;
@@ -29,8 +26,6 @@ impl App {
         }
     }
 
-    /// Closes every clean tab, then asks about the first dirty one, `then` resuming
-    /// afterwards; returns whether nothing is left open.
     pub(super) fn close_all(
         &mut self,
         source: WindowId,
@@ -53,8 +48,6 @@ impl App {
         false
     }
 
-    /// Brings tab `index` to the front and asks whether to save it before it closes; the
-    /// dialog remembers the tab and runs `then` once it is closed.
     fn confirm_closing(
         &mut self,
         source: WindowId,
@@ -79,8 +72,6 @@ impl App {
         self.editing.status = format!("{title} has unsaved changes");
     }
 
-    /// An untitled tab needs a native pick first; the Confirm dialog stays open until the
-    /// pick lands (`resume_closing`) or the user chooses otherwise.
     pub(super) fn save_and_close(
         &mut self,
         source: WindowId,
@@ -101,8 +92,6 @@ impl App {
         self.finish_closing(source, index, then, input, store);
     }
 
-    /// A pick can only be answered while a Confirm dialog is open when its Save asked for
-    /// it, so a successful save then completes that dialog.
     pub(super) fn resume_closing(
         &mut self,
         source: WindowId,

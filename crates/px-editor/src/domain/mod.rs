@@ -1,7 +1,3 @@
-//! The editor's model: documents (KDL text as the source of truth), layers, commands,
-//! history, palettes, exports, the element tree and the images and selections tools work
-//! on. No UI, window or file system.
-
 mod command;
 mod document;
 pub mod export;

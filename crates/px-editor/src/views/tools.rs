@@ -7,10 +7,8 @@ use crate::app::Intent;
 use crate::domain::Document;
 use crate::tools::ToolKind;
 
-/// Height of the two paint boxes under the color bar (UI pixels).
 pub(super) const PAINTS: i32 = 2 * TOOL_BUTTON;
 
-/// The tools, one under another, down the window's right edge.
 pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.header);
@@ -36,7 +34,6 @@ pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     }
 }
 
-/// The main and second colors, one over the other as in Aseprite, and the swap button.
 pub(super) fn paints(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.panel);
@@ -85,7 +82,6 @@ pub(super) fn paints(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     }
 }
 
-/// The current tool in words, what the mouse does with it, and its options.
 pub(super) fn options(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.panel);
@@ -158,7 +154,6 @@ pub(super) fn options(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     );
 }
 
-/// Why the tool can't be used on the active layer, if it can't.
 fn blocked(context: &Context<'_>, tool: ToolKind) -> Option<&'static str> {
     if !tool.paints() {
         return None;
@@ -197,8 +192,6 @@ const fn how_to(tool: ToolKind) -> &'static str {
     }
 }
 
-/// Aseprite's status line: size, zoom, pointer, color, frame and layer; after a separator,
-/// the file's first error, the last message, or what F1 does.
 pub(super) fn status(
     ui: &mut Ui<'_>,
     context: &mut Context<'_>,

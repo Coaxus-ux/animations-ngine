@@ -1,4 +1,3 @@
-//! Popups over the editor, driven headless: the F1 help and the Export dialogs.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

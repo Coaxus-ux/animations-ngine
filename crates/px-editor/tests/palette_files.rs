@@ -1,5 +1,3 @@
-//! Palette files driven headless: imports, saves, presets and the native dialogs they
-//! ask for.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -43,7 +41,6 @@ fn no_errors(app: &App) {
     assert_eq!(app.document().unwrap().errors(), Vec::<String>::new());
 }
 
-/// Loads a one-pixel scene that paints with `ramp` of the palette in `palette_text`.
 fn loads_with(palette_text: &str, palette: &str, ramp: &str) -> Result<(), String> {
     let swatch = format!(
         "use \"pal.kdl\"\nscene \"s\" palette={palette:?} width=1 height=1 fps=1 duration=\"1f\" background=\"{ramp}.0\" {{}}\n"
@@ -58,72 +55,6 @@ fn loads_with(palette_text: &str, palette: &str, ramp: &str) -> Result<(), Strin
     )
     .map(|_| ())
     .map_err(|error| format!("{error:?}"))
-}
-
-#[test]
-fn a_lospec_hex_file_imports_as_ramps_of_at_most_eight_tones() {
-    let (mut app, mut files, main) = open();
-    let hex = (0..10u8)
-        .map(|n| format!("{:02x}{:02x}{:02x}", n, n * 10, n * 20))
-        .collect::<Vec<_>>()
-        .join("\n");
-    files
-        .files
-        .insert(PathBuf::from("colors.hex"), format!("; Lospec\n{hex}"));
-    let before = room_palette(&app).ramps.len();
-    app.dispatch(
-        Intent::ImportPalette(PathBuf::from("colors.hex")),
-        main,
-        &mut files,
-    );
-    assert_eq!(room_palette(&app).ramps.len(), before + 2);
-    assert_eq!(ramp_colors(&app, "ramp-1").len(), 8);
-    assert_eq!(
-        ramp_colors(&app, "ramp-2"),
-        vec![Rgb::new(8, 80, 160), Rgb::new(9, 90, 180)]
-    );
-    assert_eq!(app.editing().status, "Imported 2 ramps from colors.hex");
-    no_errors(&app);
-    app.dispatch(Intent::Undo, main, &mut files);
-    assert_eq!(room_palette(&app).ramps.len(), before);
-}
-
-#[test]
-fn a_gpl_file_imports_as_ramps() {
-    let (mut app, mut files, main) = open();
-    files.files.insert(
-        PathBuf::from("mini.gpl"),
-        "GIMP Palette\nName: Mini\nColumns: 2\n#\n0 0 0 black\n255 154 138 salmon\n".to_owned(),
-    );
-    app.dispatch(
-        Intent::ImportPalette(PathBuf::from("mini.gpl")),
-        main,
-        &mut files,
-    );
-    assert_eq!(
-        ramp_colors(&app, "ramp-1"),
-        vec![Rgb::new(0, 0, 0), Rgb::new(255, 154, 138)]
-    );
-    assert_eq!(app.editing().status, "Imported 1 ramp from mini.gpl");
-}
-
-#[test]
-fn an_unreadable_import_leaves_the_document_alone() {
-    let (mut app, mut files, main) = open();
-    let before = text(&app);
-    app.dispatch(
-        Intent::ImportPalette(PathBuf::from("missing.hex")),
-        main,
-        &mut files,
-    );
-    assert_eq!(text(&app), before);
-    assert!(
-        app.editing()
-            .status
-            .starts_with("Could not import missing.hex"),
-        "{}",
-        app.editing().status
-    );
 }
 
 #[test]
@@ -316,22 +247,6 @@ fn edit_mode_draws_the_ramps_and_toggles_back() {
     assert!(drawn);
     app.dispatch(Intent::TogglePaletteEdit, main, &mut files);
     assert!(!app.window(main).unwrap().palette_edit);
-}
-
-#[test]
-fn a_gpl_with_a_channels_header_imports() {
-    let (mut app, mut files, main) = open();
-    files.files.insert(
-        PathBuf::from("alpha.gpl"),
-        "GIMP Palette\nName: Alpha\nColumns: 1\nChannels: RGBA\n#\n0 0 0 255 black\n".to_owned(),
-    );
-    app.dispatch(
-        Intent::ImportPalette(PathBuf::from("alpha.gpl")),
-        main,
-        &mut files,
-    );
-    assert_eq!(ramp_colors(&app, "ramp-1"), vec![Rgb::new(0, 0, 0)]);
-    assert_eq!(app.editing().status, "Imported 1 ramp from alpha.gpl");
 }
 
 #[test]

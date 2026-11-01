@@ -1,4 +1,3 @@
-//! Exports driven headless: sprite sheets, PNGs and GIFs land in the in-memory store.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -65,6 +64,7 @@ fn job(kind: ExportKind, transparent: bool, frames: FrameScope, out: &str) -> Ex
         transparent,
         frames,
         out: PathBuf::from(out),
+        ..ExportJob::default()
     }
 }
 
@@ -76,7 +76,6 @@ fn sheet(columns: u16, json: bool) -> ExportKind {
     }
 }
 
-/// A canvas pixel the opaque render leaves exactly as the scene's background paint.
 fn background_pixel(app: &App) -> ((u32, u32), Rgb) {
     let scene = app.document().unwrap().scene().unwrap();
     let mut buffer = FrameBuffer::new(scene);

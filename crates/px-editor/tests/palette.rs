@@ -1,5 +1,3 @@
-//! Palette editing driven headless: ramps are added, rewritten, removed, generated,
-//! imported and saved in the document's own text.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -33,7 +31,6 @@ fn ramp_colors(app: &App, name: &str) -> Vec<Rgb> {
         .colors
 }
 
-/// Lines of `after` that `before` lacks, and lines of `before` that `after` lacks.
 fn changed_lines(before: &str, after: &str) -> (Vec<String>, Vec<String>) {
     let added = after
         .lines()
@@ -212,8 +209,6 @@ fn dropping_a_tone_someone_paints_with_is_refused_and_names_the_user() {
     assert!(status.contains("legend code \"d\" in pixels"), "{status}");
 }
 
-/// A scene whose palette has `edge` and `haze` ramps used only as outline and fog paints,
-/// plus `warm`, the twin of `sky`.
 fn open_twins() -> (App, common::MemoryFiles, px_editor::app::WindowId) {
     let mut files = common::MemoryFiles::default();
     files.files.insert(

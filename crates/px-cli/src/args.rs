@@ -1,4 +1,3 @@
-use std::num::NonZeroUsize;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
@@ -62,17 +61,12 @@ pub(crate) enum Command {
         #[arg(long)]
         scale: Option<u8>,
     },
-    /// Render every frame to a looping GIF.
+    /// Render the scene as a GIF, a PNG, a PNG sequence or a sprite sheet.
     Export {
         #[command(flatten)]
         input: Input,
-        /// Output GIF path (default: `out/<scene>.gif`).
-        #[arg(long)]
-        out: Option<PathBuf>,
-        /// Threads that render and compress frames (default: every core). The GIF is
-        /// byte-identical for any value.
-        #[arg(long)]
-        jobs: Option<NonZeroUsize>,
+        #[command(flatten)]
+        options: crate::export::Options,
     },
 }
 

@@ -1,4 +1,3 @@
-//! The Export dialog driven headless: what it preselects, hides and sends.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -21,6 +20,7 @@ fn export(app: &mut App, files: &mut MemoryFiles, main: WindowId, kind: ExportKi
             transparent: true,
             frames: FrameScope::All,
             out: PathBuf::from(out),
+            ..ExportJob::default()
         }),
         main,
         files,
@@ -86,6 +86,7 @@ fn png_exports_the_current_frame_by_default() {
             transparent: true,
             frames: FrameScope::Current(4),
             out: PathBuf::from("out/fourth.png"),
+            ..ExportJob::default()
         }),
         main,
         &mut files,
@@ -98,6 +99,7 @@ fn png_exports_the_current_frame_by_default() {
             transparent: true,
             frames: FrameScope::Current(0),
             out: PathBuf::from("out/first.png"),
+            ..ExportJob::default()
         }),
         main,
         &mut files,
@@ -106,7 +108,7 @@ fn png_exports_the_current_frame_by_default() {
 }
 
 #[test]
-fn gif_honours_the_frame_scope_and_hides_transparency() {
+fn gif_honours_the_frame_scope_and_keeps_transparency() {
     let (mut app, mut files, main) = open();
     export(&mut app, &mut files, main, ExportKind::Gif, "out/room.gif");
     app.dispatch(Intent::Frame(4), main, &mut files);
@@ -118,7 +120,10 @@ fn gif_honours_the_frame_scope_and_hides_transparency() {
 
     app.dispatch(Intent::ShowDialog(DialogKind::Export), main, &mut files);
     let form = &app.window(main).unwrap().dialog.as_ref().unwrap().form;
-    assert!(!form.flags[keys::TRANSPARENT], "a GIF is always opaque");
+    assert!(
+        form.flags[keys::TRANSPARENT],
+        "a GIF keeps the transparent flag"
+    );
     assert_eq!(form.choices[keys::FRAMES], 0);
 
     app.dispatch(
@@ -128,6 +133,7 @@ fn gif_honours_the_frame_scope_and_hides_transparency() {
             transparent: false,
             frames: FrameScope::Current(4),
             out: PathBuf::from("out/one.gif"),
+            ..ExportJob::default()
         }),
         main,
         &mut files,

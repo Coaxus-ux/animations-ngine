@@ -9,9 +9,7 @@ pub struct NewSpec {
     pub height: u16,
     pub fps: u16,
     pub frames: u32,
-    /// A shipped palette preset (`assets::palettes`).
     pub preset: String,
-    /// The scene background as a paint name (`ramp.tone`), or the preset's first tone.
     pub background: Option<String>,
 }
 
@@ -43,8 +41,6 @@ impl NewSpec {
     }
 }
 
-/// A new scene file: the preset's `palette` node followed by a scene with one empty pixel
-/// layer. `preset` is the KDL text of a palette file (`palette "name" { ramp … }`).
 #[must_use]
 pub fn new_text(spec: &NewSpec, preset: &str) -> String {
     let palette = palette_name(preset).unwrap_or("palette");

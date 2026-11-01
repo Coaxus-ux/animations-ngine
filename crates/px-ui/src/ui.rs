@@ -8,7 +8,6 @@ use crate::canvas::UiCanvas;
 use crate::input::Input;
 use crate::theme::Theme;
 
-/// A widget's identity across frames: a deterministic hash of names and numbers.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Id(u64);
 
@@ -38,33 +37,23 @@ impl Id {
     }
 }
 
-/// What lasts between frames: the widget being pressed or dragged, keyboard focus,
-/// scroll offsets and text cursors.
 #[derive(Clone, Debug, Default)]
 pub struct UiState {
     pub active: Option<Id>,
     pub focus: Option<Id>,
-    /// Where the active widget was pressed.
     pub press: (i32, i32),
     pub scroll: BTreeMap<Id, i32>,
     pub cursor: BTreeMap<Id, usize>,
-    /// The open menu of a menu bar.
     pub open_menu: Option<usize>,
-    /// Popups drawn last frame: widgets under them don't see the pointer.
     pub blocked: Vec<Rect>,
-    /// Popups drawn this frame, which block from the next one.
     pub blocking: Vec<Rect>,
-    /// A dialog is open: only widgets drawn inside popups see the pointer.
     pub modal: bool,
-    /// The last clicked widget and when, for double clicks.
     pub last_click: Option<(Id, u64)>,
-    /// Text being typed into number fields, committed on Enter or focus loss.
     pub drafts: BTreeMap<Id, String>,
 }
 
 const DOUBLE_CLICK_MS: u64 = 400;
 
-/// How the pointer met a widget this frame.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 #[expect(
     clippy::struct_excessive_bools,
@@ -72,22 +61,15 @@ const DOUBLE_CLICK_MS: u64 = 400;
 )]
 pub struct Response {
     pub hovered: bool,
-    /// Pressed this frame.
     pub pressed: bool,
-    /// Held since it was pressed on this widget.
     pub held: bool,
-    /// Released over the widget it was pressed on.
     pub clicked: bool,
-    /// Clicked within `DOUBLE_CLICK_MS` of a click on the same widget.
     pub double_clicked: bool,
-    /// Released after being held, wherever the pointer is.
     pub released: bool,
     pub right_clicked: bool,
-    /// Pointer movement since the press, while held.
     pub drag: (i32, i32),
 }
 
-/// One frame of UI for one window.
 pub struct Ui<'a> {
     pub canvas: &'a mut UiCanvas,
     pub theme: &'a Theme,
@@ -96,7 +78,6 @@ pub struct Ui<'a> {
     pub input: &'a Input,
     pub state: &'a mut UiState,
     tooltip: Option<(String, (i32, i32))>,
-    /// Drawing a popup: on the top layer, and not blocked by popups.
     in_popup: bool,
 }
 
@@ -122,8 +103,6 @@ impl<'a> Ui<'a> {
         }
     }
 
-    /// Draws `draw` as a popup covering `area`: on the top layer, above the document, and
-    /// taking the pointer from widgets underneath from the next frame on.
     pub fn popup<T>(&mut self, area: Rect, draw: impl FnOnce(&mut Self) -> T) -> T {
         self.state.blocking.push(area);
         let was_on_top = self.canvas.set_on_top(true);
@@ -136,7 +115,6 @@ impl<'a> Ui<'a> {
         result
     }
 
-    /// Whether a dialog or a popup this widget is not part of takes the pointer.
     fn blocked(&self) -> bool {
         !self.in_popup
             && (self.state.modal
@@ -145,7 +123,6 @@ impl<'a> Ui<'a> {
                 }))
     }
 
-    /// Whether the pointer is over `area` and not over a popup covering it.
     #[must_use]
     pub fn hovering(&self, area: Rect) -> bool {
         !self.blocked()
@@ -155,7 +132,6 @@ impl<'a> Ui<'a> {
                 .is_some_and(|(x, y)| area.intersect(self.canvas.bounds()).contains(x, y))
     }
 
-    /// Hit-tests `area` for widget `id` and tracks presses and drags.
     pub fn interact(&mut self, id: Id, area: Rect) -> Response {
         let input = self.input;
         let hovered = self.hovering(area) && self.state.active.is_none_or(|active| active == id);
@@ -195,14 +171,12 @@ impl<'a> Ui<'a> {
         }
     }
 
-    /// Shows `text` near the pointer at the end of the frame.
     pub fn tooltip(&mut self, text: &str) {
         if let Some(pointer) = self.input.pointer {
             self.tooltip = Some((text.to_owned(), pointer));
         }
     }
 
-    /// Draws what must be on top of everything: the tooltip.
     pub fn finish(&mut self) {
         if let Some((text, (x, y))) = self.tooltip.take() {
             let was_on_top = self.canvas.set_on_top(true);

@@ -10,8 +10,6 @@ use crate::assets::palettes;
 use crate::domain::Document;
 use crate::domain::palette_model::{PaletteModel, RampModel, palette_path};
 
-/// Hue shift in degrees, contrast and desaturation (fractions) the menu's generator uses;
-/// the palette editor (F4) has fields for them.
 const GENERATOR: (f64, f64, f64) = (15.0, 0.4, 0.2);
 
 pub(super) fn palette<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
@@ -54,7 +52,6 @@ pub(super) fn palette<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
     entries
 }
 
-/// Entries acting on the selected ramp; disabled without one.
 fn ramp_entries<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
     let target = context
         .document

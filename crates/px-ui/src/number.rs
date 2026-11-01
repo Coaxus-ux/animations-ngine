@@ -4,9 +4,6 @@ use crate::text::text_width;
 use crate::ui::{Id, Ui};
 use crate::widgets::{button, label};
 
-/// An integer field: `[-]`, the number, `[+]`. Click the number to type a new one (digits
-/// and a leading minus); Enter or leaving the field commits it, clamped into `range`; the
-/// wheel steps by one while hovered. Returns whether `value` changed this frame.
 pub fn number_field(
     ui: &mut Ui<'_>,
     id: Id,

@@ -9,9 +9,6 @@ use px_ui::{Area, Id, Rect, Ui, button, modal, rect};
 use super::Context;
 use crate::app::{Dialog, DialogKind, Intent};
 
-/// The window's open dialog, on top of everything else. The form lives in the window, so
-/// the dialog's fields edit it in place; the corner button closes it (Escape is handled by
-/// each dialog's buttons).
 pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>) {
     let Some(dialog) = context.dialog.take() else {
         return;

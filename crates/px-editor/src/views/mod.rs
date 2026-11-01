@@ -1,6 +1,3 @@
-//! Panels drawn with px-ui. Views read the document and the editing state and turn input
-//! into `Intent`s; they never change the document themselves (D-015).
-
 mod canvas;
 mod code;
 mod dialogs;
@@ -35,21 +32,16 @@ use crate::app::{
 };
 use crate::domain::Document;
 
-/// Everything a window's views read, and where they put their intents.
 pub struct Context<'a> {
     pub kind: WindowKind,
-    /// The frame's input in window pixels (the canvas works at that precision).
     pub raw: &'a Input,
     pub scale: i32,
     pub document: Option<&'a Document>,
     pub editing: &'a Editing,
-    /// This window's view, or for a torn-off panel, the canvas window it acts on.
     pub view: &'a ViewState,
     pub popped: &'a BTreeSet<PanelKind>,
-    /// Open documents in tab order and the active one.
     pub tabs: &'a [TabInfo],
     pub active_tab: Option<usize>,
-    /// Files opened before, latest first (the File menu lists them).
     pub recent: &'a [PathBuf],
     pub dialog: Option<&'a mut Dialog>,
     pub selected: Option<&'a NodePath>,
@@ -60,16 +52,13 @@ pub struct Context<'a> {
     pub renaming: Option<usize>,
     pub cache: &'a RenderCache,
     pub guide: &'a [(i32, i32)],
-    /// Where the pointer was last frame, in window pixels (for panning).
     pub last_pointer: &'a mut Option<(i32, i32)>,
-    /// The canvas pixel under the pointer, found by the canvas view for the status bar.
     pub hover: Option<(i32, i32)>,
     pub menu: MenuState,
     pub help: bool,
     pub intents: &'a mut Vec<Intent>,
 }
 
-/// Draws the window; returns where the canvas goes (UI pixels), drawn after the UI.
 pub fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>) -> Option<Rect> {
     let bounds = ui.canvas.bounds();
     let area = match context.kind {
@@ -88,8 +77,6 @@ pub fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>) -> Option<Rect> {
     area
 }
 
-/// A panel with its title bar: a button tears it off into its own window (or docks it
-/// back), and dragging the title bar out of the window tears it off too.
 fn panel_view(ui: &mut Ui<'_>, context: &mut Context<'_>, kind: PanelKind, area: Rect) {
     let (header, body) = panel(ui, area, kind.title());
     let id = Id::new("panel").with_name(kind.title());

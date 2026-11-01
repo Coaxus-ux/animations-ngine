@@ -4,8 +4,6 @@ use super::GUTTER;
 use super::cursor::line_column;
 use crate::app::CodeBuffer;
 
-/// Line numbers from `first_line + 1`, then each line colored: comments dim, strings in the
-/// accent.
 pub(super) fn draw(
     ui: &mut Ui<'_>,
     code: &CodeBuffer,
@@ -63,7 +61,6 @@ enum Token {
     Comment,
 }
 
-/// Splits a line into plain text, quoted strings and a trailing `//` comment.
 fn tokens(line: &str) -> Vec<(&str, Token)> {
     let mut pieces = Vec::new();
     let mut start = 0;

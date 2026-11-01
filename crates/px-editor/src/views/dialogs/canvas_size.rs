@@ -14,13 +14,10 @@ pub(super) const SIZE: (i32, i32) = (240, 120);
 const FIELD: i32 = ROW + 2;
 const GAP: i32 = 3;
 const CAPTION: i32 = 36;
-/// The dialog body's inset on each side, in UI pixels.
 const INSET: i32 = 4;
-/// One cell of the anchor grid, in UI pixels.
 const CELL: i32 = 11;
 const NOTE: &str = "Pixels outside the new canvas are dropped";
 
-/// Width and height fields, the anchor that stays put, and Resize.
 pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dialog, body: Rect) {
     let roles = ui.theme.roles;
     let id = Id::new("canvas-size");
@@ -69,8 +66,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
     }
 }
 
-/// Nine buttons laid out like the canvas's corners, edges and middle; the chosen one is
-/// marked.
 fn anchor_grid(ui: &mut Ui<'_>, id: Id, area: Rect, chosen: &mut usize) {
     let roles = ui.theme.roles;
     let (caption, rest) = area.take_top(ROW);

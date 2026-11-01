@@ -16,18 +16,15 @@ pub enum ElementKind {
     Other,
 }
 
-/// One row of the Elements panel: a node of the scene file.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Element {
     pub path: NodePath,
     pub kind: ElementKind,
     pub label: String,
     pub depth: usize,
-    /// Nodes from `use`d files can't be edited here.
     pub editable: bool,
 }
 
-/// Node names that are shapes even without a `paint=` (FORMAT appendix A).
 const SHAPE_NAMES: [&str; 11] = [
     "rect",
     "ellipse",
@@ -42,7 +39,6 @@ const SHAPE_NAMES: [&str; 11] = [
     "shade",
 ];
 
-/// Every node of `source` in file order, except the legend and cels of `pixels` nodes.
 #[must_use]
 pub fn elements(source: &Source) -> Vec<Element> {
     let mut rows = Vec::new();
@@ -91,7 +87,6 @@ fn has_property(node: &KdlNode, key: &str) -> bool {
         .any(|entry| entry.name().is_some_and(|name| name.value() == key))
 }
 
-/// `layer "sky"`, or just the name when the node has no id.
 pub(crate) fn label_of(node: &KdlNode) -> String {
     match id_of(node) {
         Some(id) => format!("{} {id:?}", node.name().value()),

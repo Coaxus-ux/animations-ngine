@@ -2,8 +2,6 @@ use crate::area::{Area, Rect};
 use crate::ui::{Id, Ui};
 use crate::widgets::centered_label;
 
-/// One choice among `labels`, drawn as equal cells in a row; the chosen cell is accented.
-/// Returns whether `chosen` changed.
 pub fn segmented(ui: &mut Ui<'_>, id: Id, area: Rect, labels: &[&str], chosen: &mut usize) -> bool {
     let roles = ui.theme.roles;
     let before = *chosen;

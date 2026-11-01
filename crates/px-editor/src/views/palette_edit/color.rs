@@ -9,7 +9,6 @@ use crate::views::Context;
 const SQUARE: i32 = 32;
 const HUE: i32 = 8;
 const CAPTION: i32 = 22;
-/// What the editor adds below the ramp list, in UI pixels.
 pub(super) const HEIGHT: i32 = GAP + SQUARE + 1 + HUE + 1 + BUTTON_ROW * 4;
 
 struct Setting {
@@ -20,7 +19,6 @@ struct Setting {
     range: (i64, i64),
 }
 
-/// The ramp generator's settings; percentages where the generator takes a fraction.
 const SETTINGS: [Setting; 4] = [
     Setting {
         key: "steps",
@@ -52,8 +50,6 @@ const SETTINGS: [Setting; 4] = [
     },
 ];
 
-/// Hue bar, saturation/value square and a hex field for the selected tone (each change
-/// recolors it live), then the ramp generator fed from that tone.
 pub(super) fn editor(
     ui: &mut Ui<'_>,
     context: &mut Context<'_>,
@@ -99,8 +95,6 @@ fn picker(
 ) {
     let roles = ui.theme.roles;
     let hsv_id = id().with_name("hsv");
-    // The draft keeps the hue of grays and the saturation of blacks, which an RGB round
-    // trip loses; it only counts while it still describes the tone's color.
     let mut hsv = context
         .fields
         .get(&hsv_id)
@@ -135,7 +129,6 @@ fn picker(
     }
 }
 
-/// Two settings per row, then the button that regenerates the ramp around `base`.
 fn generator(
     ui: &mut Ui<'_>,
     context: &mut Context<'_>,

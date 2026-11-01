@@ -14,8 +14,6 @@ const GIF_FILTER: &[(&str, &[&str])] = &[("GIF image", &["gif"])];
 const PNG_FILTER: &[(&str, &[&str])] = &[("PNG image", &["png"])];
 
 impl App {
-    /// The Export dialog with the last job's settings, or the defaults; the output path
-    /// is always the document's own, with the kind's extension.
     pub(super) fn export_dialog(&self, sheet: bool) -> Dialog {
         let mut job = self.last_export.clone().unwrap_or_default();
         if sheet && !matches!(job.kind, ExportKind::Sheet { .. }) {
@@ -67,9 +65,6 @@ impl App {
         None
     }
 
-    /// The last job again, written next to the last output under the active document's
-    /// name so repeating in another tab never overwrites that tab's neighbour; an untitled
-    /// document has no name yet, so its user picks the path in the Export dialog.
     fn repeat_export(&mut self, targets: Targets, store: &mut dyn FileStore) {
         let Some(mut job) = self.last_export.clone() else {
             "Nothing exported yet".clone_into(&mut self.editing.status);
@@ -94,10 +89,6 @@ impl App {
         }
     }
 
-    /// An export job without an output path asks for one: the dialog's "..." button and
-    /// its Export button with an empty path both send such a job, the adapter answers with
-    /// `Picked { ExportOut, .. }`, which fills the open dialog's path, and the user then
-    /// confirms the export.
     fn request_output_path(&mut self, targets: Targets, job: &ExportJob) {
         let name = self
             .document()
@@ -142,7 +133,6 @@ impl App {
     }
 }
 
-/// `<document stem>.<kind extension>` for a titled document; an untitled one has no name.
 fn file_name(document: &Document, kind: ExportKind) -> Option<String> {
     if document.is_untitled() {
         return None;
@@ -158,7 +148,6 @@ fn folder_of(path: &Path) -> String {
     }
 }
 
-/// The dialog reads these keys back into an `ExportJob` (`views::dialogs::export`).
 fn fill_form(form: &mut Form, job: &ExportJob) {
     let (layout, padding, json) = match job.kind {
         ExportKind::Sheet {
@@ -180,5 +169,7 @@ fn fill_form(form: &mut Form, job: &ExportJob) {
     *form.flag(keys::JSON, true) = json;
     *form.number(keys::SCALE, 1) = i64::from(job.scale);
     *form.flag(keys::TRANSPARENT, true) = job.transparent;
+    *form.flag(keys::TRIM, false) = job.trim;
+    *form.flag(keys::SPLIT_LAYERS, false) = job.split_layers;
     *form.choice(keys::FRAMES, 0) = usize::from(matches!(job.frames, FrameScope::Current(_)));
 }

@@ -10,8 +10,6 @@ use crate::domain::{Document, Layer};
 
 const BUTTONS: i32 = 2 * (ROW + 2);
 
-/// Layer rows, top layer first (drawn last): show/hide and lock toggles, the name (double
-/// click renames), drag to reorder; below, opacity and add, delete, move buttons.
 pub(super) fn layers(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
@@ -61,7 +59,6 @@ pub(super) fn layers(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     actions(ui, context, buttons);
 }
 
-/// Whether a row is being dragged far enough to reorder, and whether it was let go.
 #[derive(Clone, Copy, Default)]
 struct Drag {
     held: bool,
@@ -177,7 +174,6 @@ fn opacity(ui: &mut Ui<'_>, context: &mut Context<'_>, document: &Document, area
     }
 }
 
-/// Labeled buttons for what can be done to layers, in two rows.
 fn actions(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let id = Id::new("layers").with_name("actions");
     let active = context.view.layer;
@@ -207,7 +203,6 @@ fn actions(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     }
 }
 
-/// Moving the active layer `by` rows up (towards the top of the panel) or down.
 fn move_by(context: &Context<'_>, by: i64) -> Option<Intent> {
     let from = context.view.layer?;
     let count = context.document?.layers().len();

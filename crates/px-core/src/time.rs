@@ -44,8 +44,6 @@ impl FrameRate {
         self.0.get()
     }
 
-    /// One frame's length in `units_per_second` (1000 for milliseconds, 100 for GIF
-    /// centiseconds), rounded to the nearest unit: 24 fps is 42 ms, 12 fps is 8 cs.
     #[must_use]
     pub const fn period(self, units_per_second: u32) -> u32 {
         let fps = self.get() as u32;

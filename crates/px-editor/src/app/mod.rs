@@ -1,6 +1,3 @@
-//! The workspace: open documents as tabs, windows and their views, intents from views
-//! applied to the domain through a chain of handlers, and requests to the adapter.
-
 mod apply;
 mod dialog;
 mod document_ops;
@@ -41,7 +38,6 @@ use crate::ports::FileStore;
 use crate::views::RenderCache;
 use stroke::Stroke;
 
-/// Window widths (in window pixels) from which the automatic UI size grows a step.
 const MEDIUM_FROM: usize = 860;
 const LARGE_FROM: usize = 2200;
 const MAIN_SIZE: (usize, usize) = (1280, 800);
@@ -52,17 +48,13 @@ pub struct App {
     assets: Assets,
     theme: ThemeChoice,
     documents: Documents,
-    /// The active document's editing state (the status line also when none is open);
-    /// inactive documents keep theirs in their `Slot`.
     editing: Editing,
     stroke: Option<Stroke>,
     windows: Vec<Window>,
     caches: BTreeMap<WindowId, RenderCache>,
     requests: Vec<Request>,
     next_id: u32,
-    /// The canvas window panels act on: the last one used.
     focused: WindowId,
-    /// Window pixels per UI pixel, or `None` to choose by window size.
     scale: Option<i32>,
     quit: bool,
     recent: Recent,
@@ -71,8 +63,6 @@ pub struct App {
 }
 
 impl App {
-    /// # Errors
-    /// When the editor's own assets fail to load.
     pub fn new(theme: ThemeChoice) -> Result<Self, String> {
         let mut app = Self {
             assets: Assets::load(theme)?,
@@ -96,11 +86,6 @@ impl App {
         Ok(app)
     }
 
-    /// Opens a scene file in a new tab (or activates its tab), creating it from a blank
-    /// template if it doesn't exist and `create` gives a size.
-    ///
-    /// # Errors
-    /// A readable reason when it can't be read or created.
     pub fn open(
         &mut self,
         path: &Path,
@@ -161,7 +146,6 @@ impl App {
         self.windows.iter().map(|window| window.id)
     }
 
-    /// Window pixels per UI pixel for a window `width` window pixels wide.
     #[must_use]
     pub const fn scale_for(&self, width: usize) -> i32 {
         match self.scale {
@@ -176,8 +160,6 @@ impl App {
         core::mem::take(&mut self.requests)
     }
 
-    /// The adapter closed window `id` (the user closed it): a torn-off panel docks back,
-    /// and closing the main window quits.
     pub fn window_closed(&mut self, id: WindowId) {
         let Some(index) = self.windows.iter().position(|window| window.id == id) else {
             return;

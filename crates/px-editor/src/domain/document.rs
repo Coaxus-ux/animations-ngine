@@ -12,13 +12,10 @@ use super::template::{NewSpec, new_text};
 use crate::assets::palettes;
 use crate::ports::FileStore;
 
-/// One open scene file. Its KDL text is the source of truth: every change edits the text
-/// and reloads it, and the scene shown is the last text that loaded.
 pub struct Document {
     path: PathBuf,
     source: Source,
     loaded: Option<Loaded>,
-    /// A scene with in-memory changes not yet written to the text (a stroke in progress).
     preview: Option<Scene>,
     errors: Vec<String>,
     layers: Vec<Layer>,
@@ -26,15 +23,11 @@ pub struct Document {
     revision: u64,
     saved: String,
     stamp: Option<u64>,
-    /// Made by `new_unsaved` and never saved: has no file yet.
     untitled: bool,
-    /// Files the scene `use`s, as last read.
     others: BTreeMap<PathBuf, String>,
 }
 
 impl Document {
-    /// # Errors
-    /// A readable reason when the file can't be read or isn't KDL.
     pub fn open(path: &Path, store: &mut dyn FileStore) -> Result<Self, String> {
         let text = store.read(path)?;
         let mut document = Self::from_text(path, text, store)?;
@@ -42,8 +35,6 @@ impl Document {
         Ok(document)
     }
 
-    /// # Errors
-    /// A readable reason when `text` isn't KDL.
     pub fn from_text(path: &Path, text: String, store: &mut dyn FileStore) -> Result<Self, String> {
         let source = Source::parse(text.clone()).map_err(|error| error.to_string())?;
         let mut document = Self {
@@ -64,10 +55,6 @@ impl Document {
         Ok(document)
     }
 
-    /// A document for `text` that has no file yet: dirty until `save_to` gives it one.
-    ///
-    /// # Errors
-    /// A readable reason when `text` isn't KDL.
     pub fn new_unsaved(
         path: &Path,
         text: String,
@@ -79,7 +66,6 @@ impl Document {
         Ok(document)
     }
 
-    /// A new scene file with one empty pixel layer and the default palette preset.
     #[must_use]
     pub fn blank_text(name: &str, width: u16, height: u16) -> String {
         let spec = NewSpec {
@@ -119,7 +105,6 @@ impl Document {
         self.loaded.as_ref()
     }
 
-    /// What to show: the stroke in progress, else the last text that loaded.
     #[must_use]
     pub fn scene(&self) -> Option<&Scene> {
         self.preview
@@ -132,13 +117,11 @@ impl Document {
         &self.layers
     }
 
-    /// Problems with the current text, empty when it loaded.
     #[must_use]
     pub fn errors(&self) -> &[String] {
         &self.errors
     }
 
-    /// Bumped by every change; views redraw when it moves.
     #[must_use]
     pub const fn revision(&self) -> u64 {
         self.revision
@@ -154,10 +137,6 @@ impl Document {
         &self.history
     }
 
-    /// Applies `command` to the text, records it for undo and reloads.
-    ///
-    /// # Errors
-    /// A readable reason when the command can't be applied; nothing changes then.
     pub fn apply(&mut self, command: &Command, store: &mut dyn FileStore) -> Result<(), String> {
         let names = self
             .loaded
@@ -172,7 +151,6 @@ impl Document {
         Ok(())
     }
 
-    /// Replaces the whole text (the code view); it is shown once it loads.
     pub fn set_text(&mut self, text: String, store: &mut dyn FileStore) {
         if text == self.text() {
             return;
@@ -190,7 +168,6 @@ impl Document {
         }
     }
 
-    /// Undoes the last change; returns what was undone.
     pub fn undo(&mut self, store: &mut dyn FileStore) -> Option<String> {
         let (text, label) = self.history.undo(self.text().to_owned())?;
         self.restore(text, store);
@@ -203,7 +180,6 @@ impl Document {
         Some(label)
     }
 
-    /// Shows `cels` for the pixels of shape `shape` without touching the text yet.
     pub fn preview_cels(&mut self, shape: usize, cels: Vec<Cel>) {
         let Some(loaded) = &self.loaded else { return };
         let mut spec = self
@@ -229,10 +205,6 @@ impl Document {
         }
     }
 
-    /// Writes the text to the file.
-    ///
-    /// # Errors
-    /// A readable reason when it can't be written.
     pub fn save(&mut self, store: &mut dyn FileStore) -> Result<(), String> {
         store.write(&self.path, self.source.text())?;
         self.saved = self.text().to_owned();
@@ -242,17 +214,11 @@ impl Document {
         Ok(())
     }
 
-    /// Saves under a new path, which the document keeps.
-    ///
-    /// # Errors
-    /// A readable reason when it can't be written; the path doesn't change then.
     pub fn save_to(&mut self, path: &Path, store: &mut dyn FileStore) -> Result<(), String> {
         let previous = core::mem::replace(&mut self.path, path.to_path_buf());
         self.save(store).inspect_err(|_| self.path = previous)
     }
 
-    /// Reloads the file when it changed on disk and there is nothing unsaved; returns
-    /// whether it changed on disk at all.
     pub fn check_disk(&mut self, store: &mut dyn FileStore) -> bool {
         let stamp = store.stamp(&self.path);
         if stamp == self.stamp {
@@ -280,7 +246,6 @@ impl Document {
         self.reload(store);
     }
 
-    /// Loads the scene from the text; keeps the last good scene when it fails.
     fn reload(&mut self, store: &mut dyn FileStore) {
         self.preview = None;
         self.revision += 1;
@@ -307,7 +272,6 @@ impl Document {
     }
 }
 
-/// The document's own text for its path; other files from the store, read once.
 struct DocumentSources<'a> {
     root: &'a Path,
     text: &'a str,

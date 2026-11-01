@@ -6,7 +6,6 @@ use super::intent::Intent;
 use super::{App, Targets};
 use crate::ports::FileStore;
 
-/// Field names shared by the app side that fills a form and the view that reads it.
 pub mod keys {
     pub const NAME: &str = "name";
     pub const WIDTH: &str = "width";
@@ -26,8 +25,9 @@ pub mod keys {
     pub const JSON: &str = "json";
     pub const SCALE: &str = "scale";
     pub const TRANSPARENT: &str = "transparent";
+    pub const TRIM: &str = "trim";
+    pub const SPLIT_LAYERS: &str = "split-layers";
     pub const OUT: &str = "out";
-    /// The tab a Confirm dialog asks about.
     pub const TAB: &str = "tab";
 }
 
@@ -35,15 +35,12 @@ pub mod keys {
 pub enum DialogKind {
     New,
     Export,
-    /// The Export dialog opened on the sprite-sheet kind.
     ExportSheet,
     CanvasSize,
     Properties,
-    /// "Save changes?" before an action that would lose them.
     Confirm,
 }
 
-/// What a native file dialog is for, so its answer goes to the right place.
 impl DialogKind {
     #[must_use]
     pub const fn needs_document(self) -> bool {
@@ -93,7 +90,6 @@ impl Form {
 pub struct Dialog {
     pub kind: DialogKind,
     pub form: Form,
-    /// What a Confirm dialog does once the changes are saved or discarded.
     pub then: Option<Box<Intent>>,
 }
 

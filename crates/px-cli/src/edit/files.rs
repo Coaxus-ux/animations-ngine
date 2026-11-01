@@ -4,7 +4,7 @@ use std::time::UNIX_EPOCH;
 
 use px_editor::ports::FileStore;
 
-pub(super) struct DiskFiles;
+pub(crate) struct DiskFiles;
 
 impl FileStore for DiskFiles {
     fn read(&mut self, path: &Path) -> Result<String, String> {

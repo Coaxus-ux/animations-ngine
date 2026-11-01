@@ -5,12 +5,9 @@ use super::{App, WindowId, shortcuts};
 use crate::ports::FileStore;
 use crate::views::{self, Context};
 
-/// How often the main window looks for changes made to the file elsewhere.
 const DISK_CHECK_MS: u64 = 500;
 
 impl App {
-    /// Runs one frame of window `id`, whose size is `size` window pixels and whose `input`
-    /// is in window pixels; returns its pixels (`0x00RRGGBB`, row by row).
     pub fn frame(
         &mut self,
         id: WindowId,
@@ -21,7 +18,6 @@ impl App {
         let index = self.windows.iter().position(|window| window.id == id)?;
         let mut intents = Vec::new();
         let kind = self.windows[index].kind;
-        // A focused text field or code view gets the keys instead of the shortcuts.
         let typing = self.windows[index].ui.focus.is_some();
         let modal = self.windows[index].dialog.is_some();
         let tabs = (self.documents.active_index(), self.documents.len());
@@ -70,7 +66,6 @@ impl App {
             .map(|window| window.pixels.as_slice())
     }
 
-    /// Draws the window's UI and canvas into its pixels, collecting what views ask for.
     fn draw_window(
         &self,
         window: &mut super::Window,
@@ -179,7 +174,6 @@ impl App {
         );
     }
 
-    /// Advances playback by whole frames of the scene's frame rate.
     fn tick(&mut self, now: u64) {
         if !self.editing.playing {
             self.editing.played_at = now;
@@ -203,7 +197,6 @@ impl App {
     }
 }
 
-/// `input` with positions divided by `scale`: what px-ui widgets work in.
 fn to_ui(input: &Input, scale: i32) -> Input {
     let scale = scale.max(1);
     Input {

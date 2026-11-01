@@ -6,15 +6,12 @@ use px_format::{PaintNames, write_pixels};
 
 use super::palette_model::ramp_kdl;
 
-/// Every change to a document (D-015): each turns into node-level edits of its KDL text.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Command {
-    /// Rewrites a `pixels` node's legend and cels.
     SetCels {
         art: NodePath,
         cels: Vec<Cel>,
     },
-    /// A new pixel layer as child `child` of the scene node.
     AddLayer {
         scene: NodePath,
         child: usize,
@@ -23,13 +20,11 @@ pub enum Command {
     Remove {
         path: NodePath,
     },
-    /// Moves child `from` of the scene node to `to`.
     MoveChild {
         scene: NodePath,
         from: usize,
         to: usize,
     },
-    /// Renames a layer (its first argument) and its pixels node.
     Rename {
         path: NodePath,
         art: Option<NodePath>,
@@ -40,13 +35,15 @@ pub enum Command {
         key: String,
         value: KdlValue,
     },
-    /// Sets color `tone` of a palette ramp.
+    SetProperties {
+        path: NodePath,
+        values: Vec<(String, KdlValue)>,
+    },
     SetColor {
         ramp: NodePath,
         tone: usize,
         color: Rgb,
     },
-    /// Rewrites one node from its text as `Source::node_text` gives it (the code view).
     ReplaceNode {
         path: NodePath,
         text: String,
@@ -64,8 +61,6 @@ pub enum Command {
     RemoveRamp {
         ramp: NodePath,
     },
-    /// Sets the scene's size and rewrites the pixels of each art in `arts` (already shifted
-    /// and cropped by `resize::shifted_cels`).
     ResizeCanvas {
         scene: NodePath,
         width: u16,
@@ -75,7 +70,6 @@ pub enum Command {
 }
 
 impl Command {
-    /// What undo and the status bar call it.
     #[must_use]
     pub fn label(&self) -> &'static str {
         match self {
@@ -85,6 +79,7 @@ impl Command {
             Self::MoveChild { .. } => "move layer",
             Self::Rename { .. } => "rename",
             Self::SetProperty { .. } => "set property",
+            Self::SetProperties { .. } => "set properties",
             Self::SetColor { .. } => "change color",
             Self::ReplaceNode { .. } => "edit code",
             Self::AddRamp { .. } => "add ramp",
@@ -94,8 +89,6 @@ impl Command {
         }
     }
 
-    /// # Errors
-    /// A readable reason when a node is gone or the edit wouldn't be valid KDL.
     pub fn apply(&self, source: &mut Source, names: &PaintNames) -> Result<(), String> {
         let fail = |error: px_format::edit::EditError| error.to_string();
         match self {
@@ -122,6 +115,9 @@ impl Command {
             Self::SetProperty { path, key, value } => {
                 source.set_property(path, key, value).map_err(fail)
             }
+            Self::SetProperties { path, values } => values
+                .iter()
+                .try_for_each(|(key, value)| source.set_property(path, key, value).map_err(fail)),
             Self::SetColor { ramp, tone, color } => source
                 .set_argument(ramp, tone + 1, &KdlValue::String(color.to_string()))
                 .map_err(fail),
@@ -195,6 +191,35 @@ mod tests {
         assert_eq!(
             source.text(),
             "palette \"p\" {\n    ramp \"r\" \"#ffffff\" \"#0ab001\"\n}\n"
+        );
+    }
+
+    #[test]
+    fn set_properties_writes_every_value_or_none() {
+        let text = "scene \"s\" fps=12 duration=\"18f\"\n";
+        let mut source = Source::parse(text).unwrap();
+        let path = NodePath::root().child("scene", Some("s"), 0);
+        let values = |path: &NodePath| Command::SetProperties {
+            path: path.clone(),
+            values: vec![
+                ("fps".to_owned(), KdlValue::Integer(24)),
+                ("loop".to_owned(), KdlValue::Bool(false)),
+            ],
+        };
+        values(&path)
+            .apply(&mut source, &PaintNames::default())
+            .unwrap();
+        assert_eq!(
+            source.text(),
+            "scene \"s\" fps=24 duration=\"18f\" loop=#false\n"
+        );
+
+        let mut untouched = Source::parse(text).unwrap();
+        let missing = NodePath::root().child("scene", Some("gone"), 0);
+        assert!(
+            values(&missing)
+                .apply(&mut untouched, &PaintNames::default())
+                .is_err()
         );
     }
 }

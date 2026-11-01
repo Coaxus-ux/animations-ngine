@@ -10,7 +10,6 @@ use px_format::edit::{NodePath, Source, children_of, id_of};
 
 const SCENE: &str = r#"// header comment
 scene "main" width=8 {
-    // a comment
     rect "a" x=1   y=2 // trailing
     layer "l" {
         rect x=3

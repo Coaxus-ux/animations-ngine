@@ -9,7 +9,6 @@ use crate::ports::FileStore;
 const MAX_LAYERS: usize = 10_000;
 
 impl App {
-    /// A swatch click: recolors the picked object with the pick tool, else picks the paint.
     pub(super) fn swatch(&mut self, paint: px_core::Paint, store: &mut dyn FileStore) {
         if self.editing.tool == crate::tools::ToolKind::Pick && self.editing.picked.is_some() {
             self.recolor_picked(paint, store);
@@ -18,7 +17,6 @@ impl App {
         }
     }
 
-    /// Rewrites the picked object's `paint` (shapes; pixel layers keep their own paints).
     pub(super) fn recolor_picked(&mut self, paint: px_core::Paint, store: &mut dyn FileStore) {
         let target = self.editing.picked.and_then(|shape| {
             let document = self.document()?;
@@ -125,8 +123,6 @@ impl App {
         ) else {
             return;
         };
-        // Counted after the moving layer is taken out, the target's index puts it on the
-        // far side of the target in either direction.
         let command = Command::MoveChild {
             scene: scene_path(scene),
             from: moving.child,

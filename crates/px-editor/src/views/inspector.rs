@@ -8,9 +8,6 @@ use crate::domain::{Document, scene_path};
 
 const KEY: i32 = 58;
 
-/// The properties of the selected element, else of the picked object, else of the scene:
-/// numbers, paints and expressions as text fields, booleans as toggles. Each change is one
-/// property write in the file.
 pub(super) fn inspector(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
@@ -72,8 +69,6 @@ pub(super) fn inspector(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) 
     ui.canvas.restore_clip(clip);
 }
 
-/// The node the inspector shows: the selected element's, else the picked shape's, else the
-/// scene's.
 fn target(
     document: &Document,
     selected: Option<&NodePath>,
@@ -133,7 +128,6 @@ fn property(
     }
 }
 
-/// Typed text as a value of the same kind as before: numbers stay numbers when they parse.
 fn parse(text: &str, before: &KdlValue) -> KdlValue {
     match before {
         KdlValue::Integer(_) | KdlValue::Float(_) => text

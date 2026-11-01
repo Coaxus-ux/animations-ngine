@@ -76,8 +76,6 @@ const HELP: [(&str, &[&str]); 9] = [
 
 const CLOSE_ROW: i32 = px_ui::ROW + 6;
 
-/// The help screen, over everything; F1, Escape or Close hides it. The text scrolls when
-/// the window is too low for it; Close keeps its own row below.
 pub(super) fn help(ui: &mut Ui<'_>, context: &mut Context<'_>) {
     let bounds = ui.canvas.bounds();
     let line = i32::from(ui.font.line_height()) + 1;

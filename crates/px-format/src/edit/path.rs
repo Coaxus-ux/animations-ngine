@@ -2,15 +2,12 @@ use std::fmt;
 
 use kdl::{KdlDocument, KdlNode};
 
-/// Where a node sits in a document: from the top level down, each step names a node and,
-/// among its siblings with the same name and id, which one. Stable across edits elsewhere.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NodePath(Vec<Step>);
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Step {
     pub name: String,
-    /// The node's first argument, when it is a string (`layer "sky"`).
     pub id: Option<String>,
     pub nth: usize,
 }
@@ -26,7 +23,6 @@ impl NodePath {
         &self.0
     }
 
-    /// The path of the `nth` child called `name` with `id`.
     #[must_use]
     pub fn child(&self, name: &str, id: Option<&str>, nth: usize) -> Self {
         let mut steps = self.0.clone();
@@ -58,7 +54,6 @@ impl NodePath {
         found
     }
 
-    /// The path of `node` among `siblings`, under `self`.
     pub(crate) fn step_to(&self, siblings: &[KdlNode], node: &KdlNode) -> Self {
         let (name, id) = (node.name().value(), id_of(node));
         let nth = siblings
@@ -76,7 +71,6 @@ impl Step {
     }
 }
 
-/// The node's first argument when it is a string: what names it in paths and labels.
 #[must_use]
 pub fn id_of(node: &KdlNode) -> Option<&str> {
     node.entries()
@@ -85,7 +79,6 @@ pub fn id_of(node: &KdlNode) -> Option<&str> {
         .and_then(|entry| entry.value().as_string())
 }
 
-/// The nodes of the block, or nothing when the node has no `{ … }`.
 #[must_use]
 pub fn children_of(node: &KdlNode) -> &[KdlNode] {
     node.children().map(KdlDocument::nodes).unwrap_or_default()

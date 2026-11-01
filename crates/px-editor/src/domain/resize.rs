@@ -1,6 +1,5 @@
 use px_engine::Cel;
 
-/// Which edge or corner stays put when the canvas changes size (Aseprite's anchor grid).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Anchor {
     TopLeft,
@@ -28,7 +27,6 @@ impl Anchor {
         Self::BottomRight,
     ];
 
-    /// Where the default anchor sits in `ALL`, for choice fields.
     #[must_use]
     pub fn default_index() -> usize {
         Self::ALL
@@ -53,7 +51,6 @@ impl Anchor {
     }
 }
 
-/// How far existing pixels move when the canvas goes from `old` to `new` with `anchor` fixed.
 #[must_use]
 pub fn offset(anchor: Anchor, old: (u16, u16), new: (u16, u16)) -> (i32, i32) {
     let (column, row) = anchor.cell();
@@ -68,9 +65,6 @@ pub fn offset(anchor: Anchor, old: (u16, u16), new: (u16, u16)) -> (i32, i32) {
     (delta(old.0, new.0, column), delta(old.1, new.1, row))
 }
 
-/// `cels` moved by `(dx, dy)` and cropped to a canvas of `size`. A cel left with nothing
-/// inside keeps its frame as a 1×1 transparent cel: the smallest cel the format accepts,
-/// and what an empty cel is written as.
 #[must_use]
 pub fn shifted_cels(cels: &[Cel], dx: i32, dy: i32, size: (u16, u16)) -> Vec<Cel> {
     cels.iter().map(|cel| shifted(cel, dx, dy, size)).collect()

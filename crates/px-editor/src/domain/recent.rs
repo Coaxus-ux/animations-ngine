@@ -5,14 +5,12 @@ use kdl::{KdlDocument, KdlNode};
 
 pub const MAX_RECENT: usize = 10;
 
-/// Recently opened files, newest first, kept per user in the editor's layout file.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Recent {
     paths: Vec<PathBuf>,
 }
 
 impl Recent {
-    /// Moves `path` to the front, dropping the oldest past `MAX_RECENT`.
     pub fn push(&mut self, path: &Path) {
         self.remove(path);
         self.paths.insert(0, path.to_path_buf());

@@ -12,8 +12,6 @@ pub(super) enum SelectionOp {
 }
 
 impl App {
-    /// Copies, cuts, pastes, flips or deletes the selected pixels of the active cel (the
-    /// whole cel when nothing is selected).
     pub(super) fn selection_op(
         &mut self,
         window: WindowId,
@@ -76,7 +74,6 @@ impl App {
     }
 }
 
-/// Lays `clipboard`'s pixels over `raster`; returns them as the new selection.
 fn paste(raster: &mut Raster, clipboard: &Raster) -> Selection {
     let mut points = Vec::new();
     for y in 0..clipboard.height() {

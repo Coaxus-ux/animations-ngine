@@ -9,7 +9,6 @@ use crate::domain::{Command, Raster};
 use crate::ports::FileStore;
 use crate::tools::{Effect, Tool, ToolKind, Work};
 
-/// A press-drag-release on the canvas with one tool.
 pub(super) struct Stroke {
     window: WindowId,
     target: Option<PaintTarget>,
@@ -25,20 +24,16 @@ impl Stroke {
     }
 }
 
-/// The cel painting changes: the active layer's cel showing at the view's frame.
 pub(super) struct PaintTarget {
     shape: usize,
     art: NodePath,
     origin: (i32, i32),
-    /// The frame the edited cel starts at.
     frame: u32,
     cels: Vec<Cel>,
-    /// The edited cel as a canvas-sized image.
     pub(super) raster: Raster,
 }
 
 impl PaintTarget {
-    /// The layer's cels with the edited one replaced by (or added as) `raster`.
     fn cels_with(&self, raster: &Raster) -> Vec<Cel> {
         let mut cels = self.cels.clone();
         let edited = raster.to_cel(self.frame, self.origin);
@@ -51,18 +46,15 @@ impl PaintTarget {
         cels
     }
 
-    /// The same target, but adding a cel at `frame` instead of editing the one showing.
     pub(super) const fn starting_at(mut self, frame: u32) -> Self {
         self.frame = frame;
         self
     }
 
-    /// Whether a cel starts exactly at the edited frame.
     pub(super) fn has_cel(&self) -> bool {
         self.cels.iter().any(|cel| cel.frame == self.frame)
     }
 
-    /// The layer's cels without the one starting at the edited frame.
     pub(super) fn without_cel(&self) -> Command {
         Command::SetCels {
             art: self.art.clone(),
@@ -84,7 +76,6 @@ impl PaintTarget {
 }
 
 impl App {
-    /// The cel window `window` paints on, or why there is none.
     pub(super) fn paint_target(&self, window: WindowId) -> Result<PaintTarget, String> {
         let document = self.document().ok_or("No document is open")?;
         let scene = document.scene().ok_or("The scene doesn't load")?;

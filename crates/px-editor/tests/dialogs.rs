@@ -1,4 +1,3 @@
-//! The Canvas Size and Properties dialogs and what they do to the document, driven headless.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -18,7 +17,6 @@ fn size(app: &App) -> (u16, u16) {
     (size.width(), size.height())
 }
 
-/// Paints one pixel of the cat layer at `at` and returns its paint.
 fn paint_pixel(
     app: &mut App,
     files: &mut common::MemoryFiles,
@@ -88,8 +86,9 @@ fn shrinking_crops_pixels_outside_the_canvas() {
 }
 
 #[test]
-fn properties_rewrites_fps_duration_and_loop() {
+fn properties_rewrites_fps_duration_and_loop_in_one_undo_step() {
     let (mut app, mut files, main) = open();
+    let before = app.document().unwrap().text().to_owned();
     app.dispatch(
         Intent::SetTiming {
             fps: 24,
@@ -108,10 +107,9 @@ fn properties_rewrites_fps_duration_and_loop() {
         text.contains("fps=24 duration=\"30f\" loop=#false"),
         "{text}"
     );
-    assert!(
-        app.editing().status.contains("3 undo steps"),
-        "{}",
-        app.editing().status
+    assert_eq!(
+        app.editing().status,
+        "Timing is now 24 fps, 30 frames, once"
     );
 
     app.dispatch(
@@ -128,6 +126,13 @@ fn properties_rewrites_fps_duration_and_loop() {
         "{}",
         app.editing().status
     );
+
+    app.dispatch(Intent::Undo, main, &mut files);
+    assert_eq!(app.document().unwrap().text(), before);
+    let timing = app.document().unwrap().scene().unwrap().timing();
+    assert_eq!(timing.fps.get(), 12);
+    assert_eq!(timing.duration.get(), 18);
+    assert_eq!(timing.looping, Looping::Loop);
 }
 
 #[test]

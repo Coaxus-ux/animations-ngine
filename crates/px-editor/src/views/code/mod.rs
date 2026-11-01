@@ -13,17 +13,12 @@ use crate::domain::Document;
 use crate::domain::tree::label_of;
 
 const GUTTER: i32 = 20;
-/// Typing pauses this long before the text is loaded into the document.
 const DEBOUNCE_MS: u64 = 300;
-/// The window field remembering which node the buffer holds (the path's text), so a change
-/// of selection is told apart from a change of the document.
 const SCOPE_FIELD: &str = "code-node";
 
-/// What the view edits: the whole file, or the selected node of it.
 struct Scope<'a> {
     path: Option<&'a NodePath>,
     text: Cow<'a, str>,
-    /// Where the text starts in the file, for the gutter.
     first_line: usize,
     header: Option<String>,
 }
@@ -50,9 +45,6 @@ fn scope<'a>(document: &'a Document, selected: Option<&'a NodePath>) -> Scope<'a
     }
 }
 
-/// The scene's KDL, edited in place: after a pause the text loads into the document and the
-/// canvas follows; while it doesn't load, the errors show below and the last good scene stays.
-/// With an element selected only its node is shown and rewritten.
 pub(super) fn code(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
@@ -132,7 +124,6 @@ pub(super) fn code(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     }
 }
 
-/// In node mode, a line naming the node above the editor; Escape goes back to the file.
 fn header(ui: &mut Ui<'_>, context: &mut Context<'_>, scope: &Scope<'_>, area: Rect) -> Rect {
     let Some(title) = &scope.header else {
         return area;
@@ -147,8 +138,6 @@ fn header(ui: &mut Ui<'_>, context: &mut Context<'_>, scope: &Scope<'_>, area: R
     rest
 }
 
-/// Loads the scope's text when the selection moved to another node or the document changed
-/// elsewhere, and in whole-file mode jumps to a newly picked object.
 fn sync(
     code: &mut CodeBuffer,
     fields: &mut BTreeMap<Id, String>,

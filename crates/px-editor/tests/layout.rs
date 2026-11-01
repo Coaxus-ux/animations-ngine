@@ -1,4 +1,3 @@
-//! The Aseprite arrangement driven headless: shortcuts, the tab strip and the menus.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -79,7 +78,6 @@ fn file_shortcuts_open_their_dialogs_and_ctrl_shift_s_is_not_save() {
     assert_eq!(dialog(&app, main), Some(DialogKind::CanvasSize));
 }
 
-/// Window-pixel columns of the tab strip that differ between two drawings of the window.
 fn changed_columns(before: &[u32], after: &[u32], scale: i32) -> Vec<i32> {
     let strip = tab_strip_area(rect(
         0,
@@ -125,7 +123,6 @@ fn the_tab_strip_switches_and_closes_tabs_by_click() {
         .unwrap()
         .to_vec();
     let changed = changed_columns(&second_active, &first_active, scale);
-    // Left of the close box, which shows up when the tab is hovered.
     let second_tab_x = *changed.last().unwrap() - 14 * scale;
     assert!(changed.len() > 20, "{changed:?}");
 
@@ -151,8 +148,6 @@ fn the_tab_strip_switches_and_closes_tabs_by_click() {
     assert_eq!(app.document().unwrap().path(), Path::new(common::FILE));
 }
 
-/// The y (UI pixels) of the File menu's `index`th row, counting separators as rows of
-/// their own, with `separators` of them before it.
 fn menu_row_y(index: i32, separators: i32) -> i32 {
     let menu_bar = ROW + 3;
     let separator = 5;
@@ -183,8 +178,6 @@ fn every_menu_entry_has_an_intent_or_is_disabled_without_a_document() {
     assert_eq!(dialog(&app, main), Some(DialogKind::New));
 }
 
-/// Opens the `index`th menu by clicking File and sliding the pointer right along the bar;
-/// returns a window x a few pixels into that menu's title and its dropdown.
 fn open_menu(app: &mut App, files: &mut MemoryFiles, main: WindowId, index: usize) -> i32 {
     let scale = app.scale_for(SIZE.0);
     let y = 6 * scale;

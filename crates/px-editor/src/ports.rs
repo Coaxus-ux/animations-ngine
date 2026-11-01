@@ -1,26 +1,13 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-/// Where documents and settings are read and written; the app never touches the file
-/// system itself (D-015). Adapters: the real file system (px-cli), memory (tests).
 pub trait FileStore {
-    /// # Errors
-    /// A readable reason when the file can't be read.
     fn read(&mut self, path: &Path) -> Result<String, String>;
 
-    /// # Errors
-    /// A readable reason when the file can't be written.
     fn write(&mut self, path: &Path, text: &str) -> Result<(), String>;
 
-    /// A value that changes whenever the file changes on disk (its modification time),
-    /// or `None` when it can't be read.
     fn stamp(&mut self, path: &Path) -> Option<u64>;
 
-    /// Writes an exported image or data file.
-    ///
-    /// # Errors
-    /// A readable reason when the file can't be written; stores that only hold text
-    /// refuse by default.
     fn write_bytes(&mut self, path: &Path, bytes: &[u8]) -> Result<(), String> {
         let _ = bytes;
         Err(format!(
@@ -30,7 +17,6 @@ pub trait FileStore {
     }
 }
 
-/// A store that has nothing and keeps nothing: for restoring a layout and for tests.
 pub struct NoFiles;
 
 impl FileStore for NoFiles {
@@ -47,7 +33,6 @@ impl FileStore for NoFiles {
     }
 }
 
-/// An in-memory store for tests and examples; the write counter serves as the stamp.
 #[derive(Default)]
 pub struct MemoryFiles {
     pub files: BTreeMap<PathBuf, String>,

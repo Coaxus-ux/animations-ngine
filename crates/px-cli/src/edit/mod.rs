@@ -1,8 +1,5 @@
-//! `pxe edit`: the editor's adapter. Only this code touches windows and files (D-015);
-//! everything else is `px-editor`.
-
 mod dialogs;
-mod files;
+pub(crate) mod files;
 mod host;
 
 use std::collections::BTreeMap;
@@ -20,8 +17,6 @@ use host::Host;
 
 const FRAME: Duration = Duration::from_millis(16);
 
-/// Opens the editor, on `file` when given; creates it first when it doesn't exist and
-/// `size` is given.
 pub(crate) fn edit(file: Option<&Path>, size: Option<(u16, u16)>, scale: Option<u8>) -> Result<()> {
     let mut files = DiskFiles;
     let mut app = App::new(ThemeChoice::Dark).map_err(|error| anyhow!(error))?;
@@ -108,8 +103,6 @@ fn run(app: &mut App, files: &mut DiskFiles) -> Result<()> {
     }
 }
 
-/// Writes unsaved changes where they can be found again instead of losing them on quit:
-/// next to the file, or for a scene that never had one, under the user's config folder.
 fn keep_unsaved(app: &App, files: &mut DiskFiles) {
     for slot in app.documents().iter() {
         let document = &slot.document;
@@ -131,7 +124,6 @@ fn keep_unsaved(app: &App, files: &mut DiskFiles) {
     }
 }
 
-/// `~/.config/px/editor.kdl`: the window layout, kept per user.
 fn layout_path() -> Option<PathBuf> {
     Some(config_dir()?.join("editor.kdl"))
 }

@@ -15,8 +15,6 @@ pub(super) fn height(model: &PaletteModel) -> i32 {
     i32::try_from(model.ramps.len()).unwrap_or(0) * ROW_HEIGHT
 }
 
-/// One row per ramp: the name (double click renames), its tones (click selects), then
-/// buttons to add a tone, drop the last one and remove the ramp.
 pub(super) fn rows(
     ui: &mut Ui<'_>,
     context: &mut Context<'_>,

@@ -4,7 +4,6 @@ use px_core::{MAX_RAMPS, Rgb};
 
 use crate::domain::palette_import::{from_gpl, from_hex};
 
-/// `wanted` when free, else `wanted-2`, `wanted-3`, …
 pub(super) fn unique_name(wanted: &str, taken: &[String]) -> String {
     let wanted = if wanted.is_empty() { "ramp" } else { wanted };
     let free = |name: &str| !taken.iter().any(|taken| taken == name);
@@ -17,7 +16,6 @@ pub(super) fn unique_name(wanted: &str, taken: &[String]) -> String {
         .unwrap_or_else(|| wanted.to_owned())
 }
 
-/// Colors from a `.hex` or `.gpl` file; an unknown extension tries both.
 pub(super) fn parse_palette_file(path: &Path, text: &str) -> Result<Vec<Rgb>, String> {
     let extension = path
         .extension()
@@ -33,8 +31,6 @@ pub(super) fn parse_palette_file(path: &Path, text: &str) -> Result<Vec<Rgb>, St
     Ok(colors)
 }
 
-/// The palette node's text (as `Source::node_text` gives it) with `lines` added before
-/// its closing brace, so comments and `twin=` properties survive the import.
 pub(super) fn with_ramp_lines(node_text: &str, lines: &str) -> String {
     match node_text.trim_end().rsplit_once('}') {
         Some((head, _)) => format!("{}\n{lines}}}", head.trim_end()),

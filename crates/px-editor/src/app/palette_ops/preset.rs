@@ -9,8 +9,6 @@ pub(super) fn parse(name: &str, text: &str) -> Result<PaletteModel, String> {
         .ok_or_else(|| format!("Preset \"{name}\" has no palette node"))
 }
 
-/// The palette node with its ramp lines replaced by the preset's, twins and comments kept;
-/// refused when a ramp the preset lacks is still used.
 pub(super) fn node_text(
     source: &Source,
     model: &PaletteModel,

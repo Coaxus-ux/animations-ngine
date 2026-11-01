@@ -6,12 +6,10 @@ use px_export::Padding;
 
 use super::{ExportJob, ExportKind, FrameScope, layout_count, layout_from, layout_index};
 
-/// Kind and layout names in the layout file, in `KIND_LABELS` / `LAYOUT_LABELS` order.
-const KIND_NAMES: [&str; 4] = ["gif", "png", "sequence", "sheet"];
-const LAYOUT_NAMES: [&str; 4] = ["strip-h", "strip-v", "rows", "columns"];
+pub const KIND_NAMES: [&str; 4] = ["gif", "png", "sequence", "sheet"];
+pub const LAYOUT_NAMES: [&str; 4] = ["strip-h", "strip-v", "rows", "columns"];
 
 impl ExportJob {
-    /// One `export` line of the editor's layout file (D-023).
     #[must_use]
     pub fn to_kdl(&self) -> String {
         let (layout, padding, json) = match self.kind {
@@ -23,7 +21,7 @@ impl ExportJob {
             _ => (layout_from(0, 1), Padding::default(), false),
         };
         let mut text = format!(
-            "    export kind={:?} layout={:?} count={} border={} shape={} json=#{} scale={} transparent=#{}",
+            "    export kind={:?} layout={:?} count={} border={} shape={} json=#{} scale={} transparent=#{} trim=#{} split-layers=#{}",
             KIND_NAMES[self.kind.index()],
             LAYOUT_NAMES[layout_index(layout)],
             layout_count(layout),
@@ -32,6 +30,8 @@ impl ExportJob {
             json,
             self.scale,
             self.transparent,
+            self.trim,
+            self.split_layers,
         );
         match self.frames {
             FrameScope::All => text.push_str(" frames=\"all\""),
@@ -76,6 +76,8 @@ impl ExportJob {
                 .and_then(|scale| u8::try_from(scale).ok())
                 .unwrap_or(1),
             transparent: flag("transparent").unwrap_or(true),
+            trim: flag("trim").unwrap_or(false),
+            split_layers: flag("split-layers").unwrap_or(false),
             frames,
             out: PathBuf::from(string("out").unwrap_or_default()),
         })
@@ -113,6 +115,8 @@ mod tests {
             },
             scale: 3,
             transparent: false,
+            trim: true,
+            split_layers: true,
             frames: FrameScope::Current(7),
             out: PathBuf::from("out/hero sheet.png"),
         };
@@ -125,6 +129,8 @@ mod tests {
             kind: ExportKind::Gif,
             scale: 2,
             transparent: true,
+            trim: false,
+            split_layers: false,
             frames: FrameScope::All,
             out: PathBuf::from("room.gif"),
         };

@@ -1,7 +1,3 @@
-//! Format-preserving edits of KDL source (EDITOR.md §3, D-014). Every change splices the
-//! text at the parser's spans and reparses, so comments, spacing, order, disabled nodes
-//! and every untouched byte stay exactly as written.
-
 mod path;
 mod text;
 
@@ -15,7 +11,6 @@ use text::{Lines, Span};
 
 const INDENT: &str = "    ";
 
-/// A KDL document kept as its exact text.
 #[derive(Clone, Debug)]
 pub struct Source {
     text: String,
@@ -24,7 +19,6 @@ pub struct Source {
 
 #[derive(Debug)]
 pub enum EditError {
-    /// The text (or the text after an edit) is not valid KDL.
     Parse(String),
     NotFound(NodePath),
 }
@@ -67,7 +61,6 @@ impl Source {
         parent.step_to(siblings, node)
     }
 
-    /// The deepest node whose text contains byte `offset`.
     #[must_use]
     pub fn path_at(&self, offset: usize) -> Option<NodePath> {
         let mut path = NodePath::root();
@@ -81,7 +74,6 @@ impl Source {
         found
     }
 
-    /// Byte range of the node's own text, from its name to its last token.
     #[must_use]
     pub fn span(&self, path: &NodePath) -> Option<(usize, usize)> {
         self.node(path).map(|node| {
@@ -90,7 +82,6 @@ impl Source {
         })
     }
 
-    /// The whitespace the node's line starts with.
     #[must_use]
     pub fn indent(&self, path: &NodePath) -> String {
         self.node(path)
@@ -98,8 +89,6 @@ impl Source {
             .unwrap_or_default()
     }
 
-    /// The node's text as it would be written at the top level: its own indentation taken
-    /// off every line after the first. `reindent` puts it back for `replace`.
     #[must_use]
     pub fn node_text(&self, path: &NodePath) -> Option<String> {
         let (start, end) = self.span(path)?;
@@ -107,8 +96,6 @@ impl Source {
         Some(dedented(&self.text[start..end], &indent))
     }
 
-    /// `text` (one node, as `node_text` gives it) with `indent` added to every line after
-    /// the first, ready for `replace` at a node with that indentation.
     #[must_use]
     pub fn reindent(text: &str, indent: &str) -> String {
         let (first, rest) = text.split_once('\n').unwrap_or((text, ""));
@@ -120,8 +107,6 @@ impl Source {
         out.trim_end().to_owned()
     }
 
-    /// Sets `key=value`, replacing the property if the node has it, else adding it after the
-    /// node's last argument or property.
     pub fn set_property(
         &mut self,
         path: &NodePath,
@@ -147,7 +132,6 @@ impl Source {
         self.splice(&[edit])
     }
 
-    /// Sets argument number `index` of the node (counting arguments only, not properties).
     pub fn set_argument(
         &mut self,
         path: &NodePath,
@@ -165,15 +149,11 @@ impl Source {
         self.splice(&[(span, repr(value))])
     }
 
-    /// Replaces the node's text with `text`; extra lines of `text` should already carry the
-    /// node's indentation (`indent`).
     pub fn replace(&mut self, path: &NodePath, text: &str) -> Result<(), EditError> {
         let span = Span::of(self.found(path)?).trimmed(&self.text);
         self.splice(&[(span, text.to_owned())])
     }
 
-    /// Replaces the node's block (`{ … }`) with `children` (nodes one per line, their later
-    /// lines indented relative to them), keeping the node's name, arguments and properties.
     pub fn set_children(&mut self, path: &NodePath, children: &str) -> Result<(), EditError> {
         let node = self.found(path)?;
         let span = Span::of(node).trimmed(&self.text);
@@ -193,7 +173,6 @@ impl Source {
         self.splice(&[edit])
     }
 
-    /// Removes the node with its whole line when nothing else shares it.
     pub fn remove(&mut self, path: &NodePath) -> Result<(), EditError> {
         let span = Span::of(self.found(path)?).trimmed(&self.text);
         let lines = Lines(&self.text);
@@ -201,8 +180,6 @@ impl Source {
         self.splice(&[(span, String::new())])
     }
 
-    /// Inserts `text` (one node, its later lines indented relative to the node) as child
-    /// number `index` of `parent`, indented like its siblings.
     pub fn insert(&mut self, parent: &NodePath, index: usize, text: &str) -> Result<(), EditError> {
         let node = self.found(parent)?;
         let lines = Lines(&self.text);
@@ -231,7 +208,6 @@ impl Source {
         self.splice(&[edit])
     }
 
-    /// Moves child `from` of `parent` to position `to` (counted after removing it).
     pub fn move_child(
         &mut self,
         parent: &NodePath,
@@ -251,8 +227,6 @@ impl Source {
         self.insert(parent, to, &moved)
     }
 
-    /// Where a body goes inside an empty block whose `}` is at `close`: on the brace's own
-    /// line when it has one, else between the `{` and `}` sharing the parent's line.
     fn inside_empty_block(&self, close: usize, body: &str, parent_indent: &str) -> (Span, String) {
         let lines = Lines(&self.text);
         let own_line = self.text[lines.line_start(close)..close]
@@ -274,7 +248,6 @@ impl Source {
             .ok_or_else(|| EditError::NotFound(path.clone()))
     }
 
-    /// Applies non-overlapping edits and reparses; on a parse error nothing changes.
     fn splice(&mut self, edits: &[(Span, String)]) -> Result<(), EditError> {
         let mut text = self.text.clone();
         let mut ordered: Vec<&(Span, String)> = edits.iter().collect();
@@ -288,7 +261,6 @@ impl Source {
     }
 }
 
-/// How a value is written: strings always quoted, as the project writes them.
 fn repr(value: &KdlValue) -> String {
     match value {
         KdlValue::String(text) => {
@@ -306,7 +278,6 @@ fn parse(text: &str) -> Result<KdlDocument, EditError> {
     KdlDocument::parse_v2(text).map_err(|error: KdlError| EditError::Parse(error.to_string()))
 }
 
-/// Every line of `text` prefixed with `indent`, ending in a newline.
 fn indented(text: &str, indent: &str) -> String {
     let mut out = String::with_capacity(text.len());
     for line in text.lines() {
@@ -319,7 +290,6 @@ fn indented(text: &str, indent: &str) -> String {
     out
 }
 
-/// `text` with `indent` taken off every line after the first.
 fn dedented(text: &str, indent: &str) -> String {
     let mut out = String::with_capacity(text.len());
     for (index, line) in text.lines().enumerate() {

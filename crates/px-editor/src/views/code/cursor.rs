@@ -5,7 +5,6 @@ use crate::app::CodeBuffer;
 
 const INDENT: &str = "    ";
 
-/// Applies typed text and editing keys; returns whether the text changed.
 pub(super) fn type_keys(ui: &Ui<'_>, code: &mut CodeBuffer, visible: usize) -> bool {
     let mut changed = false;
     for character in ui.input.text.chars().filter(|c| !c.is_control()) {
@@ -86,7 +85,6 @@ pub(super) fn line_column(text: &str, cursor: usize) -> (usize, usize) {
     (line, column)
 }
 
-/// The character index of `column` on `line` (clamped to the line and the text).
 fn index_of(text: &str, line: usize, column: usize) -> usize {
     let mut index = 0;
     for (number, content) in text.split('\n').enumerate() {
@@ -116,7 +114,6 @@ pub(super) fn click(ui: &Ui<'_>, code: &CodeBuffer, area: Rect, (x, y): (i32, i3
     index_of(&code.text, line, column)
 }
 
-/// Scrolls sideways so the cursor stays in view.
 pub(super) fn follow(ui: &Ui<'_>, code: &mut CodeBuffer, area: Rect) {
     let (line, column) = line_column(&code.text, code.cursor);
     let content = code.text.split('\n').nth(line).unwrap_or("");

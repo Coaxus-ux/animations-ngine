@@ -1,11 +1,8 @@
 use std::fmt::Write;
 
-/// Writes JSON by hand with a fixed key order, so metadata files are deterministic and
-/// the workspace needs no serialization dependency.
 #[derive(Debug, Default)]
 pub struct JsonWriter {
     text: String,
-    /// One flag per open container: whether it already holds an item.
     has_items: Vec<bool>,
     after_key: bool,
 }

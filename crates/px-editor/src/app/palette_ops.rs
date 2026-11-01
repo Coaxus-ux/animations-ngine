@@ -13,7 +13,7 @@ use super::window::Request;
 use super::{App, Targets, WindowId};
 use crate::assets::palettes;
 use crate::domain::Command;
-use crate::domain::palette_import::ramps_in_file_order;
+use crate::domain::palette_import::ramps_by_hue;
 use crate::domain::palette_model::palette_path;
 use crate::domain::palette_model::{PaletteModel, RampModel, ramp_kdl};
 use crate::ports::FileStore;
@@ -53,7 +53,6 @@ impl App {
                     .to_vec();
                 self.set_ramp(&ramp, ramp.clone(), colors, store);
             }
-            // An empty path asks for a native dialog, as `OpenFile` does.
             Intent::ImportPalette(path) if path.as_os_str().is_empty() => {
                 self.pick_palette_file(window, PickPurpose::ImportPalette, None);
             }
@@ -93,7 +92,6 @@ impl App {
         Ok((source, model))
     }
 
-    /// Plans one command against the palette and runs it; a refusal becomes the status.
     fn edit_palette(
         &mut self,
         store: &mut dyn FileStore,
@@ -183,7 +181,7 @@ impl App {
                 return;
             }
         };
-        let imported = ramps_in_file_order(&colors, MAX_TONES);
+        let imported = ramps_by_hue(&colors, MAX_TONES);
         let count = imported.len();
         let done = self.edit_palette(store, |source, model| {
             let mut taken = names_of(model);
@@ -277,7 +275,6 @@ fn refuse_if_used(source: &Source, ramp: &str) -> Result<(), String> {
     }
 }
 
-/// A ramp keeps every numeric tone something paints with and the tone count of its twins.
 fn refuse_if_shortened(
     source: &Source,
     model: &PaletteModel,

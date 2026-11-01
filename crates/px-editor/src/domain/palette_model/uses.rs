@@ -4,19 +4,14 @@ use px_format::edit::Source;
 use super::PaletteModel;
 use crate::domain::tree::{children_of, id_of, label_of};
 
-/// Every property the loader reads as a paint (`ramp` or `ramp.tone`), as px-format's
-/// scene, style, extras and objects parsers name them.
 const PAINT_KEYS: [&str; 4] = ["paint", "background", "outline-paint", "fog-paint"];
 
-/// One place in the file that names a ramp or a paint, and who that place is.
 struct Use {
     paint: String,
     user: String,
 }
 
 impl PaletteModel {
-    /// Who uses ramp `ramp` in `source`: the first twin link, legend code or paint
-    /// property naming it, in file order.
     #[must_use]
     pub fn uses_of(source: &Source, ramp: &str) -> Option<String> {
         uses(source)
@@ -31,8 +26,6 @@ impl PaletteModel {
             .map(|found| found.user)
     }
 
-    /// Who paints with a tone of `ramp` that a ramp of `kept` tones no longer has: the
-    /// tone's index and its first user. Named tones (`deep` … `hi`) fit any length.
     #[must_use]
     pub fn uses_of_tones(source: &Source, ramp: &str, kept: usize) -> Option<(usize, String)> {
         uses(source).into_iter().find_map(|found| {
@@ -47,8 +40,6 @@ impl PaletteModel {
         })
     }
 
-    /// The ramps whose tone count must equal `ramp`'s: its twins when it is a twin's base,
-    /// and the base when it is a twin.
     #[must_use]
     pub fn twin_partners(source: &Source, ramp: &str) -> Vec<String> {
         let mut partners = Vec::new();
@@ -70,7 +61,6 @@ impl PaletteModel {
     }
 }
 
-/// Every ramp and paint reference in the file, in file order.
 fn uses(source: &Source) -> Vec<Use> {
     let mut found = Vec::new();
     let mut stack: Vec<&KdlNode> = source.nodes().iter().rev().collect();
@@ -115,7 +105,6 @@ fn uses(source: &Source) -> Vec<Use> {
     found
 }
 
-/// A `twin` node's base ramp and its `light-color="ramp"` entries.
 fn twin_links(node: &KdlNode) -> Option<(&str, Vec<(&str, &str)>)> {
     if node.name().value() != "twin" {
         return None;

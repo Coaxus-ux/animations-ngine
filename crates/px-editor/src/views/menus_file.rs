@@ -4,7 +4,6 @@ use super::Context;
 use super::menus::{Entry, entry, separator};
 use crate::app::{DialogKind, Intent};
 
-/// `recent` holds one label per path of `context.recent`, in the same order.
 pub(super) fn file<'a>(context: &Context<'_>, recent: &'a [String]) -> Vec<Entry<'a>> {
     let open = |intent: Intent| context.document.map(|_| intent);
     let mut entries = vec![

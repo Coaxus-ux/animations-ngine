@@ -16,8 +16,6 @@ use crate::domain::palette_model::palette_path;
 const BUTTON_ROW: i32 = ROW + 2;
 const GAP: i32 = 3;
 
-/// The palette panel in edit mode (F4): ramps and tones are added, removed, renamed,
-/// recolored, generated, imported and saved here; one scroll area holds it all.
 pub(super) fn palette_edit(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let roles = ui.theme.roles;
     let (top, rest) = area.take_top(BUTTON_ROW);
@@ -68,8 +66,6 @@ pub(super) fn palette_edit(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rec
     ui.canvas.restore_clip(clip);
 }
 
-/// Rows handed out from the top of a scrolled column; `shows` says whether a row is in
-/// view, so hidden widgets never take the pointer.
 pub(super) struct Column {
     x: i32,
     y: i32,
@@ -93,8 +89,6 @@ pub(super) fn id() -> Id {
     Id::new("palette-edit")
 }
 
-/// The selected tone as `(ramp index, tone index)`, kept in the window's fields as
-/// `"ramp/tone"` and dropped when the palette no longer has it.
 fn selection(context: &Context<'_>, model: &PaletteModel) -> Option<(usize, usize)> {
     let text = context.fields.get(&id().with_name("selected"))?;
     let (ramp, tone) = text.split_once('/')?;
@@ -103,8 +97,6 @@ fn selection(context: &Context<'_>, model: &PaletteModel) -> Option<(usize, usiz
     (tone < model.ramps[index].colors.len()).then_some((index, tone))
 }
 
-/// The ramp picked in the palette editor and its selected tone's color; without one, the
-/// primary paint's ramp and color.
 pub(super) fn selected_ramp(context: &Context<'_>, document: &Document) -> Option<(String, Rgb)> {
     let picked = palette_path(document).ok().and_then(|path| {
         let model = PaletteModel::from_source(document.source(), &path)?;
@@ -132,7 +124,6 @@ fn tools_height() -> i32 {
     GAP + BUTTON_ROW + BUTTON_ROW + (presets + 1) / 2 * BUTTON_ROW
 }
 
-/// Import, save and the shipped presets, two buttons per row.
 fn tools(ui: &mut Ui<'_>, context: &mut Context<'_>, column: &mut Column) {
     column.row(GAP);
     let file_buttons: [(&str, Intent, &str); 2] = [

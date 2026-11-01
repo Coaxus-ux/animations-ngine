@@ -7,7 +7,6 @@ use px_ui::{Id, UiCanvas, UiState};
 
 use super::dialog::{Dialog, PickPurpose};
 
-/// Identifies one of the app's windows to the adapter that shows it.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct WindowId(pub u32);
 
@@ -43,7 +42,6 @@ impl PanelKind {
         }
     }
 
-    /// Its entry in the Window menu.
     #[must_use]
     pub const fn window_label(self) -> &'static str {
         match self {
@@ -66,11 +64,8 @@ impl PanelKind {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WindowKind {
-    /// The main window: canvas plus every panel that isn't torn off.
     Main,
-    /// Another view of the document's canvas, with its own zoom, frame and layer.
     Canvas,
-    /// A panel torn off into its own window.
     Panel(PanelKind),
 }
 
@@ -81,7 +76,6 @@ impl WindowKind {
     }
 }
 
-/// How the code view shares the main window with the canvas (F2 cycles it).
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum CodeMode {
     #[default]
@@ -90,43 +84,29 @@ pub enum CodeMode {
     Only,
 }
 
-/// What one canvas window looks at: per window, so two windows can show different zooms,
-/// frames and layers of one document.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ViewState {
-    /// Window pixels per canvas pixel; 0 fits the canvas to the view.
     pub zoom: i32,
-    /// Where the canvas's top-left is, in window pixels from the view's top-left.
     pub pan: Option<(i32, i32)>,
     pub frame: u32,
-    /// Index into the document's layers.
     pub layer: Option<usize>,
-    /// Names of layers hidden in this window.
     pub hidden: BTreeSet<String>,
     pub onion: bool,
     pub grid: bool,
     pub code: CodeMode,
 }
 
-/// The code view's own text while it is being typed (pushed to the document after a pause).
 #[derive(Clone, Debug, Default)]
 pub struct CodeBuffer {
     pub text: String,
-    /// Cursor as a character index into `text`.
     pub cursor: usize,
     pub scroll: usize,
-    /// How far long lines are scrolled sideways, in UI pixels.
     pub scroll_x: i32,
-    /// The document's text when `text` was last in step with it: the document changed
-    /// elsewhere (undo, a brush stroke) when its text no longer equals this.
     pub base: String,
-    /// When the text was last typed into, in input milliseconds.
     pub edited_at: Option<u64>,
-    /// The picked shape the cursor last jumped to.
     pub jumped: Option<usize>,
 }
 
-/// A palette color being edited in the color picker.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Picker {
     pub paint: Paint,
@@ -139,28 +119,19 @@ pub struct Window {
     pub view: ViewState,
     pub ui: UiState,
     pub canvas: UiCanvas,
-    /// Window pixels as last drawn (`0x00RRGGBB`).
     pub pixels: Vec<u32>,
     pub size: (usize, usize),
-    /// Where the canvas view was last drawn, in window pixels.
     pub area: Option<px_ui::Rect>,
-    /// The pointer last frame, in window pixels.
     pub last_pointer: Option<(i32, i32)>,
-    /// Panels of the main window torn off into their own windows.
     pub popped: BTreeSet<PanelKind>,
     pub code: CodeBuffer,
     pub picker: Option<Picker>,
-    /// Text being typed into fields, by field.
     pub fields: BTreeMap<Id, String>,
-    /// A layer being renamed, and the name so far.
     pub renaming: Option<usize>,
     pub help: bool,
     pub dialog: Option<Dialog>,
-    /// The element whose node the code view and inspector show.
     pub selected: Option<NodePath>,
-    /// The palette panel is in edit mode (F4).
     pub palette_edit: bool,
-    /// What was drawn last: (document revision, input time bucket), to skip idle redraws.
     pub drawn: Option<(u64, u64)>,
 }
 
@@ -191,7 +162,6 @@ impl Window {
     }
 }
 
-/// What the app asks its adapter to do with windows.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Request {
     Open {
@@ -207,7 +177,6 @@ pub enum Request {
         id: WindowId,
         title: String,
     },
-    /// Show a native file dialog; the answer comes back as `Intent::Picked`.
     PickFile {
         window: WindowId,
         purpose: PickPurpose,

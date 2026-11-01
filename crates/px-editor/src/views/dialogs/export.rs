@@ -15,7 +15,7 @@ use crate::domain::export::{
 };
 
 pub(super) const TITLE: &str = "Export";
-pub(super) const SIZE: (i32, i32) = (360, 196);
+pub(super) const SIZE: (i32, i32) = (360, 211);
 
 const FRAME_LABELS: [&str; 2] = ["All", "Current"];
 const CURRENT: usize = 1;
@@ -27,6 +27,7 @@ const MAX_COUNT: i64 = 256;
 const MAX_PADDING: i64 = 64;
 const GIF: usize = ExportKind::Gif.index();
 const PNG: usize = ExportKind::Png.index();
+const SEQUENCE: usize = ExportKind::PngSequence.index();
 const SHEET: usize = ExportKind::Sheet {
     layout: SheetLayout::HorizontalStrip,
     padding: Padding {
@@ -36,10 +37,8 @@ const SHEET: usize = ExportKind::Sheet {
     json: true,
 }
 .index();
-/// The first layout with a column or row count.
 const GRID: usize = layout_index(SheetLayout::Rows { columns: 1 });
 
-/// Draws the dialog's fields and buttons inside `body`; pushes its intent on OK.
 pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dialog, body: Rect) {
     let body = body.inset(4);
     let (buttons, fields) = body.take_bottom(ROW_HEIGHT);
@@ -67,14 +66,28 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
         (1, i64::from(MAX_SCALE)),
     );
     order.push(id(keys::SCALE));
+    toggle(
+        ui,
+        rows.next(),
+        keys::TRANSPARENT,
+        "Transparent background",
+        true,
+        form,
+    );
     if kind != GIF {
-        toggle(
-            ui,
-            rows.next(),
-            keys::TRANSPARENT,
-            "Transparent background",
-            form,
-        );
+        let row = rows.next();
+        let (trim_field, split_field) = row.take_left(row.width / 2);
+        toggle(ui, trim_field, keys::TRIM, "Trim sprite", false, form);
+        if kind == SHEET || kind == SEQUENCE {
+            toggle(
+                ui,
+                split_field,
+                keys::SPLIT_LAYERS,
+                "Split layers",
+                false,
+                form,
+            );
+        }
     }
     if kind != PNG {
         let frames_field = labeled(ui, rows.next(), "Frames");
@@ -97,7 +110,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
     let ink = ui.theme.roles.ink_dim;
     label(ui, rows.next(), &preview(context.document, &job), ink);
     if browse_clicked {
-        // An empty output path asks `App::apply_export` for a native save dialog.
         context.intents.push(Intent::Export(ExportJob {
             out: PathBuf::new(),
             ..job
@@ -117,7 +129,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
     }
 }
 
-/// The sprite-sheet rows; the fields they draw join the Tab `order`.
 fn sheet_rows(ui: &mut Ui<'_>, rows: &mut Rows, form: &mut Form, order: &mut Vec<Id>) {
     let layout_field = labeled(ui, rows.next(), "Layout");
     segmented(
@@ -158,7 +169,7 @@ fn sheet_rows(ui: &mut Ui<'_>, rows: &mut Rows, form: &mut Form, order: &mut Vec
         (0, MAX_PADDING),
     );
     order.extend([id(keys::BORDER), id(keys::SHAPE)]);
-    toggle(ui, rows.next(), keys::JSON, "JSON data", form);
+    toggle(ui, rows.next(), keys::JSON, "JSON data", true, form);
 }
 
 struct Rows {
@@ -177,7 +188,6 @@ fn id(name: &str) -> Id {
     Id::new("export").with_name(name)
 }
 
-/// Writes `text` at the row's left and returns the field area to its right.
 fn labeled(ui: &mut Ui<'_>, row: Rect, text: &str) -> Rect {
     let (name, field) = row.take_left(LABEL_WIDTH);
     let ink = ui.theme.roles.ink;
@@ -185,15 +195,13 @@ fn labeled(ui: &mut Ui<'_>, row: Rect, text: &str) -> Rect {
     field
 }
 
-fn toggle(ui: &mut Ui<'_>, row: Rect, key: &str, text: &str, form: &mut Form) {
-    let flag = form.flag(key, true);
+fn toggle(ui: &mut Ui<'_>, row: Rect, key: &str, text: &str, default: bool, form: &mut Form) {
+    let flag = form.flag(key, default);
     if checkbox(ui, id(key), row.take_left(LABEL_WIDTH).1, text, *flag) {
         *flag = !*flag;
     }
 }
 
-/// The job the form describes. A GIF is always opaque and a PNG is always the current
-/// frame, whatever the hidden fields hold.
 fn job_from(form: &mut Form, current: u32) -> ExportJob {
     let small = |value: i64| u16::try_from(value).unwrap_or(0);
     let layout = layout_from(
@@ -214,7 +222,9 @@ fn job_from(form: &mut Form, current: u32) -> ExportJob {
     ExportJob {
         kind,
         scale: u8::try_from(*form.number(keys::SCALE, 1)).unwrap_or(1),
-        transparent: kind != ExportKind::Gif && *form.flag(keys::TRANSPARENT, true),
+        transparent: *form.flag(keys::TRANSPARENT, true),
+        trim: kind != ExportKind::Gif && *form.flag(keys::TRIM, false),
+        split_layers: kind.splits() && *form.flag(keys::SPLIT_LAYERS, false),
         frames: if current_only {
             FrameScope::Current(current)
         } else {
@@ -233,16 +243,21 @@ fn preview(document: Option<&Document>, job: &ExportJob) -> String {
     let scale = u32::from(job.scale);
     let scaled = |(width, height): (u32, u32)| format!("{}x{} px", width * scale, height * scale);
     let frame = (u32::from(size.width()), u32::from(size.height()));
+    let per_layer = if job.split_layers && job.kind.splits() {
+        " per layer"
+    } else {
+        ""
+    };
     match job.kind {
         ExportKind::Sheet {
             layout, padding, ..
         } => place(count, (size.width(), size.height()), layout, padding).map_or_else(
             |error| error.to_string(),
-            |(sheet, _)| format!("Sheet: {}", scaled(sheet)),
+            |(sheet, _)| format!("Sheet: {}{per_layer}", scaled(sheet)),
         ),
         ExportKind::Png => format!("1 frame of {}", scaled(frame)),
         ExportKind::Gif | ExportKind::PngSequence => {
-            format!("{count} frames of {}", scaled(frame))
+            format!("{count} frames of {}{per_layer}", scaled(frame))
         }
     }
 }

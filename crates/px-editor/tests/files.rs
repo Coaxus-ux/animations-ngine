@@ -1,5 +1,3 @@
-//! Files and the Home tab, driven headless: new documents, native picks answered with
-//! `Picked`, saving under a new name, closing dirty tabs and the recent list.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -207,7 +205,6 @@ fn quitting_with_a_dirty_tab_asks_and_resumes_quitting_afterwards() {
     assert!(app.should_quit());
 }
 
-/// One frame with `key` pressed in the main window.
 fn press(app: &mut App, files: &mut common::MemoryFiles, main: px_editor::app::WindowId, key: Key) {
     let input = Input {
         keys: vec![key],

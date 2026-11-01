@@ -13,9 +13,6 @@ const SAVE: usize = 0;
 const DISCARD: usize = 1;
 const CANCEL: usize = 2;
 
-/// Asks about the tab the dialog was opened for (`keys::TAB`): Save saves and closes it,
-/// Don't save closes it as it is, and either then runs the dialog's `then` intent. Enter
-/// is Save, Escape is Cancel.
 pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dialog, body: Rect) {
     let roles = ui.theme.roles;
     let (message, rest) = body.take_top(body.height - BUTTON_HEIGHT - BUTTON_GAP);

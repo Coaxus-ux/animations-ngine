@@ -5,7 +5,6 @@ use crate::domain::{Command, scene_path};
 use crate::ports::FileStore;
 
 impl App {
-    /// Starts a new cel at the view's frame, a copy of the one showing there.
     pub(super) fn new_cel(&mut self, window: WindowId, store: &mut dyn FileStore) {
         let Some(frame) = self.window(window).map(|window| window.view.frame) else {
             return;
@@ -24,7 +23,6 @@ impl App {
         }
     }
 
-    /// Removes the cel starting at the view's frame, so the one before shows on.
     pub(super) fn delete_cel(&mut self, window: WindowId, store: &mut dyn FileStore) {
         let Some(frame) = self.window(window).map(|window| window.view.frame) else {
             return;
@@ -43,7 +41,6 @@ impl App {
         }
     }
 
-    /// Makes the scene `delta` frames longer (or shorter), at least one frame.
     pub(super) fn resize_timeline(&mut self, delta: i64, store: &mut dyn FileStore) {
         let Some(scene) = self.document().and_then(crate::domain::Document::scene) else {
             return;

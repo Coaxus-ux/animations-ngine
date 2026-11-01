@@ -5,7 +5,6 @@ use px_ui::{Bitmap, Icons, Theme};
 
 const DARK: &str = include_str!("../../assets/theme-dark.kdl");
 const LIGHT: &str = include_str!("../../assets/theme-light.kdl");
-/// Each icon file, and the icons (scenes) it holds.
 const ICON_FILES: [(&str, &str, &[&str]); 3] = [
     (
         "icons-tools.kdl",
@@ -41,7 +40,6 @@ const ICON_FILES: [(&str, &str, &[&str]); 3] = [
         ],
     ),
 ];
-/// A scene the theme palette is loaded through.
 const SWATCH: &str = "use \"theme.kdl\"\nscene \"theme\" palette=\"theme\" width=1 height=1 fps=1 duration=\"1f\" background=\"key.0\" {}\n";
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -51,7 +49,6 @@ pub enum ThemeChoice {
     Light,
 }
 
-/// Everything the editor draws itself with, rendered by the engine from its KDL assets.
 pub struct Assets {
     pub theme: Theme,
     pub icons: Icons,
@@ -59,9 +56,6 @@ pub struct Assets {
 }
 
 impl Assets {
-    /// # Errors
-    /// Names the asset that failed to load: these files ship with the editor, so a failure
-    /// is a bug in them.
     pub fn load(choice: ThemeChoice) -> Result<Self, String> {
         let palette = match choice {
             ThemeChoice::Dark => DARK,

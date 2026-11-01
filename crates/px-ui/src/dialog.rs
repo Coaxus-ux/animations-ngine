@@ -8,9 +8,6 @@ const BUTTON_PAD: i32 = 12;
 const BUTTON_GAP: i32 = 4;
 const MIN_BUTTON: i32 = 40;
 
-/// A dialog over everything: the canvas is dimmed, then a titled panel of `size` is drawn
-/// centered as a popup and `draw` fills its body. A click on the panel's own background
-/// drops keyboard focus.
 pub fn modal<T>(
     ui: &mut Ui<'_>,
     id: Id,
@@ -40,8 +37,6 @@ pub enum DialogAction {
     Cancel,
 }
 
-/// `ok` and "Cancel" buttons right-aligned in `area`; Enter confirms while `enabled`,
-/// Escape cancels.
 pub fn ok_cancel(ui: &mut Ui<'_>, id: Id, area: Rect, ok: &str, enabled: bool) -> DialogAction {
     let height = area.height.min(ROW + 2);
     let row = rect(
@@ -69,8 +64,6 @@ pub fn ok_cancel(ui: &mut Ui<'_>, id: Id, area: Rect, ok: &str, enabled: bool) -
     }
 }
 
-/// Tab moves keyboard focus to the next of `fields` (Shift+Tab to the previous one),
-/// wrapping around.
 pub fn focus_next(ui: &mut Ui<'_>, fields: &[Id]) {
     if fields.is_empty() || !ui.input.key(Key::Tab) {
         return;

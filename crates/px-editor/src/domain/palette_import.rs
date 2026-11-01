@@ -1,6 +1,9 @@
+mod hue;
+
 use px_core::Rgb;
 
-/// Colors from a Lospec `.hex` file: one `rrggbb` per line, `#` optional, `;` comments.
+pub use hue::ramps_by_hue;
+
 pub fn from_hex(text: &str) -> Result<Vec<Rgb>, String> {
     text.lines()
         .enumerate()
@@ -13,8 +16,6 @@ pub fn from_hex(text: &str) -> Result<Vec<Rgb>, String> {
         .collect()
 }
 
-/// Colors from a GIMP `.gpl` file: a `GIMP Palette` header, `Key: value` lines such as
-/// `Name:`, `Columns:` or `Channels:`, `#` comments, then `R G B name` lines.
 pub fn from_gpl(text: &str) -> Result<Vec<Rgb>, String> {
     let mut lines = text
         .lines()
@@ -40,21 +41,10 @@ pub fn from_gpl(text: &str) -> Result<Vec<Rgb>, String> {
         .collect()
 }
 
-/// `Name: Mini`, `Columns: 2`, `Channels: RGBA`: the first word ends with a colon.
 fn is_header(line: &str) -> bool {
     line.split_whitespace()
         .next()
         .is_some_and(|word| word.ends_with(':'))
-}
-
-/// Splits imported colors into ramps of at most `max_tones`, in file order, named `ramp-N`.
-#[must_use]
-pub fn ramps_in_file_order(colors: &[Rgb], max_tones: usize) -> Vec<(String, Vec<Rgb>)> {
-    colors
-        .chunks(max_tones.max(1))
-        .enumerate()
-        .map(|(index, chunk)| (format!("ramp-{}", index + 1), chunk.to_vec()))
-        .collect()
 }
 
 #[cfg(test)]
@@ -88,14 +78,5 @@ mod tests {
         assert!(from_gpl("0 0 0\n").is_err());
         let error = from_gpl("GIMP Palette\n0 0 300 x\n").unwrap_err();
         assert!(error.starts_with("line 2:"), "{error}");
-    }
-
-    #[test]
-    fn imported_colors_are_chunked_into_numbered_ramps() {
-        let colors: Vec<Rgb> = (0..5).map(|n| Rgb::new(n, n, n)).collect();
-        let ramps = ramps_in_file_order(&colors, 2);
-        let names: Vec<&str> = ramps.iter().map(|(name, _)| name.as_str()).collect();
-        assert_eq!(names, ["ramp-1", "ramp-2", "ramp-3"]);
-        assert_eq!(ramps[2].1, vec![Rgb::new(4, 4, 4)]);
     }
 }

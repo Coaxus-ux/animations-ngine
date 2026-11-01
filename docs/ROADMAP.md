@@ -155,7 +155,7 @@ A thin end-to-end slice: a tiny KDL file becomes a looping GIF. Every later mile
 - **Risks:** scaling sprites in perspective breaks pixel art. *Mitigation:* discrete scale steps with a re-rasterize per step (never a resample), or 3D models through `render3`.
 
 ### M12 — Game asset pipeline
-> **Pulled forward (2026-11-01):** sprite sheets with Aseprite-compatible JSON (hash format) from the editor's Export dialog; strips, rows and columns with padding, scale and transparency. Still M12: clips × directions, tags, slices, trim, tilesets, Godot/Unity-specific metadata, CLI parity.
+> **Pulled forward (2026-11-01):** sprite sheets with Aseprite-compatible JSON (hash format) from the editor's Export dialog; strips, rows and columns with padding, scale and transparency; transparent GIFs, Trim Sprite, one sheet per layer and frame tags from timeline markers. Still M12: clips × directions, slices, tilesets, Godot/Unity-specific metadata, CLI parity.
 - **Scope:** `tileset-gen`, `autotile` (16/47 blob), `wfc`, `terrain-2d`, `iso-place`; sprite sheet metadata (JSON, Aseprite, Godot, Unity); tileset metadata (Tiled, LDtk, Godot); `variations` contact sheets.
 - **Deliverables:** export plugins, the isometric part of `core-kit`.
 - **Done when:** B6 renders an isometric village built by `wfc` from autotiles and imports into Tiled/Godot with working autotile rules; B4's sheet imports into Godot and Aseprite with named animations.

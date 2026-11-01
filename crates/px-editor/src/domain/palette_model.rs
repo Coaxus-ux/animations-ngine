@@ -17,7 +17,6 @@ pub struct RampModel {
     pub path: NodePath,
 }
 
-/// A `palette` node read from the source, for the palette editor.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PaletteModel {
     pub name: String,
@@ -57,7 +56,6 @@ impl PaletteModel {
         })
     }
 
-    /// The whole palette as a file: `palette "name" { ramp … }`.
     #[must_use]
     pub fn to_kdl(&self) -> String {
         let mut text = format!("palette {:?} {{\n", self.name);
@@ -69,7 +67,6 @@ impl PaletteModel {
     }
 }
 
-/// One `ramp "name" "#rrggbb" …` line.
 #[must_use]
 pub fn ramp_kdl(name: &str, colors: &[Rgb]) -> String {
     let mut text = format!("ramp {name:?}");
@@ -79,8 +76,6 @@ pub fn ramp_kdl(name: &str, colors: &[Rgb]) -> String {
     text
 }
 
-/// The `palette` node the document's scene draws with, in the document's own text; the
-/// error is the status to show when it can't be edited there.
 pub fn palette_path(document: &Document) -> Result<NodePath, String> {
     let loaded = document
         .loaded()

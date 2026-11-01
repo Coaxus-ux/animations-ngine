@@ -1,6 +1,5 @@
 use std::fs::{self, File};
 use std::io::BufWriter;
-use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -12,16 +11,12 @@ use px_format::Work;
 use crate::args::{Command, Input};
 use crate::source;
 
-const OUTPUT_DIR: &str = "out";
+pub(crate) const OUTPUT_DIR: &str = "out";
 
 pub(crate) fn run(command: &Command) -> Result<()> {
     match command {
         Command::Render { input, frame, out } => render(input, Frame::new(*frame), out.as_deref()),
-        Command::Export { input, out, jobs } => export(
-            input,
-            out.as_deref(),
-            jobs.unwrap_or_else(crate::parallel::default_jobs),
-        ),
+        Command::Export { input, options } => crate::export::export(input, options),
         Command::Watch { input } => crate::watch::watch(input, scale(input)?),
         Command::Edit { file, size, scale } => crate::edit::edit(file.as_deref(), *size, *scale),
         Command::Timeline { input } => crate::timeline::print(input),
@@ -62,25 +57,7 @@ fn render(input: &Input, frame: Frame, out: Option<&Path>) -> Result<()> {
     Ok(())
 }
 
-fn export(input: &Input, out: Option<&Path>, jobs: NonZeroUsize) -> Result<()> {
-    let scale = scale(input)?;
-    let (frames, path) = match source::load_work(input)? {
-        Work::Scene(loaded) => {
-            let path = output_path(out, &format!("{}.gif", loaded.scene.name()))?;
-            warn_non_finite(crate::gif::write_scene(&loaded.scene, scale, jobs, &path)?);
-            (loaded.scene.timing().duration.get(), path)
-        }
-        Work::Sequence(loaded) => {
-            let path = output_path(out, &format!("{}.gif", loaded.sequence.name()))?;
-            crate::gif::write_sequence(&loaded.sequence, scale, jobs, &path)?;
-            (loaded.sequence.duration().get(), path)
-        }
-    };
-    println!("wrote {} ({frames} frames)", path.display());
-    Ok(())
-}
-
-fn warn_non_finite(report: FrameReport) {
+pub(crate) fn warn_non_finite(report: FrameReport) {
     if let Some(shape) = report.first_non_finite_shape {
         eprintln!(
             "warning: {} non-finite value(s) were replaced by 0, first in shape #{shape}",
@@ -89,11 +66,11 @@ fn warn_non_finite(report: FrameReport) {
     }
 }
 
-fn scale(input: &Input) -> Result<Scale> {
+pub(crate) fn scale(input: &Input) -> Result<Scale> {
     Scale::new(input.scale).with_context(|| format!("--scale must be 1..={MAX_SCALE}"))
 }
 
-fn output_path(out: Option<&Path>, default_name: &str) -> Result<PathBuf> {
+pub(crate) fn output_path(out: Option<&Path>, default_name: &str) -> Result<PathBuf> {
     let path = out.map_or_else(
         || Path::new(OUTPUT_DIR).join(default_name),
         Path::to_path_buf,

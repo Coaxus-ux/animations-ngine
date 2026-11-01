@@ -5,8 +5,6 @@ use crate::widgets::{ROW, SMALL_ICON, label};
 const SCROLLBAR: i32 = 5;
 const WHEEL_STEP: i32 = ROW;
 
-/// A vertically scrolling view of content `content_height` tall: returns the visible area
-/// (narrowed for the scrollbar when needed) and how far the content is scrolled.
 pub fn scroll_area(ui: &mut Ui<'_>, id: Id, area: Rect, content_height: i32) -> (Rect, i32) {
     let roles = ui.theme.roles;
     let overflow = (content_height - area.height).max(0);
@@ -48,7 +46,6 @@ pub fn scroll_area(ui: &mut Ui<'_>, id: Id, area: Rect, content_height: i32) -> 
     (view, offset)
 }
 
-/// A selectable row with a text label; selected rows use the accent color.
 pub fn list_row(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, selected: bool) -> Response {
     let response = row_face(ui, id, area, selected);
     row_text(ui, area, text, selected);
@@ -96,8 +93,6 @@ fn row_text(ui: &mut Ui<'_>, area: Rect, text: &str, selected: bool) {
     );
 }
 
-/// Where a row dragged from `from` would drop among `count` rows of height `row` laid out
-/// from `top`, given the pointer's `y`.
 #[must_use]
 pub fn drop_index(top: i32, row: i32, count: usize, y: i32) -> usize {
     let slot = ((y - top + row / 2) / row.max(1)).max(0);

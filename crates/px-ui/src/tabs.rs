@@ -22,9 +22,6 @@ pub enum TabAction {
 const PAD: i32 = 4;
 const CLOSE_BOX: i32 = SMALL_ICON + 2;
 
-/// A row of tabs after a home tab (active while `active` is `None`). Each tab shows its
-/// label (with `*` while dirty) and, while hovered, a close box when closable; the middle
-/// button closes too. Tabs shrink to share `area` when they don't fit.
 pub fn tab_strip(
     ui: &mut Ui<'_>,
     id: Id,

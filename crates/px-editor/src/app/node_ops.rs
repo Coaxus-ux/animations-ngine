@@ -11,7 +11,6 @@ use crate::domain::{Anchor, Command, Document, Selection, resize, scene_path};
 use crate::ports::FileStore;
 
 impl App {
-    /// Canvas Size with the scene's current size filled in.
     pub(super) fn canvas_size_dialog(&self) -> Dialog {
         let mut dialog = Dialog::new(DialogKind::CanvasSize);
         let (width, height) = self.canvas_size();
@@ -21,7 +20,6 @@ impl App {
         dialog
     }
 
-    /// Properties with the scene's name, timing and background filled in.
     pub(super) fn properties_dialog(&self) -> Dialog {
         let mut dialog = Dialog::new(DialogKind::Properties);
         let Some(document) = self.document() else {
@@ -76,8 +74,6 @@ impl App {
         None
     }
 
-    /// The selection lives in the window that made it and in the main window, so a torn-off
-    /// Elements panel steers the main window's code view and inspector.
     fn select_element(&mut self, source: WindowId, path: Option<&NodePath>) {
         self.editing.picked = path.and_then(|path| self.shape_at(path));
         for window in &mut self.windows {
@@ -88,7 +84,6 @@ impl App {
         }
     }
 
-    /// The shape built from the node at `path`, if it is one.
     fn shape_at(&self, path: &NodePath) -> Option<usize> {
         let document = self.document()?;
         let (start, _) = document.source().span(path)?;
@@ -99,8 +94,6 @@ impl App {
             .position(|origin| origin.file == 0 && origin.offset == start)
     }
 
-    /// The node's own path changes when its id does, so the selection is found again by
-    /// where the node starts; a refused edit leaves the text, and so the path, as it was.
     fn replace_node(
         &mut self,
         source: WindowId,
@@ -149,48 +142,42 @@ impl App {
         }
     }
 
-    /// One `SetProperty` per changed value: each is its own undo step, which the status says.
     fn set_timing(&mut self, fps: u16, duration: u32, looping: bool, store: &mut dyn FileStore) {
         let Some(scene) = self.document().and_then(Document::scene) else {
             return;
         };
         let timing = scene.timing();
-        let path = scene_path(scene);
-        let changes: Vec<(&str, KdlValue)> = [
-            (timing.fps.get() != fps).then(|| (keys::FPS, KdlValue::Integer(fps.into()))),
-            (timing.duration.get() != duration)
-                .then(|| (keys::DURATION, KdlValue::String(format!("{duration}f")))),
+        let values: Vec<(String, KdlValue)> = [
+            (timing.fps.get() != fps)
+                .then(|| (keys::FPS.to_owned(), KdlValue::Integer(fps.into()))),
+            (timing.duration.get() != duration).then(|| {
+                (
+                    keys::DURATION.to_owned(),
+                    KdlValue::String(format!("{duration}f")),
+                )
+            }),
             ((timing.looping == px_engine::Looping::Loop) != looping)
-                .then_some((keys::LOOP, KdlValue::Bool(looping))),
+                .then(|| (keys::LOOP.to_owned(), KdlValue::Bool(looping))),
         ]
         .into_iter()
         .flatten()
         .collect();
-        if changes.is_empty() {
+        if values.is_empty() {
             "Timing is already like that".clone_into(&mut self.editing.status);
             return;
         }
-        let steps = changes.len();
-        let all_ran = changes.into_iter().all(|(key, value)| {
-            let command = Command::SetProperty {
-                path: path.clone(),
-                key: key.to_owned(),
-                value,
-            };
-            self.ran(&command, store)
-        });
-        if all_ran {
-            let looping = if looping { ", looping" } else { ", once" };
-            self.editing.status = format!(
-                "Timing is now {fps} fps, {duration} frames{looping} ({steps} undo step{})",
-                if steps == 1 { "" } else { "s" }
-            );
+        let command = Command::SetProperties {
+            path: scene_path(scene),
+            values,
+        };
+        if self.ran(&command, store) {
+            let looping = if looping { "looping" } else { "once" };
+            self.editing.status = format!("Timing is now {fps} fps, {duration} frames, {looping}");
         }
     }
 }
 
 impl App {
-    /// Runs the command and tells whether the document took it (its revision moved).
     fn ran(&mut self, command: &Command, store: &mut dyn FileStore) -> bool {
         let before = self.document().map(Document::revision);
         self.run(command, store);
@@ -198,10 +185,6 @@ impl App {
     }
 }
 
-/// Every pixel layer's cels moved by `(dx, dy)` and cropped to the new canvas. Cels sit in
-/// their layer's coordinates while the canvas crops in its own, so a layer's origin is added
-/// for the crop and taken off again. A layer whose position is an expression has no fixed
-/// place on the canvas, so its cels are left as they are.
 fn shifted_arts(
     document: &Document,
     scene: &Scene,

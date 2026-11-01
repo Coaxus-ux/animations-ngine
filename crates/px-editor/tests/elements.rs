@@ -1,4 +1,3 @@
-//! The Elements panel and per-element code editing, driven headless.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

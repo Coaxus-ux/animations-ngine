@@ -6,10 +6,6 @@ use super::dialog::DialogKind;
 use super::intent::Intent;
 use crate::tools::ToolKind;
 
-/// Keyboard shortcuts (Aseprite's where it has them). None while a dialog is open (it owns
-/// Enter and Escape); command shortcuts always work otherwise; single keys only while nothing
-/// takes typed text. `tabs` is the active tab and how many there are: shortcuts that act on
-/// a document do nothing on the home tab, as their menu entries are disabled there.
 pub(super) fn collect(
     input: &Input,
     typing: bool,
@@ -108,7 +104,6 @@ pub(super) fn collect(
     }
 }
 
-/// The tab after (or, with `backwards`, before) the active one, wrapping around.
 pub(crate) fn neighbour_tab(
     (active, count): (Option<usize>, usize),
     backwards: bool,

@@ -14,12 +14,9 @@ use crate::ports::FileStore;
 
 pub const KDL_FILTER: &[(&str, &[&str])] = &[("KDL scene", &["kdl"])];
 
-/// How many `name-N.kdl` variants are tried before giving up on a unique untitled name.
 const MAX_UNTITLED: usize = 10_000;
 
 impl App {
-    /// The New dialog's fields fill themselves on first draw (`views::dialogs::new_doc`),
-    /// from the open scene's size and timing or the defaults.
     #[expect(
         clippy::unused_self,
         reason = "dialog_for calls every dialog builder as a method"
@@ -28,8 +25,6 @@ impl App {
         Dialog::new(DialogKind::New)
     }
 
-    /// `OpenFile` and `SaveAs` with an empty path mean "ask the user which file": they
-    /// request a native pick, whose answer comes back as `Picked`.
     pub(super) fn apply_files(
         &mut self,
         intent: Intent,
@@ -104,7 +99,6 @@ impl App {
         }
     }
 
-    /// `<name>.kdl`, or `<name>-2.kdl` and so on while a tab already has that name.
     fn untitled_path(&self, name: &str) -> PathBuf {
         let first = PathBuf::from(format!("{name}.kdl"));
         if self.documents.position(&first).is_none() {
@@ -137,7 +131,6 @@ impl App {
         };
     }
 
-    /// `App::open` has no store for the pending edit, so it is flushed here first.
     fn open_file(&mut self, path: &Path, store: &mut dyn FileStore) {
         self.leave_active(store);
         match self.open(path, None, store) {

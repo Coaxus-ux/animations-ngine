@@ -64,8 +64,6 @@ impl App {
         self.retitle();
     }
 
-    /// Makes tab `index` active: its editing state and main view come in, the previous
-    /// tab's are parked in its slot.
     pub(super) fn switch_tab(&mut self, index: usize, store: &mut dyn FileStore) {
         if self.documents.active_index() == Some(index) || index >= self.documents.len() {
             return;
@@ -77,8 +75,6 @@ impl App {
         self.retitle();
     }
 
-    /// Removes tab `index` whatever its state; the neighbour that becomes active (if any)
-    /// brings its editing state and main view in.
     pub(super) fn close_slot(&mut self, index: usize, store: &mut dyn FileStore) {
         let was_active = self.documents.active_index() == Some(index);
         if was_active {
@@ -93,9 +89,6 @@ impl App {
         self.retitle();
     }
 
-    /// Settles what the windows still hold for the active document before another one
-    /// shows: a code edit waiting for its pause lands in it, a stroke in progress is
-    /// dropped, and the code buffers and node selections start over.
     pub(super) fn leave_active(&mut self, store: &mut dyn FileStore) {
         let mut edits = Vec::new();
         for window in &mut self.windows {
@@ -152,7 +145,6 @@ impl App {
     }
 }
 
-/// The code view's rule: with a node selected its text is the node's, else the file's.
 fn flush_edit(
     document: &mut Document,
     text: String,
@@ -167,7 +159,6 @@ fn flush_edit(
     document.apply(&Command::ReplaceNode { path, text }, store)
 }
 
-/// The first paint of the document's palette, to start drawing with.
 fn first_paint(document: &Document) -> Option<px_core::Paint> {
     let scene = document.scene()?;
     let names = &document.loaded()?.paint_names;

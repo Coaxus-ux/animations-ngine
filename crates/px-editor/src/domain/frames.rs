@@ -7,26 +7,29 @@ use px_export::RgbaImage;
 
 use super::Document;
 use super::export::FrameScope;
-use super::visibility::with_hidden_layers;
+use super::visibility::{hidden_layer_indices, with_hidden_layer_indices};
 
-/// The key color never reaches the output: cells on its ramp become transparent (D-018).
 const KEY: Rgb = Rgb::new(255, 0, 255);
 
-/// Renders the document's frames as color images, hidden layers left out. With
-/// `transparent`, the background is replaced by a key ramp before rendering and every cell
-/// still carrying that ramp becomes `None` (D-018).
 pub fn render_frames(
     document: &Document,
     hidden: &BTreeSet<String>,
     transparent: bool,
     scope: FrameScope,
 ) -> Result<Vec<RgbaImage>, String> {
-    let scene = visible_scene(document, hidden)?;
+    render_scene_frames(&visible_scene(document, hidden)?, transparent, scope)
+}
+
+pub fn render_scene_frames(
+    scene: &Scene,
+    transparent: bool,
+    scope: FrameScope,
+) -> Result<Vec<RgbaImage>, String> {
     let (scene, key) = if transparent {
-        let (scene, key) = keyed(&scene)?;
+        let (scene, key) = keyed(scene)?;
         (scene, Some(key))
     } else {
-        (scene, None)
+        (scene.clone(), None)
     };
     let size = scene.size();
     let mut buffer = FrameBuffer::new(&scene);
@@ -52,15 +55,20 @@ pub fn render_frames(
         .collect()
 }
 
-/// The document's scene with the layers in `hidden` made invisible.
 pub fn visible_scene(document: &Document, hidden: &BTreeSet<String>) -> Result<Scene, String> {
+    visible_scene_without(document, &hidden_layer_indices(document, hidden))
+}
+
+pub fn visible_scene_without(
+    document: &Document,
+    hidden: &BTreeSet<usize>,
+) -> Result<Scene, String> {
     let scene = document
         .scene()
         .ok_or_else(|| "The scene doesn't load".to_owned())?;
-    Ok(with_hidden_layers(document, scene, hidden).unwrap_or_else(|| scene.clone()))
+    Ok(with_hidden_layer_indices(document, scene, hidden).unwrap_or_else(|| scene.clone()))
 }
 
-/// The frames `scope` selects, in order; a current frame past the end wraps around.
 pub fn frames_in(scene: &Scene, scope: FrameScope) -> Box<dyn Iterator<Item = Frame>> {
     let duration = scene.timing().duration;
     match scope {
@@ -73,7 +81,7 @@ pub fn message(error: impl Display) -> String {
     error.to_string()
 }
 
-fn keyed(scene: &Scene) -> Result<(Scene, RampId), String> {
+pub fn keyed(scene: &Scene) -> Result<(Scene, RampId), String> {
     let mut spec = scene.spec().clone();
     if spec.palette.ramps().len() >= MAX_RAMPS {
         return Err(format!(

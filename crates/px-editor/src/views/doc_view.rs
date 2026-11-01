@@ -8,8 +8,6 @@ use crate::app::{DocumentId, ViewState};
 use crate::domain::visibility::with_hidden_layers;
 use crate::domain::{Document, Selection};
 
-/// The document rendered for one window: rebuilt only when the document, the frame or the
-/// window's hidden layers change.
 pub struct RenderCache {
     key: (Option<DocumentId>, u64, u32, BTreeSet<String>),
     scene: Option<Scene>,
@@ -26,7 +24,6 @@ impl RenderCache {
         }
     }
 
-    /// Renders `view.frame` of the document unless it is already rendered.
     pub fn update(&mut self, id: DocumentId, document: &Document, view: &ViewState) {
         let key = (
             Some(id),
@@ -55,7 +52,6 @@ impl RenderCache {
         self.buffer = Some(buffer);
     }
 
-    /// The rendered canvas: (width, height, paints, palette).
     #[must_use]
     pub fn image(&self) -> Option<(i32, i32, &[Paint], &Palette)> {
         let scene = self.scene.as_ref()?;
@@ -69,13 +65,11 @@ impl RenderCache {
         ))
     }
 
-    /// The shape that drew canvas pixel `(x, y)`.
     #[must_use]
     pub fn shape_at(&self, x: i32, y: i32) -> Option<usize> {
         self.buffer.as_ref()?.shape_at(x, y)
     }
 
-    /// The paint shown at canvas pixel `(x, y)`.
     #[must_use]
     pub fn paint_at(&self, x: i32, y: i32) -> Option<Paint> {
         let (width, height, cells, _) = self.image()?;
@@ -90,8 +84,6 @@ impl Default for RenderCache {
     }
 }
 
-/// Where the canvas lands in a view: `zoom` window pixels per canvas pixel, its top-left
-/// at `origin` (window pixels).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Placement {
     pub zoom: i32,
@@ -99,7 +91,6 @@ pub struct Placement {
 }
 
 impl Placement {
-    /// The view's zoom and pan, or the largest whole zoom that fits, centered.
     #[must_use]
     pub fn of(view: &ViewState, area: Rect, canvas: (i32, i32)) -> Self {
         let fit = (area.width / canvas.0.max(1))
@@ -117,7 +108,6 @@ impl Placement {
         }
     }
 
-    /// The canvas pixel under window pixel `(x, y)`.
     #[must_use]
     pub const fn to_canvas(self, x: i32, y: i32) -> (i32, i32) {
         (
@@ -127,7 +117,6 @@ impl Placement {
     }
 }
 
-/// The parts of one canvas view, in window pixels.
 pub struct ViewPixels<'a> {
     pub out: &'a mut [u32],
     pub width: usize,
@@ -135,8 +124,6 @@ pub struct ViewPixels<'a> {
 }
 
 impl ViewPixels<'_> {
-    /// Fills canvas pixel `(x, y)`'s block with `color`, or every other window pixel of it
-    /// (`dithered`), clipped to the view.
     pub fn block(&mut self, placement: Placement, (x, y): (i32, i32), color: u32, dithered: bool) {
         let z = placement.zoom;
         let left = placement.origin.0 + x * z;
@@ -186,8 +173,6 @@ fn clip(area: Rect, to: Rect) -> Rect {
     }
 }
 
-/// Draws the rendered canvas and the window's overlays (onion skin, grid, selection,
-/// guide, cursor) into `target` at `placement`.
 pub fn draw_document(
     target: &mut ViewPixels<'_>,
     cache: &RenderCache,
@@ -211,7 +196,6 @@ pub fn draw_document(
     }
 }
 
-/// Grid lines between canvas pixels, once pixels are big enough to see them.
 pub fn draw_grid(
     target: &mut ViewPixels<'_>,
     placement: Placement,
@@ -248,7 +232,6 @@ pub fn draw_grid(
     }
 }
 
-/// Marching ants along the selection's edges: dashes that shift with `time_ms`.
 pub fn draw_selection(
     target: &mut ViewPixels<'_>,
     placement: Placement,
@@ -290,7 +273,6 @@ pub fn draw_selection(
     }
 }
 
-/// A one-pixel outline around canvas pixel `at`.
 pub fn draw_cursor(target: &mut ViewPixels<'_>, placement: Placement, at: (i32, i32), color: u32) {
     let z = placement.zoom;
     let left = placement.origin.0 + at.0 * z - 1;

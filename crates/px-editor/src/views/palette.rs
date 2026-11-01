@@ -7,9 +7,6 @@ use crate::app::Intent;
 const SWATCH: i32 = 9;
 const NAME: i32 = 34;
 
-/// The document's palette: one row of swatches per ramp. Click draws with a paint (or,
-/// with the pick tool, recolors the picked object); right click sets the second paint;
-/// double click edits the color.
 pub(super) fn palette(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
@@ -71,8 +68,6 @@ pub(super) fn palette(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     }
 }
 
-/// Buttons that act on the main color: change it in the palette, or give it to the
-/// picked shape; a third opens the palette editor.
 fn actions(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let id = Id::new("palette").with_name("actions");
     let third = area.width / 3;
@@ -151,7 +146,6 @@ fn swatch(
     }
 }
 
-/// Red, green and blue sliders and a hex field for one palette color.
 fn color_picker(
     ui: &mut Ui<'_>,
     context: &mut Context<'_>,

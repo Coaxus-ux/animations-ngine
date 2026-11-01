@@ -1,13 +1,11 @@
 use std::io::Write;
 
-use px_core::{CanvasView, FrameRate, Paint, Palette, Rgb, Size};
+use px_core::{CanvasView, FrameRate, Paint, Palette, RampId, Rgb, Size};
 
 use crate::error::ExportError;
 use crate::gif_frame::{EncodedFrame, GifFrameEncoder, GifScratch};
 use crate::scale::Scale;
 
-/// Writes a looping GIF. Frames come either pre-encoded (`frame_encoder` on worker threads,
-/// then `write` in order) or one at a time through `add_frame` / `add_color_frame`.
 pub struct GifWriter<W: Write> {
     encoder: gif::Encoder<W>,
     frames: GifFrameEncoder,
@@ -28,8 +26,18 @@ impl<W: Write> GifWriter<W> {
         Self::open(writer, frames, &table)
     }
 
-    /// A GIF whose frames each carry their own color table (`encode_colors`), for frames
-    /// mixing palettes, such as a sequence's.
+    pub fn with_key(
+        writer: W,
+        size: Size,
+        palette: &Palette,
+        key: RampId,
+        scale: Scale,
+        fps: FrameRate,
+    ) -> Result<Self, ExportError> {
+        let (frames, table) = GifFrameEncoder::with_keyed_palette(size, scale, fps, palette, key)?;
+        Self::open(writer, frames, &table)
+    }
+
     pub fn with_frame_palettes(
         writer: W,
         size: Size,
@@ -67,7 +75,6 @@ impl<W: Write> GifWriter<W> {
         })
     }
 
-    /// Encodes frames for this GIF; each frame must be encoded against the one before it.
     #[must_use]
     pub fn frame_encoder(&self) -> &GifFrameEncoder {
         &self.frames
@@ -93,7 +100,6 @@ impl<W: Write> GifWriter<W> {
         Ok(())
     }
 
-    /// A frame of exact colors, given its own table of the colors it uses (at most 256).
     pub fn add_color_frame(&mut self, colors: &[Rgb]) -> Result<(), ExportError> {
         let previous = (!self.previous_colors.is_empty()).then_some(&self.previous_colors[..]);
         let frame = self

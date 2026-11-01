@@ -20,7 +20,6 @@ const ROWS: i32 = 6;
 const LABEL: i32 = 60;
 const BACKGROUNDS: [&str; 2] = ["First tone", "Last tone"];
 
-/// Draws the dialog's fields and buttons inside `body`; pushes `NewDocument` on OK.
 pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dialog, body: Rect) {
     let defaults = defaults(context);
     let id = Id::new("new-doc");
@@ -111,7 +110,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
     }
 }
 
-/// The open scene's size and timing, else the template's.
 fn defaults(context: &Context<'_>) -> NewSpec {
     let mut spec = NewSpec::default();
     if let Some(scene) = context.document.and_then(crate::domain::Document::scene) {
@@ -143,7 +141,6 @@ fn spec_of(form: &mut Form, presets: &[&str]) -> NewSpec {
     }
 }
 
-/// The last tone of the preset's first ramp as a paint name (`ramp.N`).
 fn last_tone(preset: &str) -> Option<String> {
     let line = preset
         .lines()

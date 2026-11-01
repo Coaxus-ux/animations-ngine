@@ -1,6 +1,3 @@
-//! The dialog and form widgets of px-ui with the editor's own theme: modal dialogs make
-//! the rest of the window inert, number fields stay in range, segmented controls and tab
-//! strips report what was clicked, and quick second clicks are double clicks.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

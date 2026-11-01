@@ -1,16 +1,10 @@
-//! Where everything goes in a window, arranged like Aseprite: menus, tabs and the context
-//! bar on top, the color bar down the left, tools and panels down the right, the timeline
-//! and the status bar at the bottom, the canvas (or the code) in the middle.
-
 use px_ui::{Area, Id, ROW, Rect, TOOL_BUTTON, Tab, TabAction, Ui, tab_strip};
 
 use super::{Context, canvas, home, menus, panel_view, tools};
 use crate::app::{CodeMode, Intent, PanelKind, WindowKind};
 
-/// Side panel width: a fifth of the window, within these bounds (UI pixels).
 const SIDE: (i32, i32) = (104, 150);
 const TIMELINE: i32 = 70;
-/// Below this width (UI pixels) the inspector folds away (Window menu brings it back).
 const ROOM_FOR_INSPECTOR: i32 = 600;
 const MENU_BAR: i32 = ROW + 3;
 const TAB_STRIP: i32 = ROW + 3;
@@ -23,7 +17,6 @@ pub fn tab_strip_area(bounds: Rect) -> Rect {
     bounds.take_top(MENU_BAR).1.take_top(TAB_STRIP).0
 }
 
-/// Draws a canvas or main window; returns where the canvas goes (UI pixels).
 pub(super) fn editor(ui: &mut Ui<'_>, context: &mut Context<'_>, bounds: Rect) -> Option<Rect> {
     let (menu_area, rest) = bounds.take_top(MENU_BAR);
     let (status, rest) = rest.take_bottom(STATUS_BAR);
@@ -54,7 +47,6 @@ pub(super) fn editor(ui: &mut Ui<'_>, context: &mut Context<'_>, bounds: Rect) -
     area
 }
 
-/// The home tab and one tab per open document.
 fn tab_bar(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let tabs: Vec<Tab> = context
         .tabs
@@ -119,7 +111,6 @@ fn main_panels(ui: &mut Ui<'_>, context: &mut Context<'_>, mut rest: Rect) -> Op
     }
 }
 
-/// Panels one under another, sharing the height equally.
 fn stack(ui: &mut Ui<'_>, context: &mut Context<'_>, panels: &[PanelKind], mut area: Rect) {
     let count = i32::try_from(panels.len()).unwrap_or(1).max(1);
     let each = area.height / count;

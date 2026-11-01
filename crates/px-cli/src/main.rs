@@ -4,6 +4,7 @@ mod args;
 mod bench;
 mod commands;
 mod edit;
+mod export;
 mod file_watch;
 mod gif;
 mod parallel;

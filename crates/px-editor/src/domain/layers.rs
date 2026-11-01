@@ -2,24 +2,18 @@ use px_engine::{Geometry, Param, PixelArt, Scene};
 use px_format::Origin;
 use px_format::edit::{NodePath, Source, children_of, id_of};
 
-/// A row of the layers panel: a `layer` node of the scene, or a `pixels` node outside any.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Layer {
     pub name: String,
     pub path: NodePath,
-    /// Position among the scene node's children.
     pub child: usize,
-    /// The pixels that can be painted, if the layer has any.
     pub art: Option<Art>,
 }
 
-/// A `pixels` node and the shape it became.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Art {
     pub path: NodePath,
     pub shape: usize,
-    /// Where the layer's (0, 0) is on the canvas, or `None` when `x`/`y` are animated
-    /// (such a layer can't be painted).
     pub origin: Option<(i32, i32)>,
 }
 
@@ -30,13 +24,11 @@ impl Layer {
     }
 }
 
-/// The path of the scene node `scene` was loaded from.
 #[must_use]
 pub fn scene_path(scene: &Scene) -> NodePath {
     NodePath::root().child("scene", Some(scene.name()), 0)
 }
 
-/// The layers of `scene`, in file order, matched to their shapes through `origins`.
 #[must_use]
 pub fn layers(source: &Source, scene: &Scene, origins: &[Origin]) -> Vec<Layer> {
     let root = scene_path(scene);

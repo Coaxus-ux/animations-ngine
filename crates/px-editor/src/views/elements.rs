@@ -4,12 +4,8 @@ use super::Context;
 use crate::app::{CodeMode, Intent};
 use crate::domain::{ElementKind, tree};
 
-/// UI pixels each level of nesting moves a row right.
 const INDENT: i32 = 6;
 
-/// Every node of the scene file as a tree, in file order. A click selects the node (the
-/// code view and inspector narrow to it), a click on the selected row lets it go, and a
-/// double click also opens the code view.
 pub(super) fn elements(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
@@ -48,7 +44,6 @@ pub(super) fn elements(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     ui.canvas.restore_clip(clip);
 }
 
-/// Row icons come from the small (8x8) set: `list_row_icon` gives them a `SMALL_ICON` slot.
 const fn icon(kind: ElementKind) -> &'static str {
     match kind {
         ElementKind::Palette => "swatch",

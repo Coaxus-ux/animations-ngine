@@ -3,13 +3,9 @@ use crate::sheet::CellRect;
 
 const APP: &str = "https://github.com/px/pxe";
 
-/// Sizes and cells are unscaled pixels; the JSON multiplies them by `scale`, matching the
-/// sheet image written at that scale.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SheetMeta<'a> {
-    /// The scene name, used as the frame key prefix.
     pub title: &'a str,
-    /// The sheet image's file name.
     pub image: &'a str,
     pub size: (u32, u32),
     pub scale: u8,
@@ -17,9 +13,23 @@ pub struct SheetMeta<'a> {
     pub cells: &'a [CellRect],
     pub duration_ms: u32,
     pub layers: &'a [&'a str],
+    pub trim: Option<Trim>,
+    pub tags: &'a [FrameTag<'a>],
 }
 
-/// Aseprite's sprite-sheet JSON (hash format), which Godot, Unity and Phaser importers read.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Trim {
+    pub offset: (u32, u32),
+    pub source: (u16, u16),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FrameTag<'a> {
+    pub name: &'a str,
+    pub from: u32,
+    pub to: u32,
+}
+
 #[must_use]
 pub fn aseprite_json(meta: &SheetMeta<'_>) -> String {
     let scaled = |value: u32| i64::from(value) * i64::from(meta.scale);
@@ -45,11 +55,24 @@ pub fn aseprite_json(meta: &SheetMeta<'_>) -> String {
         json.key("rotated");
         json.bool(false);
         json.key("trimmed");
-        json.bool(false);
+        json.bool(meta.trim.is_some());
+        let (offset, source) = meta
+            .trim
+            .map_or(((0, 0), meta.frame), |trim| (trim.offset, trim.source));
         json.key("spriteSourceSize");
-        rect(&mut json, 0, 0, frame_w, frame_h);
+        rect(
+            &mut json,
+            scaled(offset.0),
+            scaled(offset.1),
+            frame_w,
+            frame_h,
+        );
         json.key("sourceSize");
-        size(&mut json, frame_w, frame_h);
+        size(
+            &mut json,
+            scaled(u32::from(source.0)),
+            scaled(u32::from(source.1)),
+        );
         json.key("duration");
         json.int(i64::from(meta.duration_ms));
         json.end_object();
@@ -71,6 +94,22 @@ pub fn aseprite_json(meta: &SheetMeta<'_>) -> String {
     json.string(&meta.scale.to_string());
     json.key("frameTags");
     json.begin_array();
+    for tag in meta.tags {
+        json.begin_object();
+        json.key("name");
+        json.string(tag.name);
+        json.key("from");
+        json.int(i64::from(tag.from));
+        json.key("to");
+        json.int(i64::from(tag.to));
+        json.key("direction");
+        json.string("forward");
+        json.key("color");
+        json.string("#000000ff");
+        json.key("repeat");
+        json.string("0");
+        json.end_object();
+    }
     json.end_array();
     json.key("layers");
     json.begin_array();

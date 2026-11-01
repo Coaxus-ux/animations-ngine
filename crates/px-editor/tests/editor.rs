@@ -1,4 +1,3 @@
-//! The editor driven headless: scripted input and an in-memory file store, no window.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

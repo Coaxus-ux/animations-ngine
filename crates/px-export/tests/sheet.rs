@@ -7,8 +7,8 @@ use std::io::Cursor;
 
 use px_core::Rgb;
 use px_export::{
-    CellRect, ExportError, JsonWriter, Padding, RgbaImage, Scale, SheetLayout, SheetMeta,
-    aseprite_json, compose, place, write_png_rgba,
+    CellRect, ExportError, FrameTag, JsonWriter, Padding, RgbaImage, Scale, SheetLayout, SheetMeta,
+    Trim, aseprite_json, compose, crop, place, trim_bounds, write_png_rgba,
 };
 
 fn solid(width: u32, height: u32, color: Rgb) -> RgbaImage {
@@ -142,6 +142,8 @@ fn aseprite_json_matches_the_golden_for_four_frames() {
         cells: &cells,
         duration_ms: 100,
         layers: &["body"],
+        trim: None,
+        tags: &[],
     };
     let expected = concat!(
         r#"{"frames":{"#,
@@ -154,4 +156,124 @@ fn aseprite_json_matches_the_golden_for_four_frames() {
         r#"","image":"walk.png","format":"RGBA8888","size":{"w":128,"h":32},"scale":"2","frameTags":[],"layers":[{"name":"body","opacity":255,"blendMode":"normal"}],"slices":[]}}"#,
     );
     assert_eq!(aseprite_json(&meta), expected);
+}
+
+fn framed(width: u32, height: u32, opaque: &[(u32, u32)]) -> RgbaImage {
+    let mut image = RgbaImage::new(width, height).unwrap();
+    for (x, y) in opaque {
+        image.pixels[usize::try_from(y * width + x).unwrap()] = Some(Rgb::new(7, 7, 7));
+    }
+    image
+}
+
+#[test]
+fn trim_bounds_is_the_union_box_of_every_frame_and_none_when_all_are_transparent() {
+    let frames = [
+        framed(6, 5, &[(1, 1)]),
+        framed(6, 5, &[(3, 2)]),
+        framed(6, 5, &[]),
+    ];
+    assert_eq!(
+        trim_bounds(&frames),
+        Some(CellRect {
+            x: 1,
+            y: 1,
+            w: 3,
+            h: 2
+        })
+    );
+    assert_eq!(trim_bounds(&[framed(6, 5, &[]), framed(6, 5, &[])]), None);
+    assert_eq!(trim_bounds(&[]), None);
+}
+
+#[test]
+fn trim_bounds_is_none_when_the_opaque_box_is_the_whole_frame() {
+    let frames = [framed(6, 5, &[(0, 0)]), framed(6, 5, &[(5, 4)])];
+    assert_eq!(trim_bounds(&frames), None);
+    assert_eq!(trim_bounds(&[solid(3, 2, Rgb::new(1, 2, 3))]), None);
+}
+
+#[test]
+fn crop_keeps_the_pixels_inside_the_bounds() {
+    let image = framed(6, 5, &[(1, 1), (3, 2), (5, 4)]);
+    let bounds = CellRect {
+        x: 1,
+        y: 1,
+        w: 3,
+        h: 2,
+    };
+    let cropped = crop(&image, bounds);
+    assert_eq!((cropped.width, cropped.height), (3, 2));
+    let opaque: Vec<usize> = cropped
+        .pixels
+        .iter()
+        .enumerate()
+        .filter_map(|(index, pixel)| pixel.map(|_| index))
+        .collect();
+    assert_eq!(opaque, [0, 5]);
+}
+
+#[test]
+fn trimmed_frames_record_the_offset_and_the_source_size() {
+    let (size, cells) = place(1, (3, 2), SheetLayout::HorizontalStrip, Padding::default()).unwrap();
+    let meta = SheetMeta {
+        title: "walk",
+        image: "walk.png",
+        size,
+        scale: 2,
+        frame: (3, 2),
+        cells: &cells,
+        duration_ms: 100,
+        layers: &[],
+        trim: Some(Trim {
+            offset: (1, 1),
+            source: (6, 5),
+        }),
+        tags: &[],
+    };
+    let json = aseprite_json(&meta);
+    assert!(json.contains(r#""trimmed":true"#), "{json}");
+    assert!(
+        json.contains(
+            r#""spriteSourceSize":{"x":2,"y":2,"w":6,"h":4},"sourceSize":{"w":12,"h":10}"#
+        ),
+        "{json}"
+    );
+}
+
+#[test]
+fn frame_tags_are_written_in_order_in_aseprite_form() {
+    let (size, cells) = place(4, (1, 1), SheetLayout::HorizontalStrip, Padding::default()).unwrap();
+    let tags = [
+        FrameTag {
+            name: "idle",
+            from: 0,
+            to: 1,
+        },
+        FrameTag {
+            name: "walk",
+            from: 2,
+            to: 3,
+        },
+    ];
+    let meta = SheetMeta {
+        title: "hero",
+        image: "hero.png",
+        size,
+        scale: 1,
+        frame: (1, 1),
+        cells: &cells,
+        duration_ms: 100,
+        layers: &[],
+        trim: None,
+        tags: &tags,
+    };
+    let json = aseprite_json(&meta);
+    assert!(
+        json.contains(concat!(
+            r##""frameTags":[{"name":"idle","from":0,"to":1,"direction":"forward","color":"#000000ff","repeat":"0"},"##,
+            r##"{"name":"walk","from":2,"to":3,"direction":"forward","color":"#000000ff","repeat":"0"}]"##
+        )),
+        "{json}"
+    );
 }

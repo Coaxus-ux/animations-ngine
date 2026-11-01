@@ -5,15 +5,12 @@ use crate::app::neighbour_tab;
 use crate::app::{CodeMode, Intent, PanelKind};
 use crate::assets::ThemeChoice;
 
-/// What the menus show as chosen.
 #[derive(Clone, Copy, Debug)]
 pub struct MenuState {
     pub theme: ThemeChoice,
-    /// The UI size chosen, or `None` for automatic.
     pub scale: Option<i32>,
 }
 
-/// One menu entry and what choosing it does (`None`: not possible right now).
 pub(super) type Entry<'a> = (MenuItem<'a>, Option<Intent>);
 
 pub(super) fn entry<'a>(label: &'a str, shortcut: &'a str, intent: Option<Intent>) -> Entry<'a> {
@@ -37,8 +34,6 @@ pub(super) const fn separator<'a>() -> Entry<'a> {
     (MenuItem::separator(), None)
 }
 
-/// Every action of the editor, by menu, with its shortcut: nothing is reachable only
-/// through a key or a gesture.
 pub(super) fn menus(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let recent: Vec<String> = context
         .recent

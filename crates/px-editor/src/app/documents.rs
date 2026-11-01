@@ -4,12 +4,9 @@ use super::editing::Editing;
 use super::window::ViewState;
 use crate::domain::Document;
 
-/// Tells one open document from another for caches, whatever its path or tab position.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct DocumentId(pub u32);
 
-/// One open document with the state kept for it while another tab is active: the active
-/// document's `Editing` and main view live in `App` and are swapped in here on tab change.
 pub struct Slot {
     pub id: DocumentId,
     pub document: Document,
@@ -44,7 +41,6 @@ impl Documents {
         id
     }
 
-    /// Removes tab `index`; the active tab moves to the nearest remaining one.
     pub fn close(&mut self, index: usize) -> Option<Slot> {
         if index >= self.slots.len() {
             return None;
@@ -68,7 +64,6 @@ impl Documents {
         }
     }
 
-    /// Shows the Home tab while every document stays open.
     pub fn deactivate(&mut self) {
         self.active = None;
     }

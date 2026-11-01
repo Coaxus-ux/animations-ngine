@@ -7,8 +7,6 @@ use crate::scale::Scale;
 
 const CHANNELS: usize = 4;
 
-/// An image whose pixels carry their colors, `None` being transparent. Sides are `u32` so
-/// sprite sheets can be wider than one canvas (`px_core::MAX_CANVAS_SIDE`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RgbaImage {
     pub width: u32,
@@ -27,7 +25,6 @@ impl RgbaImage {
         })
     }
 
-    /// Copies `src` with its top-left at `(x, y)`; pixels outside are dropped.
     pub fn blit(&mut self, src: &Self, x: u32, y: u32) {
         let Some((columns, rows)) = self.overlap(src, x, y) else {
             return;
@@ -57,10 +54,6 @@ fn index(value: u32) -> Option<usize> {
     usize::try_from(value).ok()
 }
 
-/// Writes `image` as an RGBA PNG, every pixel repeated `scale` times along both axes.
-///
-/// # Errors
-/// I/O and encoding errors, or `ExportError::TooLarge` when the scaled size overflows.
 pub fn write_png_rgba(
     writer: impl Write,
     image: &RgbaImage,

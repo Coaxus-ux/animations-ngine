@@ -12,9 +12,6 @@ const MIN_SCALE: i32 = 1;
 const MAX_SCALE: i32 = 4;
 
 impl App {
-    /// The workspace layout, as KDL, for the adapter to keep per user: theme, UI scale,
-    /// torn-off panels, extra canvas windows with their zoom, recent files, the last
-    /// folder and the last export.
     #[must_use]
     pub fn layout_text(&self) -> String {
         let theme = match self.theme {
@@ -47,7 +44,6 @@ impl App {
         text
     }
 
-    /// Restores a layout written by `layout_text`; anything unreadable is skipped.
     pub fn apply_layout(&mut self, text: &str) {
         let Ok(document) = KdlDocument::parse_v2(text) else {
             return;
@@ -115,7 +111,6 @@ impl App {
         }
     }
 
-    /// Sets window pixels per UI pixel (1..=4), or `None` to choose by window size.
     pub fn set_scale(&mut self, scale: Option<i32>) {
         self.scale = scale.map(|scale| scale.clamp(MIN_SCALE, MAX_SCALE));
     }

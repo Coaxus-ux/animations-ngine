@@ -1,5 +1,3 @@
-//! Tabs, driven headless: each open document keeps its own view and editing state, and
-//! switching tabs shows that document's pixels only.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -16,7 +14,6 @@ use px_ui::{Buttons, Input};
 
 const SECOND: &str = "tiny.kdl";
 
-/// The room plus a second, 8×8 document in a second tab (the active one).
 fn two_tabs() -> (App, common::MemoryFiles, WindowId) {
     let (mut app, mut files, main) = open();
     files
@@ -116,7 +113,6 @@ fn home_shows_with_tabs_open_and_close_all_with_nothing_dirty_empties_them() {
     common::check_golden(&mut app, &mut files, main, "ui-home.txt");
 }
 
-/// Clicks the code view (shown alone, so it holds the window's middle) and types `text`.
 fn type_into_code(app: &mut App, files: &mut common::MemoryFiles, main: WindowId, text: &str) {
     app.dispatch(Intent::SetCode(CodeMode::Only), main, files);
     app.frame(main, &Input::default(), SIZE, files);

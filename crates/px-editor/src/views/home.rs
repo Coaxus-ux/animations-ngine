@@ -14,7 +14,6 @@ const PAD: i32 = 6;
 const MIN_LIST_ROWS: i32 = 4;
 const FORGET_WIDTH: i32 = ROW;
 
-/// Aseprite's Home tab: what to do when nothing is open, and the files opened lately.
 pub(super) fn home(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.panel_dark);

@@ -14,7 +14,7 @@ The binary's working name is **`pxe`** (to be renamed with the project). All com
 | `pxe preview [scene]` | Open the editor (or a minimal preview window with `--lite`) |
 | `pxe render <scene>` | Render frames to PNG (debugging, stills) |
 | `pxe edit [file]` | The pixel-art editor: open files as tabs, paint layers, animate cels, edit the scene visually or as code, export ([EDITOR.md](EDITOR.md) §0) |
-| `pxe export <target>` | Produce final outputs: animations, sprite sheets, tilesets, layers |
+| `pxe export <target>` | Produce final outputs: animations, sprite sheets, tilesets, layers (today: `--format gif\|png\|sequence\|sheet`, §3.3) |
 | `pxe watch <file>` | Live preview window that reloads whenever the scene file changes |
 | `pxe check` | Validate the whole project without rendering |
 | `pxe types` | Regenerate TypeScript declarations in `.engine/types/` |
@@ -99,7 +99,7 @@ pxe export --preset release-gifs
 
 MP4/WebM need `ffmpeg` (see §5).
 
-> **Today (2026-10-30):** `pxe export <file> [--scene NAME] [--scale N] [--param NAME=VALUE] [--out PATH] [--jobs N]` writes a GIF of a scene or a sequence; a sequence's GIF gives each frame its own color table, so shots in different palettes keep their exact colors. Frames are rendered and compressed on `--jobs` threads (default: every core) and stored as deltas, only the box that changed since the previous frame; the file is byte-identical for any `--jobs` (D-010). `cargo pxe …` runs the optimized CLI from the repository. `pxe render <file> --frame N` writes one PNG of either. Sprite sheets (with Aseprite JSON), PNG sequences and transparent PNGs are exported from the editor's Export dialog ([EDITOR.md](EDITOR.md) §0); `--format` on the command line is still planned.
+> **Today (2026-11-01):** `pxe export <file> [--format gif|png|sequence|sheet] [--scene NAME] [--scale N] [--param NAME=VALUE] [--out PATH] [--jobs N]` writes, by default, a GIF of a scene or a sequence; a sequence's GIF gives each frame its own color table, so shots in different palettes keep their exact colors. Frames are rendered and compressed on `--jobs` threads (default: every core) and stored as deltas, only the box that changed since the previous frame; the file is byte-identical for any `--jobs` (D-010). The other formats run the editor's export job ([EDITOR.md](EDITOR.md) §0) on the file's first scene: `--format png [--frame N]` writes one frame (default 0), `--format sequence` writes `<stem>-0000.png`… per frame, and `--format sheet [--layout strip-h|strip-v|rows|columns] [--count N] [--padding N] [--border N] [--meta json|none]` composes a sprite sheet (`--count` is the columns of `rows` or the rows of `columns`; `--meta json`, the default, writes Aseprite JSON next to the image). `--transparent` keys out the background (D-018), `--trim` (png, sequence or sheet) crops each frame to its opaque pixels and `--split-layers` (sequence or sheet) writes one output per layer; a `--frame` on a GIF, sequence or sheet exports that frame only (the GIF then has one frame; the sequence names its single file `<stem>-<frame>.png` by frame number, so frames exported one at a time never overwrite each other). A flag the chosen format would ignore is refused rather than dropped: `--trim` with a GIF, `--split-layers` with a GIF or a PNG, the sheet flags with any other format, and `--jobs` with anything but a plain GIF (a GIF given `--transparent` or `--frame` runs the editor's job too). With these formats `--param` is refused ("params are not supported for this format yet") and `--scene` must name the file's first scene; an unknown name fails as it does for a GIF ("no scene or sequence named …"). `cargo pxe …` runs the optimized CLI from the repository. `pxe render <file> --frame N` writes one PNG of either a scene or a sequence. Still planned: the other formats and flags in the table above.
 
 ### 3.4 `watch`
 ```bash
@@ -147,7 +147,7 @@ pxe palette import ~/Downloads/resurrect-64.hex --name resurrect
 ```
 Clusters colors into ramps by hue and lightness and writes `palettes/<name>.kdl` with a TODO list of roles to alias. `--ramps <n>` hints how many ramps to build.
 
-> **Today (2026-11-01):** importing happens in the editor's palette editor (F4 > Import .hex/.gpl), which splits the colors into ramps of at most eight tones in file order; the command-line importer and the hue clustering are still planned.
+> **Today (2026-11-01):** importing happens in the editor's palette editor (F4 > Import .hex/.gpl), which clusters the colors into ramps by hue family (grays apart), sorts each dark to light and splits past eight tones ([PALETTES.md](PALETTES.md) §6.1); the `pxe palette import` command and `--ramps` are still planned.
 
 ### 3.10 `bench`
 Golden-image tests for the benchmark scenes ([BENCHMARKS.md](BENCHMARKS.md)) and any scene with a `golden` node.

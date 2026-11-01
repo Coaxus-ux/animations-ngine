@@ -1,7 +1,6 @@
 use crate::error::ExportError;
 use crate::rgba::RgbaImage;
 
-/// How frames are arranged on a sprite sheet (Aseprite's sheet types).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SheetLayout {
     HorizontalStrip,
@@ -10,7 +9,6 @@ pub enum SheetLayout {
     Columns { rows: u16 },
 }
 
-/// Empty pixels around the sheet (`border`) and between frames (`shape`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Padding {
     pub border: u16,
@@ -25,7 +23,6 @@ pub struct CellRect {
     pub h: u32,
 }
 
-/// Cells per row and per column, and whether cells fill a column before moving on.
 struct Grid {
     columns: u32,
     rows: u32,
@@ -73,11 +70,6 @@ impl Grid {
     }
 }
 
-/// The sheet size and one cell per frame for `count` frames of `frame` pixels.
-///
-/// # Errors
-/// `ExportError::TooLarge` when the sheet overflows `u32`; `ExportError::Sheet` for a zero
-/// column or row count.
 pub fn place(
     count: usize,
     frame: (u16, u16),
@@ -115,10 +107,6 @@ pub fn place(
     Ok((size, cells))
 }
 
-/// Lays `frames` (all the same size) out on one image.
-///
-/// # Errors
-/// As `place`, plus `ExportError::Sheet` when the frames differ in size.
 pub fn compose(
     frames: &[RgbaImage],
     layout: SheetLayout,

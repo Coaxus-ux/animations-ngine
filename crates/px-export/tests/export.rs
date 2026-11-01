@@ -6,6 +6,95 @@
 use px_core::{CanvasView, FrameRate, Paint, Palette, Rgb, Size, Tone};
 use px_export::{ExportError, GifWriter, Scale, indexed_len, resolve_rgb, write_png};
 
+#[test]
+fn opaque_gif_bytes_are_unchanged() {
+    let mut palette = Palette::new();
+    let ramp = palette
+        .push_ramp(&[Rgb::new(1, 2, 3), Rgb::new(9, 8, 7), Rgb::new(40, 50, 60)])
+        .unwrap();
+    let paint = |tone: u8| Paint {
+        ramp,
+        tone: Tone::new(tone),
+    };
+    let size = Size::new(4, 3).unwrap();
+    let first: Vec<Paint> = (0..12).map(|i| paint(i % 3)).collect();
+    let mut second = first.clone();
+    second[5] = paint(2);
+    second[6] = paint(0);
+    let third = second.clone();
+    let mut bytes = Vec::new();
+    let mut gif = GifWriter::new(
+        &mut bytes,
+        size,
+        &palette,
+        Scale::new(2).unwrap(),
+        FrameRate::new(12).unwrap(),
+    )
+    .unwrap();
+    for cells in [&first, &second, &third] {
+        gif.add_frame(&CanvasView::new(size, cells).unwrap())
+            .unwrap();
+    }
+    drop(gif);
+    assert_eq!(bytes.len(), 126);
+    assert_eq!(px_core::hash_bytes(&bytes), 0xf0d0_388b_dd03_9bbb);
+}
+
+#[test]
+fn a_transparent_gif_has_a_transparent_index_and_background_disposal() {
+    let mut palette = Palette::new();
+    let ink = palette.push_ramp(&[Rgb::new(10, 20, 30)]).unwrap();
+    let key = palette.push_ramp(&[Rgb::new(255, 0, 255)]).unwrap();
+    let paint = |ramp, tone: u8| Paint {
+        ramp,
+        tone: Tone::new(tone),
+    };
+    let size = Size::new(2, 1).unwrap();
+    let frames = [
+        [paint(ink, 0), paint(key, 0)],
+        [paint(key, 0), paint(ink, 0)],
+    ];
+    let mut bytes = Vec::new();
+    let mut gif = GifWriter::with_key(
+        &mut bytes,
+        size,
+        &palette,
+        key,
+        Scale::new(1).unwrap(),
+        FrameRate::new(12).unwrap(),
+    )
+    .unwrap();
+    for cells in &frames {
+        gif.add_frame(&CanvasView::new(size, cells).unwrap())
+            .unwrap();
+    }
+    drop(gif);
+    let mut options = gif::DecodeOptions::new();
+    options.set_color_output(gif::ColorOutput::RGBA);
+    let mut decoder = options.read_info(&bytes[..]).unwrap();
+    let mut seen = 0;
+    while let Some(frame) = decoder.read_next_frame().unwrap() {
+        assert_eq!(frame.dispose, gif::DisposalMethod::Background);
+        assert_eq!(frame.transparent, Some(1), "the key ramp leaves the table");
+        assert_eq!(
+            (frame.left, frame.top, frame.width, frame.height),
+            (0, 0, 2, 1)
+        );
+        let alphas: Vec<u8> = frame
+            .buffer
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|p| p[3])
+            .collect();
+        let expected = if seen == 0 { [255, 0] } else { [0, 255] };
+        assert_eq!(alphas, expected);
+        assert_eq!(&frame.buffer[seen * 4..seen * 4 + 3], &[10, 20, 30]);
+        seen += 1;
+    }
+    assert_eq!(seen, 2);
+}
+
 fn two_pixel_canvas() -> (Palette, [Paint; 2]) {
     let mut palette = Palette::new();
     let ramp = palette
@@ -97,7 +186,34 @@ fn gif_rejects_palettes_over_256_colors() {
     ));
 }
 
-/// Each frame as the screen shows it, with every delta drawn over the frames before it.
+#[test]
+fn a_keyed_gif_keeps_one_slot_for_transparency() {
+    let keyed = |ramps: usize| {
+        let mut palette = Palette::new();
+        for _ in 0..ramps {
+            palette.push_ramp(&[Rgb::default(); 8]).unwrap();
+        }
+        let key = palette.push_ramp(&[Rgb::new(255, 0, 255)]).unwrap();
+        GifWriter::with_key(
+            Vec::new(),
+            Size::new(1, 1).unwrap(),
+            &palette,
+            key,
+            Scale::new(1).unwrap(),
+            FrameRate::new(12).unwrap(),
+        )
+        .map(drop)
+    };
+    assert!(matches!(
+        keyed(32),
+        Err(ExportError::TooManyColors {
+            count: 256,
+            max: 255
+        })
+    ));
+    assert!(keyed(31).is_ok());
+}
+
 fn decoded_frames(bytes: &[u8]) -> Vec<Vec<u8>> {
     let mut options = gif::DecodeOptions::new();
     options.set_color_output(gif::ColorOutput::RGBA);
@@ -126,7 +242,6 @@ fn decoded_frames(bytes: &[u8]) -> Vec<Vec<u8>> {
 fn color_frames_round_trip_through_deltas_and_a_full_table() {
     let gray = |value: u8| Rgb::new(value, value, value);
     let first: Vec<Rgb> = (0..=255).map(|_| gray(0)).collect();
-    // Every pixel changes to its own color: 256 colors leave no slot for transparency.
     let all: Vec<Rgb> = (0..=255).map(gray).collect();
     let mut one = all.clone();
     one[200] = Rgb::new(1, 2, 3);

@@ -1,7 +1,6 @@
 use px_core::{Paint, Palette, Tone};
 use px_format::PaintNames;
 
-/// What every part of the UI is drawn with: paints of the theme palette by role.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Roles {
     pub window: Paint,
@@ -12,7 +11,6 @@ pub struct Roles {
     pub field: Paint,
     pub ink: Paint,
     pub ink_dim: Paint,
-    /// Text of controls that can't be used right now.
     pub ink_disabled: Paint,
     pub accent: Paint,
     pub accent_light: Paint,
@@ -20,10 +18,8 @@ pub struct Roles {
     pub checker_light: Paint,
     pub checker_dark: Paint,
     pub grid: Paint,
-    /// Dithered over everything under a dialog.
     pub backdrop: Paint,
     pub tab_inactive: Paint,
-    /// Pixels of icons that are see-through.
     pub transparent: Paint,
 }
 
@@ -34,9 +30,6 @@ pub struct Theme {
 }
 
 impl Theme {
-    /// The theme whose palette has the ramps `window`, `panel` (4 tones), `field`, `ink`
-    /// (2), `disabled`, `accent` (2), `warning`, `checker` (2), `grid`, `backdrop`, `tab`
-    /// and `key` (icon background); names the first missing ramp or tone otherwise.
     pub fn new(palette: Palette, names: &PaintNames) -> Result<Self, String> {
         let role = |ramp: &str, tone: u8| -> Result<Paint, String> {
             let id = names

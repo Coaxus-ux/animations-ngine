@@ -4,18 +4,12 @@ use px_raster::Plot;
 use crate::area::{Area, Rect, rect};
 use crate::bitmap::Bitmap;
 
-/// Exact colors laid over the indexed canvas when it is presented: a box of one color, or
-/// an image of `area.width × area.height` pixels, row by row.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Overlay {
     Box(Rect, Rgb),
     Image(Rect, Vec<Rgb>),
 }
 
-/// The UI's own pixels, indexed into the theme palette, plus boxes and images of exact
-/// colors (the document's swatches, color pickers) laid over them when presented. A second, mostly see-through layer
-/// on top holds what must cover everything, the document included: menus, tooltips,
-/// dialogs.
 #[derive(Clone, Debug)]
 pub struct UiCanvas {
     width: i32,
@@ -45,7 +39,6 @@ impl UiCanvas {
         canvas
     }
 
-    /// Resizes (if needed) and clears to `background` for a new frame.
     pub fn reset(&mut self, width: i32, height: i32, background: Paint) {
         let (width, height) = (width.max(1), height.max(1));
         let count = usize::try_from(width * height).unwrap_or(0);
@@ -61,12 +54,10 @@ impl UiCanvas {
         self.on_top = false;
     }
 
-    /// Draws into the top layer (`true`) or the base one; returns which it drew into.
     pub fn set_on_top(&mut self, on_top: bool) -> bool {
         core::mem::replace(&mut self.on_top, on_top)
     }
 
-    /// The top layer: `None` where the layers below show through.
     #[must_use]
     pub fn top(&self) -> &[Option<Paint>] {
         &self.top
@@ -102,7 +93,6 @@ impl UiCanvas {
         &self.overlays
     }
 
-    /// Limits drawing to `area` (within the canvas); returns the clip to restore.
     pub fn clip_to(&mut self, area: Rect) -> Rect {
         let clip = area.intersect(self.bounds());
         core::mem::replace(&mut self.clip, clip)
@@ -144,7 +134,6 @@ impl UiCanvas {
         }
     }
 
-    /// Every other pixel of `area`, on a checkerboard anchored to the canvas.
     pub fn dither(&mut self, area: Rect, paint: Paint) {
         let area = area.intersect(self.clip);
         for y in area.y..area.bottom() {
@@ -156,7 +145,6 @@ impl UiCanvas {
         }
     }
 
-    /// A one-pixel border just inside `area`.
     pub fn frame(&mut self, area: Rect, paint: Paint) {
         if area.is_empty() {
             return;
@@ -167,7 +155,6 @@ impl UiCanvas {
         self.fill(rect(area.right() - 1, area.y, 1, area.height), paint);
     }
 
-    /// A raised (or, `sunken`, pressed) box: light top-left edges, dark bottom-right ones.
     pub fn bevel(&mut self, area: Rect, light: Paint, dark: Paint, sunken: bool) {
         let (top, bottom) = if sunken { (dark, light) } else { (light, dark) };
         self.fill(rect(area.x, area.y, area.width, 1), top);
@@ -176,14 +163,12 @@ impl UiCanvas {
         self.fill(rect(area.right() - 1, area.y, 1, area.height), bottom);
     }
 
-    /// Draws `bitmap` with its top-left at `(x, y)`; `tint` replaces every opaque paint.
     pub fn blit(&mut self, bitmap: &Bitmap, x: i32, y: i32, tint: Option<Paint>) {
         for (row, column, paint) in bitmap.opaque() {
             self.pixel(x + column, y + row, tint.unwrap_or(paint));
         }
     }
 
-    /// A box of an exact color, drawn over the canvas when it is presented.
     pub fn rgb_box(&mut self, area: Rect, color: Rgb) {
         let area = area.intersect(self.clip);
         if !area.is_empty() {
@@ -191,8 +176,6 @@ impl UiCanvas {
         }
     }
 
-    /// An image of exact colors (`area.width × area.height` pixels, row by row) drawn over
-    /// the canvas when it is presented; pixels outside the clip are dropped.
     pub fn rgb_image(&mut self, area: Rect, pixels: &[Rgb]) {
         let visible = area.intersect(self.clip);
         let stride = usize::try_from(area.width).unwrap_or(0);
@@ -217,7 +200,6 @@ impl UiCanvas {
         }
     }
 
-    /// A `Plot` that paints with `paint`, for the shapes of `px-raster`.
     pub fn pen(&mut self, paint: Paint) -> Pen<'_> {
         Pen {
             canvas: self,

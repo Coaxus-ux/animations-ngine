@@ -20,8 +20,6 @@ const CAPTIONS: [&str; 5] = [
     " Playback",
 ];
 
-/// The scene's name and background (read here; the code view changes them), its frame rate,
-/// length and looping, and Apply. Canvas Size owns the width and height.
 pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dialog, body: Rect) {
     let roles = ui.theme.roles;
     let id = Id::new("properties");
