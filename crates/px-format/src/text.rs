@@ -31,20 +31,14 @@ impl Align {
     }
 }
 
-/// Laid-out text: its ink pixels, and the characters the font has no glyph for (drawn
-/// as boxes).
 #[derive(Debug, Default)]
 pub(crate) struct Layout {
     pub(crate) cells: Vec<TextCell>,
     pub(crate) missing: Vec<char>,
 }
 
-/// Italic leans one pixel right for every this many rows above the font's bottom row.
 const ITALIC_RISE: u8 = 5;
 
-/// Lines stack down from the anchor; each is placed on x by `align`. Within a line,
-/// bigger characters sit on the same bottom as smaller ones. Every character but a line
-/// break counts toward `reveal`.
 pub(crate) fn layout(font: &Font, text: &[(char, Style)], align: Align) -> Layout {
     let mut out = Layout::default();
     let mut glyph: u16 = 0;
@@ -90,7 +84,6 @@ pub(crate) fn layout(font: &Font, text: &[(char, Style)], align: Align) -> Layou
     out
 }
 
-/// A glyph's ink in font pixels, leaned for italic and thickened one pixel right for bold.
 fn pixels(font: &Font, glyph: &Glyph, style: Style) -> Vec<(i32, i32)> {
     let mut pixels: Vec<(i32, i32)> = glyph
         .ink

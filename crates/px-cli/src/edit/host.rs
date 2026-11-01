@@ -6,7 +6,6 @@ use minifb::{
 };
 use px_ui::{Buttons, Input, Key, Modifiers};
 
-/// One editor window shown with minifb, translating its input for the app.
 pub(super) struct Host {
     pub(super) window: Window,
     typed: Rc<RefCell<String>>,
@@ -41,7 +40,6 @@ impl Host {
         })
     }
 
-    /// This frame's input, in window pixels.
     pub(super) fn input(&mut self, time_ms: u64) -> Input {
         let window = &self.window;
         let held: Vec<WinKey> = window.get_keys();

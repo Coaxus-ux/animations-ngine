@@ -8,8 +8,6 @@ use super::doc_view::{
 use crate::app::{Button, Editing, Intent, ViewState};
 use crate::domain::Document;
 
-/// The canvas view: turns the pointer into canvas strokes, pans and zooms. Returns its
-/// area (UI pixels); the document itself is painted after the UI, at full precision.
 pub(super) fn canvas(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) -> Option<Rect> {
     let roles = ui.theme.roles;
     let Some(scene) = context.document.and_then(Document::scene) else {
@@ -78,7 +76,6 @@ pub(super) fn canvas(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) -> 
     Some(area)
 }
 
-/// What painting the canvas into the window needs.
 pub struct CanvasPaint<'a> {
     pub document: Option<&'a Document>,
     pub view: &'a ViewState,
@@ -89,8 +86,6 @@ pub struct CanvasPaint<'a> {
     pub theme: &'a Theme,
 }
 
-/// Paints the rendered document and its overlays into the canvas area of `pixels`
-/// (`width` window pixels wide); `area` is in UI pixels.
 pub fn paint_canvas(
     pixels: &mut [u32],
     width: usize,
@@ -154,7 +149,6 @@ pub fn paint_canvas(
     }
 }
 
-/// The active layer's cels before and after the one showing, as dithered tints.
 fn onion(
     target: &mut ViewPixels<'_>,
     placement: Placement,

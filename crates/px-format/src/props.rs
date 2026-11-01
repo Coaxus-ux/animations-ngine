@@ -74,7 +74,6 @@ impl<'a> Props<'a> {
         entry
     }
 
-    /// Every named entry not read so far, now counted as read.
     pub(crate) fn rest(&mut self) -> Vec<&'a KdlEntry> {
         let rest: Vec<&'a KdlEntry> = self
             .node

@@ -4,13 +4,11 @@ use crate::text::{draw_text, text_width};
 use crate::ui::{Id, Ui};
 use crate::widgets::ROW;
 
-/// One entry of a menu; an empty `label` draws a separator.
 #[derive(Clone, Copy, Debug)]
 pub struct MenuItem<'a> {
     pub label: &'a str,
     pub shortcut: &'a str,
     pub enabled: bool,
-    /// A check mark for options that are on or off.
     pub checked: Option<bool>,
 }
 
@@ -51,8 +49,6 @@ pub struct Menu<'a> {
 const PAD: i32 = 6;
 const SEPARATOR: i32 = 5;
 
-/// A row of menu titles; clicking one drops its items down, hovering another while one is
-/// open switches to it. Returns the (menu, item) chosen this frame.
 pub fn menu_bar(ui: &mut Ui<'_>, area: Rect, menus: &[Menu<'_>]) -> Option<(usize, usize)> {
     let roles = ui.theme.roles;
     let id = Id::new("menu-bar");

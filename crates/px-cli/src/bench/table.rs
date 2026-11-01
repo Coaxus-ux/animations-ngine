@@ -3,7 +3,6 @@ use std::time::Duration;
 
 use super::{Counts, Timing};
 
-/// Header and width of every numeric column, in print order; rows use the same widths.
 const COLUMNS: [(&str, usize); 10] = [
     ("size", 9),
     ("frames", 6),
@@ -17,8 +16,6 @@ const COLUMNS: [(&str, usize); 10] = [
     ("budget", 7),
 ];
 
-/// Prints bench results as an aligned table, each row as soon as its scene is timed,
-/// then a summary line.
 pub(super) struct Table {
     label_width: usize,
     budget: Duration,

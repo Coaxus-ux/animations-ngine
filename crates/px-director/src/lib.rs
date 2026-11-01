@@ -1,5 +1,3 @@
-//! Sequences: shots of scenes joined by transitions, composed into frames (DIRECTOR.md §4).
-//! Memory profile: `Sequence::new` and `Player::new` allocate; `Player::render` never allocates.
 #![forbid(unsafe_code)]
 
 mod error;

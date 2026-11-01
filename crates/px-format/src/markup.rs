@@ -1,14 +1,9 @@
-//! Inline tags that style part of a text: `[b]…[/b]`, `[i]…[/i]` and `[size=2]…[/size]`.
-//! `[[` writes a `[`; anything else in brackets is plain text.
-
-/// The largest `[size=N]`.
 pub(crate) const MAX_SCALE: u8 = 16;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct Style {
     pub(crate) bold: bool,
     pub(crate) italic: bool,
-    /// Glyph pixels per font pixel.
     pub(crate) scale: u8,
 }
 
@@ -22,7 +17,6 @@ impl Default for Style {
     }
 }
 
-/// Every character of `text` with its style, tags removed. Tags may span lines and nest.
 pub(crate) fn styled(text: &str, base: Style) -> Vec<(char, Style)> {
     let mut tags = Tags {
         base,
@@ -65,7 +59,6 @@ impl Tags {
         }
     }
 
-    /// Whether `tag` is one this module knows (and so is not drawn).
     fn apply(&mut self, tag: &str) -> bool {
         match tag {
             "b" => self.bold += 1,

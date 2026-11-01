@@ -4,8 +4,6 @@ use px_engine::{FrameBuffer, RenderError};
 use crate::sequence::{Moment, Sequence};
 use crate::transition::{Side, Target, compose};
 
-/// Renders sequence frames. Two frame buffers are enough: every shot has the sequence's
-/// size, and a transition shows two neighbouring shots, which use different buffers.
 #[derive(Clone, Debug)]
 pub struct Player {
     buffers: [FrameBuffer; 2],
@@ -13,7 +11,6 @@ pub struct Player {
     shots: Vec<u8>,
 }
 
-/// A composed frame: each pixel's paint and the shot (so the palette) it comes from.
 #[derive(Clone, Copy, Debug)]
 pub struct SequenceView<'a> {
     sequence: &'a Sequence,
@@ -97,7 +94,6 @@ impl SequenceView<'_> {
         self.paints
     }
 
-    /// The shot each pixel comes from, as an index into `Sequence::shots`.
     #[must_use]
     pub const fn shots(&self) -> &[u8] {
         self.shots
@@ -112,7 +108,6 @@ impl SequenceView<'_> {
         self.palette(self.shots[index]).resolve(self.paints[index])
     }
 
-    /// Hash of the indexed frame, palette-independent like `hash_cells`.
     #[must_use]
     pub fn hash(&self) -> u64 {
         hash_seed(hash_cells(self.paints), &[hash_bytes(self.shots)])

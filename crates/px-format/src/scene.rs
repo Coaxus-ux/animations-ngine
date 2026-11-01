@@ -20,7 +20,6 @@ use crate::{suggest, values};
 
 const DEFAULT_FPS: u16 = 12;
 
-/// A scene's own properties, read before its contents.
 pub(crate) struct Header<'c> {
     pub(crate) name: Option<&'c str>,
     pub(crate) palette_name: Option<&'c str>,
@@ -31,7 +30,6 @@ pub(crate) struct Header<'c> {
     pub(crate) seed: Option<u64>,
 }
 
-/// What `%` and frame units are measured against: a scene's canvas and frame rate.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Canvas {
     pub(crate) size: Size,
@@ -93,7 +91,6 @@ pub(crate) fn header<'c>(
     }
 }
 
-/// A parsed scene with what maps it back to its source.
 pub(crate) struct Parsed {
     pub(crate) spec: SceneSpec,
     pub(crate) timeline: Timeline,
@@ -153,28 +150,21 @@ pub(crate) fn parse(
     })
 }
 
-/// Param values given from outside a scene: on the command line, or by a `use-scene` in
-/// the host's file.
 #[derive(Clone, Copy)]
 pub(crate) enum Overrides<'a> {
     Cli(&'a [(String, String)]),
     Instance { list: &'a [Override], file: usize },
 }
 
-/// Builds the root scene and, through `use-scene`, every scene placed in it.
 pub(crate) struct Builder<'c, 'l> {
     pub(crate) catalog: &'c Catalog<'l>,
     pub(crate) palette: &'c NamedPalette,
     pub(crate) palette_name: &'c str,
-    /// Names of the scenes being built, outermost first, to catch placement cycles.
     pub(crate) stack: Vec<String>,
-    /// Off while building the second and later copies of a placement, whose own
-    /// placements the timeline already lists once.
     pub(crate) tracking: bool,
 }
 
 impl Builder<'_, '_> {
-    /// Adds the scene's objects to `out` and returns its timeline markers.
     pub(crate) fn build(
         &mut self,
         node: &KdlNode,

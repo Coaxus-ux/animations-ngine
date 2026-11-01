@@ -14,12 +14,9 @@ mod write;
 
 pub use write::write_pixels;
 
-/// The code of a transparent pixel, repeated to the legend's code length.
 pub(crate) const EMPTY: char = '.';
 const CHILDREN: [&str; 2] = ["legend", "cel"];
 
-/// `pixels` (FORMAT appendix A.9): a `legend` of codes, each naming a paint, and `cel`s whose rows
-/// hold one code per pixel. Returns the cels sorted by frame.
 pub(crate) fn parse(node: &KdlNode, names: &Names<'_>, diags: &mut Diagnostics) -> Vec<Cel> {
     let children = node.children().map(KdlDocument::nodes).unwrap_or_default();
     let mut legend = Legend::default();
@@ -59,7 +56,6 @@ pub(crate) fn parse(node: &KdlNode, names: &Names<'_>, diags: &mut Diagnostics) 
     cels
 }
 
-/// Codes of one length (1 or 2 characters) mapped to paints.
 #[derive(Default)]
 struct Legend {
     codes: BTreeMap<String, Paint>,
@@ -67,7 +63,6 @@ struct Legend {
 }
 
 impl Legend {
-    /// `legend { a "skin.mid"; b "skin.2" }`.
     fn read(&mut self, node: &KdlNode, names: &Names<'_>, diags: &mut Diagnostics) {
         for entry in node.children().map(KdlDocument::nodes).unwrap_or_default() {
             let code = entry.name().value();
@@ -104,7 +99,6 @@ impl Legend {
     }
 }
 
-/// `cel frame=0 x=0 y=0 """rows"""`: rows go one per line, codes side by side.
 fn cel(node: &KdlNode, legend: &Legend, diags: &mut Diagnostics) -> Option<Cel> {
     let mut props = Props::new(node);
     let offset = node.span().offset();

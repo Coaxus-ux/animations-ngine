@@ -37,7 +37,6 @@ fn lerp(a: f64, b: f64, t: f64) -> f64 {
 pub(crate) fn noise(seed: u64, p: [f64; 3]) -> f64 {
     let base = p.map(cell);
     let frac = [0, 1, 2].map(|axis| smooth(p[axis] - floor(p[axis])));
-    // Lattice corners hash (seed, x, y, z) in that order, so each x column is hashed once.
     let root = seeded(seed);
     let columns = [0, 1].map(|dx| absorb(root, (base[0] + dx).cast_unsigned()));
     let face = |dz: i64| {
@@ -48,7 +47,6 @@ pub(crate) fn noise(seed: u64, p: [f64; 3]) -> f64 {
         let top = lerp(corner(columns[0], 1), corner(columns[1], 1), frac[0]);
         lerp(bottom, top, frac[1])
     };
-    // `lerp(a, b, 0.0)` is exactly `a`: integral z (every 2D caller) needs only one face.
     if frac[2] == 0.0 {
         return face(0);
     }
@@ -86,8 +84,6 @@ pub(crate) fn cells(seed: u64, x: f64, y: f64) -> f64 {
     (nearest / core::f64::consts::SQRT_2).min(1.0)
 }
 
-// A looping scene samples time noise on a circle whose circumference matches the loop, so the
-// last frame flows into the first while keeping `freq` wiggles per second.
 pub(crate) fn wiggle(
     seed: u64,
     time: f64,
@@ -112,7 +108,6 @@ pub(crate) fn wiggle(
 const WIND_SEED: u64 = 0x5749_4e44;
 const WIND_CELL: f64 = 32.0;
 
-// Gusts travel along x; in looping scenes time is sampled on a circle so the field loops too.
 pub(crate) fn wind(field: Wind, time: f64, x: f64, loop_period: Option<f64>) -> f64 {
     let along = x / WIND_CELL;
     let gust = match loop_period.filter(|period| *period > 0.0) {

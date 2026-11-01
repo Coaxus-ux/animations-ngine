@@ -9,8 +9,6 @@ use common::{bounds, expr, kit, scene, shape};
 use px_core::{Frame, hash_cells};
 use px_engine::{FrameBuffer, Geometry, Outline, Shading, Shape};
 
-/// A frame must not depend on what the buffer rendered before it, or `pxe render --frame`
-/// and a GIF's frame could differ.
 #[test]
 fn a_frame_renders_the_same_whatever_came_before() {
     let kit = kit();

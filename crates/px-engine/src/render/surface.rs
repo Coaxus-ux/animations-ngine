@@ -7,7 +7,6 @@ use super::placement::Placed;
 pub(crate) const EMISSIVE: u8 = 1;
 pub(crate) const CASTS_SHADOW: u8 = 2;
 
-/// The frame being built: paints plus the per-pixel data lighting needs.
 pub(crate) struct Surface<'a> {
     pub(crate) width: i32,
     pub(crate) height: i32,
@@ -50,7 +49,6 @@ impl Region {
     }
 }
 
-/// Everything a frame renders into.
 pub(crate) struct Target<'b, 'c> {
     pub(crate) surface: &'b mut Surface<'c>,
     pub(crate) mask: &'b mut Mask<'c>,

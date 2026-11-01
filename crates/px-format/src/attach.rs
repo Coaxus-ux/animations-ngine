@@ -8,8 +8,6 @@ use crate::compiler::program_of;
 use crate::schema::Kind;
 use crate::suggest;
 
-/// Something an object can be attached to: a point of an object (its `x y`, or `x1 y1`),
-/// or a placed scene's origin.
 #[derive(Clone, Debug)]
 enum Target {
     Point {
@@ -23,13 +21,10 @@ enum Target {
     },
 }
 
-/// Every id met so far, per scene they belong to (`None` is the root scene), so
-/// `attach="hero.hand"` can walk into placed scenes.
 #[derive(Debug, Default)]
 pub(crate) struct Targets(BTreeMap<(Option<usize>, String), Target>);
 
 impl Targets {
-    /// Records an object's point; one that is itself attached is measured from its anchor.
     pub(crate) fn point(
         &mut self,
         owner: Option<usize>,
@@ -81,7 +76,6 @@ impl Targets {
         self.0.insert((owner, id.to_owned()), target);
     }
 
-    /// The anchor `path` names from inside `owner`, and the layer it is drawn in.
     pub(crate) fn resolve(
         &self,
         owner: Option<usize>,

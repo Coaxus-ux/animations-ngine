@@ -1,10 +1,8 @@
 use px_core::{CanvasMut, Paint};
 
-/// Anything shapes can be rasterized into: a canvas, a coverage mask, a test grid.
 pub trait Plot {
     fn width(&self) -> i32;
     fn height(&self) -> i32;
-    /// Covers row `y` from `x_start` (inclusive) to `x_end` (exclusive); out-of-range parts are ignored.
     fn span(&mut self, y: i32, x_start: i32, x_end: i32);
 
     fn pixel(&mut self, x: i32, y: i32) {

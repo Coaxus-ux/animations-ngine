@@ -44,7 +44,6 @@ pub(crate) struct Measure<'m> {
 }
 
 impl Measure<'_> {
-    /// A number with its unit, or the time of a timeline marker.
     pub(crate) fn literal(&self, text: &str) -> Option<Literal> {
         literal(text).or_else(|| {
             self.markers.get(text.trim()).map(|seconds| Literal {

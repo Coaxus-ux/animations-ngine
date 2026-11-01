@@ -14,7 +14,6 @@ pub(crate) struct Mirror {
     pub(crate) surface: Option<RampId>,
 }
 
-/// Copies the scene above `axis` into the region below it, upside down, with a ripple.
 pub(crate) fn reflect(surface: &mut Surface<'_>, palette: &Palette, mirror: &Mirror) {
     let Rect {
         x: left,

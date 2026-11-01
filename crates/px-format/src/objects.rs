@@ -29,7 +29,6 @@ pub(crate) struct Draft<'a> {
     pub(crate) extras: Extras,
     pub(crate) layer: usize,
     pub(crate) clips: Vec<usize>,
-    /// `attach="id"` or `attach="placed.id"`: what the object is positioned from.
     pub(crate) attach: Option<&'a KdlEntry>,
 }
 
@@ -82,7 +81,6 @@ fn walk<'a>(
             tree.wind = wind(node, diags);
             continue;
         }
-        // A group's or layer's own keyframes were read with its draft.
         if STRUCTURE.contains(&name) || (name == "anim" && parent.name().value() != "scene") {
             continue;
         }
@@ -153,7 +151,6 @@ fn draft<'a>(
     let anims = anims(node, kind, diags);
     let paint = match kind {
         Kind::Shade => palette.darkest(),
-        // Pixels bring their own paints; `paint` only colors outlines and an empty layer.
         Kind::Pixels => match props.get("paint") {
             Some(entry) => values::string(entry, diags)
                 .and_then(|text| palette.paint(text, entry.span().offset(), diags)),

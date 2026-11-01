@@ -7,7 +7,6 @@ use super::shape::{Geometry, Outline, Shape};
 use super::world::Environment;
 use crate::render::{FrameBuffer, Stamps};
 
-/// Draw order doubles as depth, which is stored as a `u16` with 0 for the background.
 pub const MAX_SHAPES: usize = u16::MAX as usize - 1;
 pub const MAX_INSTANCES: usize = 4096;
 pub const MAX_LAYERS: usize = 16;
@@ -70,13 +69,11 @@ pub enum ModelError {
         what: &'static str,
         index: usize,
     },
-    /// A cel's pixels don't fill its box.
     InvalidCel {
         shape: usize,
     },
 }
 
-/// How much a scene asks of the renderer.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Stats {
     pub shapes: usize,
@@ -117,7 +114,6 @@ impl Scene {
         Ok(scene)
     }
 
-    /// What the scene was built from, to change it and build it again (`Scene::new`).
     #[must_use]
     pub const fn spec(&self) -> &SceneSpec {
         &self.spec
@@ -244,7 +240,6 @@ fn validate_shape(spec: &SceneSpec, index: usize, shape: &Shape) -> Result<(), M
     Ok(())
 }
 
-/// Every instance reference points at an existing instance, and parents come first.
 fn validate_instances(world: &Environment) -> Result<(), ModelError> {
     let count = world.instances.len();
     let check = |what: &'static str, owners: Vec<Option<usize>>| match owners

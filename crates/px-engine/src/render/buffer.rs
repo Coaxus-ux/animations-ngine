@@ -9,7 +9,6 @@ use super::stamp::{Capture, Stamps};
 use super::surface::{Surface, Target};
 use crate::model::{MAX_INSTANCES, Scene};
 
-/// Every per-pixel buffer a frame needs, allocated once; `render` never allocates.
 #[derive(Clone, Debug)]
 pub struct FrameBuffer {
     size: Size,
@@ -52,7 +51,6 @@ impl FrameBuffer {
         })
     }
 
-    /// The stamps of the shapes of `scene` that never change, or none if a frame fails.
     pub(crate) fn capture(scene: &Scene) -> Stamps {
         let mut capture = Capture::new(scene.shapes().len());
         match Self::new(scene).draw(scene, Frame::new(0), Some(&mut capture)) {
@@ -101,14 +99,11 @@ impl FrameBuffer {
         render(scene, frame, target, &mut self.report, capture)
     }
 
-    /// The paints of the last frame rendered, row by row.
     #[must_use]
     pub fn cells(&self) -> &[Paint] {
         &self.cells
     }
 
-    /// The shape (index into `Scene::shapes`) that drew pixel `(x, y)` of the last frame,
-    /// or `None` for the background. Draw order is the depth, so the depth buffer says it.
     #[must_use]
     pub fn shape_at(&self, x: i32, y: i32) -> Option<usize> {
         let (width, height) = (i32::from(self.size.width()), i32::from(self.size.height()));

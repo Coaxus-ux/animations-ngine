@@ -96,7 +96,6 @@ fn hash_is_stable_and_order_sensitive() {
         Ok(hash_cells(&a))
     );
     assert_ne!(hash_cells(&a), hash_cells(&b));
-    // Pinned value: changing the hash breaks every golden file, so it must be deliberate.
     assert_eq!(hash_cells(&a), 0xd7e4_fbfa_299d_6f8a);
 }
 

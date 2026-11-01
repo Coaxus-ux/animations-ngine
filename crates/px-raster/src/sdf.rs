@@ -4,14 +4,9 @@ use crate::{Plot, Rect};
 
 pub const MAX_POLYGON_POINTS: usize = 32;
 pub const MAX_BLOB_CIRCLES: usize = 16;
-/// Pixel centers often sit exactly on an edge (distance 0); float noise of 1e-15 must not
-/// decide them, or animated shapes break perfect loops. The edge test uses this margin.
 const EDGE_TOLERANCE: f64 = 1e-6;
-/// Relative band on squared distances inside which `within` defers to `hypot`. It dwarfs
-/// float error (~1e-16), so the shortcut never changes a pixel.
 const SQUARED_MARGIN: f64 = 1e-9;
 
-/// Covers every pixel whose center has `distance(x, y) <= 0` (within `EDGE_TOLERANCE`), scanning only `bbox`.
 pub fn fill_sdf(plot: &mut impl Plot, bbox: Rect, distance: impl Fn(f64, f64) -> f64) {
     fill_where(plot, bbox, |x, y| distance(x, y) <= EDGE_TOLERANCE);
 }
@@ -63,7 +58,6 @@ pub fn fill_polygon(plot: &mut impl Plot, points: &[[f64; 2]]) {
     });
 }
 
-/// Circles are `[x, y, radius]`, merged with a smooth union of width `smooth`.
 pub fn fill_blob(plot: &mut impl Plot, circles: &[[f64; 3]], smooth: f64) {
     let circles = &circles[..circles.len().min(MAX_BLOB_CIRCLES)];
     let Some(margin) = circles.iter().map(|c| c[2]).reduce(f64::max) else {
@@ -91,11 +85,9 @@ fn smooth_min(a: f64, b: f64, k: f64) -> f64 {
     a.min(b) - h * h * k * 0.25
 }
 
-/// Exactly `hypot(offset) - radius <= EDGE_TOLERANCE`; `hypot` only runs near the edge.
 fn within(offset: [f64; 2], radius: f64) -> bool {
     let reach = radius + EDGE_TOLERANCE;
     let squared = offset[0] * offset[0] + offset[1] * offset[1];
-    // A negative radius leaves `reach` tiny next to the rounding of `radius + EDGE_TOLERANCE`.
     if radius >= 0.0 && squared.is_finite() && (reach * reach).is_finite() {
         let limit = reach * reach;
         if squared < limit * (1.0 - SQUARED_MARGIN) {
@@ -108,7 +100,6 @@ fn within(offset: [f64; 2], radius: f64) -> bool {
     libm::hypot(offset[0], offset[1]) - radius <= EDGE_TOLERANCE
 }
 
-/// From the nearest point of segment `ab` to `p`.
 fn segment_offset(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> [f64; 2] {
     let (pa, ba) = ([p[0] - a[0], p[1] - a[1]], [b[0] - a[0], b[1] - a[1]]);
     let length = ba[0] * ba[0] + ba[1] * ba[1];
@@ -120,8 +111,6 @@ fn segment_offset(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> [f64; 2] {
     [pa[0] - ba[0] * h, pa[1] - ba[1] * h]
 }
 
-/// Inside by the even-odd rule, or within `EDGE_TOLERANCE` of an edge: the signed distance
-/// test without computing the distance of inside points.
 fn polygon_contains(p: [f64; 2], points: &[[f64; 2]]) -> bool {
     let mut inside = false;
     let mut previous = points[points.len() - 1];

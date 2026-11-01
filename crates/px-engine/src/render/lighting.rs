@@ -6,11 +6,8 @@ use super::surface::{CASTS_SHADOW, EMISSIVE, Surface};
 use crate::model::MAX_LIGHTS;
 
 const MAX_SHADOW_STEPS: f64 = 160.0;
-/// The outer part of a cone's half spread that fades to dark (with a floor, in radians).
 const CONE_SOFTNESS: f64 = 0.45;
 const CONE_EDGE: f64 = 0.12;
-/// Squared distances beyond `reach² × REACH_MARGIN` are out of reach whatever `hypot` rounds
-/// to, so they skip it; the margin dwarfs float error and changes no result.
 const REACH_MARGIN: f64 = 1.0 + 1e-9;
 
 #[derive(Clone, Copy, Debug)]
@@ -36,7 +33,6 @@ pub(crate) struct Ambient {
     pub(crate) occlusion: f64,
 }
 
-/// `window` is scratch with one value per pixel.
 pub(crate) fn light(
     surface: &mut Surface<'_>,
     palette: &Palette,
@@ -107,9 +103,6 @@ pub(crate) fn light(
     }
 }
 
-/// The pixel centers a light can reach, padded by a pixel: outside it `contribution` is
-/// exactly 0. Bounds that aren't finite never exclude anything, so non-finite lights keep
-/// their exact (NaN) behavior.
 #[derive(Clone, Copy, Debug)]
 struct Reach {
     left: f64,
@@ -127,7 +120,6 @@ impl Reach {
     };
 
     fn of(lamp: &Lit) -> Self {
-        // Relative slack too, so even huge reaches stay wider than `REACH_MARGIN` allows.
         let pad = lamp.reach * (1.0 + 1e-6) + 1.0;
         let (left, top, right, bottom) = match lamp.shape {
             Shape::Rect(rect) => (
@@ -155,8 +147,6 @@ impl Reach {
     }
 }
 
-/// The deepest (nearest) depth within two columns of each pixel, per row: five of these
-/// rows bound a 5×5 window, so most pixels skip counting their neighbors.
 fn nearest_in_rows(surface: &Surface<'_>, window: &mut [u16]) {
     let width = usize::try_from(surface.width).unwrap_or(0);
     for (row, out) in surface
@@ -209,7 +199,6 @@ fn source_point(lamp: &Lit, px: f64, py: f64) -> (f64, f64) {
     }
 }
 
-/// A pixel is in shadow when a shadow-casting pixel in front of it lies between it and the light.
 fn shadowed(surface: &Surface<'_>, x: i32, y: i32, lamp: &Lit) -> bool {
     let Some(own) = surface.index(x, y).map(|index| surface.depth[index]) else {
         return false;

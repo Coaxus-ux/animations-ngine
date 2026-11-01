@@ -1,7 +1,6 @@
 use super::{Effect, Tool, Work};
 use crate::domain::{Raster, Selection};
 
-/// Drag a box to select it; a click without dragging clears the selection.
 #[derive(Default)]
 pub struct BoxSelect {
     start: (i32, i32),
@@ -33,7 +32,6 @@ impl Tool for BoxSelect {
     }
 }
 
-/// Trace a free-hand outline; its inside is selected.
 #[derive(Default)]
 pub struct Lasso {
     points: Vec<(i32, i32)>,
@@ -71,7 +69,6 @@ impl Tool for Lasso {
     }
 }
 
-/// Drags the selected pixels (or the whole cel, without a selection) to a new place.
 #[derive(Default)]
 pub struct Move {
     start: (i32, i32),
@@ -132,7 +129,6 @@ impl Tool for Move {
     }
 }
 
-/// Click an object on the canvas to select it (for the inspector and one-click recolor).
 pub struct Pick;
 
 impl Tool for Pick {

@@ -3,7 +3,6 @@ use px_format::Font;
 
 use crate::canvas::UiCanvas;
 
-/// Draws `text` with its top-left at `(x, y)`; returns the x just past it.
 pub fn draw_text(
     canvas: &mut UiCanvas,
     font: &Font,
@@ -24,7 +23,6 @@ pub fn draw_text(
     pen
 }
 
-/// The width `text` takes, without trailing spacing.
 #[must_use]
 pub fn text_width(font: &Font, text: &str) -> i32 {
     let placeholder = font.placeholder();
@@ -38,7 +36,6 @@ pub fn text_width(font: &Font, text: &str) -> i32 {
     (total - i32::from(font.spacing())).max(0)
 }
 
-/// `text` shortened with `…` (three dots) to fit `width`.
 #[must_use]
 pub fn fit_text(font: &Font, text: &str, width: i32) -> String {
     if text_width(font, text) <= width {

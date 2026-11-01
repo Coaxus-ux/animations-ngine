@@ -196,8 +196,6 @@ impl Program {
         }
     }
 
-    /// The same value in every frame for a given environment: no time, frame, keyframes or
-    /// time-driven function. Scopes only shift time, so they don't count.
     #[must_use]
     pub const fn is_timeless(&self) -> bool {
         self.timeless
@@ -208,7 +206,6 @@ impl Program {
         Self::new(alloc::vec![Op::Track(0)], alloc::vec![track])
     }
 
-    /// Combines a base value with a keyframe track (FORMAT §8 `blend`).
     #[must_use]
     pub fn blend(base: &Self, track: &Self, blend: Blend) -> Self {
         let op = match blend {
@@ -228,7 +225,6 @@ impl Program {
         Self::new(alloc::vec![Op::Const(value)], Vec::new())
     }
 
-    /// A value picked once per object seed: uniform in `low..high`, or an inclusive integer.
     #[must_use]
     pub fn random_range(low: f64, high: f64, integer: bool, key: f64) -> Self {
         let func = if integer { Func::Randi } else { Func::Range };
@@ -372,7 +368,6 @@ pub(crate) fn required_stack(ops: &[Op]) -> Option<(usize, usize)> {
     (depth == 1 && scopes == 0).then_some((max_depth, max_scopes))
 }
 
-/// Appends `program` to `ops`/`tracks`, renumbering its track indices.
 pub(crate) fn append(ops: &mut Vec<Op>, tracks: &mut Vec<Track>, program: &Program) {
     let offset = u16::try_from(tracks.len()).unwrap_or(u16::MAX);
     tracks.extend(program.tracks.iter().cloned());

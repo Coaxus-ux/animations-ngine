@@ -1,4 +1,3 @@
-//! Renders the editor's main window headless to a PNG: `cargo run -p px-editor --example snapshot -- WIDTH HEIGHT OUT.png [code]`.
 #![allow(clippy::unwrap_used, reason = "a developer tool")]
 
 use std::collections::BTreeMap;

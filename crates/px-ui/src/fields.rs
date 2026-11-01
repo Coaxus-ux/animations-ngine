@@ -4,17 +4,13 @@ use crate::text::{draw_text, text_width};
 use crate::ui::{Id, Ui};
 use crate::widgets::label;
 
-/// How a text field changed this frame.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct FieldResponse {
     pub changed: bool,
-    /// Enter was pressed (or focus left) after editing.
     pub submitted: bool,
     pub focused: bool,
 }
 
-/// A horizontal slider over `min..=max`, snapped to `step`; drag it or use the wheel.
-/// Returns whether `value` changed.
 pub fn slider(
     ui: &mut Ui<'_>,
     id: Id,
@@ -74,7 +70,6 @@ pub fn slider(
     (*value - before).abs() > f64::EPSILON
 }
 
-/// A one-line text field: click to focus, type, Enter to submit, Escape to leave.
 pub fn text_field(ui: &mut Ui<'_>, id: Id, area: Rect, text: &mut String) -> FieldResponse {
     let roles = ui.theme.roles;
     let response = ui.interact(id, area);

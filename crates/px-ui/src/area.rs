@@ -10,7 +10,6 @@ pub const fn rect(x: i32, y: i32, width: i32, height: i32) -> Rect {
     }
 }
 
-/// Layout by cutting rectangles: every split returns the piece taken and the rest.
 pub trait Area: Sized {
     fn contains(self, x: i32, y: i32) -> bool;
     fn right(self) -> i32;
@@ -23,7 +22,6 @@ pub trait Area: Sized {
     fn take_right(self, width: i32) -> (Self, Self);
     fn take_top(self, height: i32) -> (Self, Self);
     fn take_bottom(self, height: i32) -> (Self, Self);
-    /// A `width`×`height` box centered in this one.
     #[must_use]
     fn centered(self, width: i32, height: i32) -> Self;
     fn is_empty(&self) -> bool;

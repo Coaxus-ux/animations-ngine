@@ -31,7 +31,6 @@ pub struct Particles {
     pub life: Param,
     pub size: Param,
     pub wind: Param,
-    /// Seconds of travel drawn as a trail behind each particle (rain, sparks).
     pub streak: Param,
     pub fade: bool,
 }
@@ -126,8 +125,6 @@ pub struct Style {
     pub clips: Vec<usize>,
     pub instance: Option<usize>,
     pub anchor: Option<Anchor>,
-    /// Root of the shape's randomness; when `None`, derived from the scene seed and the
-    /// shape's index.
     pub seed: Option<u64>,
 }
 

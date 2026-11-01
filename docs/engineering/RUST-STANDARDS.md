@@ -122,14 +122,13 @@ Measure before and after (release mode, representative workloads, allocation cou
 
 ## 14. Comments and documentation
 
-**Code explains itself.** If code needs a comment to be understood, rename, extract or retype it instead ([DECISIONS.md](DECISIONS.md) D-007).
+**Code explains itself, with no comments at all** ([DECISIONS.md](DECISIONS.md) D-024). If code needs a comment to be understood, rename, extract or retype it instead.
 
-- **No comments that restate code.** No doc comments on items whose name and signature already say what they do.
-- **A comment is allowed only for what code cannot express:** a non-obvious *why*, an invariant that types cannot enforce, a `// SAFETY:` proof, a reference to a spec rule, or instructions in a test file (how to bless golden files, how to run).
-- **Contracts that matter go where callers see them:** a short doc line on a public function only when its allocation, panic or determinism behavior is not obvious from its signature.
-- **Crate roots** state their memory profile in one line.
-- **CLI help text** is written as doc comments because clap turns it into `--help`.
-- **TODOs** reference an issue: `// TODO(#12): …`.
+- **No comments, no doc comments, no module docs.** `tools/comment_guard.py` fails `tools/check.sh` on any `//` line or trailing comment in Rust and any `#` line in the Python and shell tools.
+- **Contracts go into names and types:** a `Result` says it can fail, a newtype says what a number means, a `#[must_use]` says the value matters, an `#[expect(lint, reason = "…")]` attribute carries the reason a lint is silenced.
+- **Crate memory profiles** are recorded in the crate table of §2, not in crate roots.
+- **CLI help text** is written in clap attributes (`#[command(about = …)]`, `#[arg(help = …)]`), never in doc comments.
+- **Test instructions** (how to bless a golden) live in the assertion message the failing test prints.
 
 ## 15. Dependencies
 

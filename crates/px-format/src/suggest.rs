@@ -1,6 +1,5 @@
 const MAX_NAME: usize = 64;
 
-/// The candidate closest to `name` by edit distance, if it is close enough to be a typo.
 pub(crate) fn closest<'a>(
     name: &str,
     candidates: impl IntoIterator<Item = &'a str>,
@@ -23,7 +22,6 @@ pub(crate) fn did_you_mean<'a>(
         .unwrap_or_default()
 }
 
-/// A did-you-mean suggestion, or the full list when nothing is close.
 pub(crate) fn hint<'a>(
     name: &str,
     candidates: impl IntoIterator<Item = &'a str> + Clone,
@@ -39,7 +37,6 @@ pub(crate) fn hint<'a>(
     )
 }
 
-/// Optimal string alignment distance: Levenshtein plus adjacent transpositions (`widht` → `width`).
 fn distance(a: &str, b: &str) -> usize {
     let (a, b): (Vec<char>, Vec<char>) = (
         a.chars().take(MAX_NAME).collect(),

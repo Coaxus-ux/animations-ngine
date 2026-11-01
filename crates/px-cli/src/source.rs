@@ -5,7 +5,6 @@ use px_format::{Diagnostic, LoadError, LoadOptions, Loaded, SourceFile, Work};
 
 use crate::args::Input;
 
-/// Loads the input's scene and also returns every file the load read, even when it failed.
 pub(crate) fn load_tracked(input: &Input) -> (Result<Loaded>, Vec<PathBuf>) {
     load_file(&input.file, options(input))
 }

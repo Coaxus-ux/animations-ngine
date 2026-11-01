@@ -16,7 +16,6 @@ fn stamp(path: &Path) -> Option<Stamp> {
     })
 }
 
-/// Watches the root scene file and every file it uses.
 #[derive(Debug)]
 pub(crate) struct FileWatch {
     files: Vec<(PathBuf, Option<Stamp>)>,
@@ -29,8 +28,6 @@ impl FileWatch {
         }
     }
 
-    /// Replaces the watched set after a load; files new to the set start from their
-    /// current state, so tracking them doesn't count as a change.
     pub(crate) fn track(&mut self, paths: &[PathBuf]) {
         let files = paths
             .iter()
@@ -46,8 +43,6 @@ impl FileWatch {
         self.files = files;
     }
 
-    /// True the first time, then whenever a watched file's modification time or size
-    /// changes. A file that can't be read doesn't count as a change.
     pub(crate) fn changed(&mut self) -> bool {
         let mut changed = false;
         for (path, seen) in &mut self.files {

@@ -102,7 +102,6 @@ impl SceneParams {
         }
     }
 
-    /// Sets a param from a `use-scene` property; the value must have the param's type.
     pub(crate) fn set(&mut self, name: &str, value: ParamValue) -> Result<(), String> {
         let Some(param) = self.params.get_mut(name) else {
             let hint = suggest::hint(name, self.params.keys().map(String::as_str));

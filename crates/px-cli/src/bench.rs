@@ -42,7 +42,6 @@ struct Timing {
     total: Duration,
 }
 
-/// What a bench row reports about a scene, or about the largest shot of a sequence.
 struct Counts {
     size: String,
     frames: u32,
@@ -156,7 +155,6 @@ fn label(file: &Path, run: Option<&(String, String)>) -> String {
     }
 }
 
-/// Times every frame, keeping each frame's best of `rounds` renders.
 fn time_frames<E>(
     frames: u32,
     rounds: u32,

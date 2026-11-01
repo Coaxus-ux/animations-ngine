@@ -9,8 +9,6 @@ use super::mask::Mask;
 use super::values::Values;
 use crate::model::Text;
 
-/// Fills one glyph pixel per cell. Each cell's edges are snapped on their own, so the
-/// pixels of a glyph stay touching at any size and zoom.
 pub(crate) fn text(
     spec: &Text,
     values: &mut Values<'_>,

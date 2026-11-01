@@ -9,7 +9,6 @@ use px_format::{LoadOptions, load_scene};
 
 const PALETTE: &str = r##"palette "p" { ramp "sky" "#000000" "#111111"; ramp "ink" "#ffffff"; ramp "red" "#ff0000" }"##;
 
-/// A placed scene whose `mark` moves right one pixel per frame.
 const MOVER: &str = r#"scene "mover" palette="p" width=16 height=4 fps=4 duration="2s" loop=#true background="sky" {
     rect "mark" x="=t * 4" y=1 width=1 height=1 paint="ink"
 }"#;

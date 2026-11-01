@@ -16,7 +16,6 @@ fn scene(body: &str, props: &str) -> String {
     )
 }
 
-/// Loads and returns every diagnostic rendered as `line:col severity message`.
 fn diagnostics(source: &str) -> Vec<String> {
     let diagnostics = match load_scene(source, LoadOptions::default()) {
         Ok(loaded) => loaded.warnings,

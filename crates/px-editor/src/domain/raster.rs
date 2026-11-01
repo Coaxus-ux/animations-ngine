@@ -2,8 +2,6 @@ use px_core::Paint;
 use px_engine::Cel;
 use px_raster::Plot;
 
-/// One cel being edited, as a canvas-sized image in scene coordinates: what tools paint
-/// into. Pixels outside the canvas aren't editable here and are kept as they were.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Raster {
     width: i32,
@@ -22,7 +20,6 @@ impl Raster {
         }
     }
 
-    /// The pixels of `cel`, whose layer's origin is at `origin` on the canvas.
     #[must_use]
     pub fn from_cel(cel: Option<&Cel>, origin: (i32, i32), width: i32, height: i32) -> Self {
         let mut raster = Self::new(width, height);
@@ -39,7 +36,6 @@ impl Raster {
         raster
     }
 
-    /// A cel starting at `frame` holding these pixels, relative to the layer's `origin`.
     #[must_use]
     pub fn to_cel(&self, frame: u32, origin: (i32, i32)) -> Cel {
         Cel {
@@ -78,8 +74,6 @@ impl Raster {
         self.index(x, y).is_some()
     }
 
-    /// Fills the 4-connected region of pixels equal to the one at `(x, y)` (or, `global`,
-    /// every such pixel), only where `allowed` says so.
     pub fn flood(
         &mut self,
         x: i32,
@@ -115,7 +109,6 @@ impl Raster {
         }
     }
 
-    /// A `Plot` that sets pixels to `paint` where `allowed` says so.
     pub fn brush<F: Fn(i32, i32) -> bool>(
         &mut self,
         paint: Option<Paint>,

@@ -31,7 +31,6 @@ impl Playback {
     pub(crate) fn step(&mut self, frames: i32, timing: Timing) {
         let fps = f64::from(timing.fps.get());
         let current = f64::from(self.frame(timing).index());
-        // Land in the middle of the target frame so float error never rounds to a neighbor.
         self.seconds = ((current + f64::from(frames)).max(0.0) + 0.5) / fps;
     }
 

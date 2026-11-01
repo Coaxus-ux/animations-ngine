@@ -169,13 +169,11 @@ impl Palette {
         self.resolve(paint).is_ok()
     }
 
-    /// The palette's darkest color by perceived brightness (the first one on ties).
     #[must_use]
     pub fn darkest(&self) -> Option<Paint> {
         self.extreme(|luma, best| luma < best)
     }
 
-    /// The palette's lightest color by perceived brightness (the first one on ties).
     #[must_use]
     pub fn lightest(&self) -> Option<Paint> {
         self.extreme(|luma, best| luma > best)
@@ -198,7 +196,6 @@ impl Palette {
         found.map(|(paint, _)| paint)
     }
 
-    /// The ramp a pixel switches to under a light of `color` (PALETTES §4.4).
     pub fn set_twin(
         &mut self,
         ramp: RampId,
@@ -221,7 +218,6 @@ impl Palette {
             .and_then(|twins| twins[color.index()])
     }
 
-    /// Whether `ramp` is `base` itself or one of its twins, i.e. the same material under some light.
     #[must_use]
     pub fn is_variant_of(&self, ramp: RampId, base: RampId) -> bool {
         ramp == base

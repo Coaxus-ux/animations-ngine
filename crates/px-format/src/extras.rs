@@ -12,7 +12,6 @@ use crate::suggest;
 use crate::text::{Align, layout};
 use crate::values;
 
-/// Non-animatable settings that only some kinds have.
 #[derive(Clone, Debug, Default)]
 pub(crate) enum Extras {
     #[default]
@@ -50,7 +49,6 @@ pub(crate) enum Extras {
     Instance(Box<Placement>),
 }
 
-/// What a `use-scene` places: the scene, whether it loops, and its param overrides.
 #[derive(Clone, Debug)]
 pub(crate) struct Placement {
     pub(crate) scene: String,
@@ -145,8 +143,6 @@ pub(crate) fn parse(
     }
 }
 
-/// Lays the text out when the scene loads: `text "Hello [b]world[/b]" x=… y=…`. The words
-/// come first (`"$title"` reads a text param); `font` defaults to the built-in one.
 fn text(props: &mut Props<'_>, names: &Names<'_>, diags: &mut Diagnostics) -> Extras {
     let font = props
         .get("font")
@@ -214,7 +210,6 @@ fn text(props: &mut Props<'_>, names: &Names<'_>, diags: &mut Diagnostics) -> Ex
     Extras::Text(laid.cells)
 }
 
-/// Parses `"a,b a,b …"` into groups of `N` numbers.
 fn tuples<const N: usize>(
     props: &mut Props<'_>,
     key: &'static str,
@@ -250,7 +245,6 @@ fn tuples<const N: usize>(
     }
 }
 
-/// Every prop not read so far, as a param override of the scene being placed or shot.
 pub(crate) fn overrides(props: &mut Props<'_>, diags: &mut Diagnostics) -> Vec<Override> {
     props
         .rest()

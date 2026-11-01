@@ -74,7 +74,6 @@ impl<'a, 'd> Compiler<'a, 'd> {
         }
     }
 
-    /// Every property of every draft, in schema order, or `None` after reporting errors.
     pub(crate) fn compile_all(mut self) -> Option<Vec<Vec<Param>>> {
         let mut all = Vec::with_capacity(self.drafts.len());
         let mut complete = true;

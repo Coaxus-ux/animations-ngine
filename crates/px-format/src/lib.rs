@@ -1,4 +1,3 @@
-//! Loads KDL scene files into the engine scene model. Memory profile: allocation-conscious authoring layer.
 #![forbid(unsafe_code)]
 
 mod assemble;

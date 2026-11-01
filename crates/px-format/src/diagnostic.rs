@@ -13,7 +13,6 @@ pub enum Severity {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Diagnostic {
     pub severity: Severity,
-    /// Index into the files of the load ([`LoadError::files`], `Loaded::files`).
     pub file: usize,
     pub offset: usize,
     pub message: String,
@@ -30,7 +29,6 @@ impl Diagnostic {
         format!("{path}:{line}:{column} {label} {}", self.message)
     }
 
-    /// Renders against the files of the load this diagnostic came from.
     #[must_use]
     pub fn display(&self, files: &[SourceFile]) -> String {
         match files.get(self.file) {
@@ -77,7 +75,6 @@ pub(crate) struct Diagnostics {
 }
 
 impl Diagnostics {
-    /// Attributes later diagnostics to `file`; returns the previous file to restore.
     pub(crate) fn in_file(&mut self, file: usize) -> usize {
         core::mem::replace(&mut self.file, file)
     }
@@ -94,7 +91,6 @@ impl Diagnostics {
         self.push(Severity::Warning, offset, message.into());
     }
 
-    /// Repeats are dropped: a scene placed many times reports each problem once.
     fn push(&mut self, severity: Severity, offset: usize, message: String) {
         let diagnostic = Diagnostic {
             severity,

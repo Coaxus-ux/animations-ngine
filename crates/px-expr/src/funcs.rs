@@ -209,7 +209,6 @@ impl Func {
         }
     }
 
-    /// Whether the result depends on `ctx.time`; exhaustive so a new function must decide.
     pub(crate) const fn reads_time(self) -> bool {
         match self {
             Self::Cycle | Self::Osc | Self::Pulse | Self::Between | Self::Wiggle | Self::Wind => {

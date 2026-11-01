@@ -7,18 +7,15 @@ use crate::props::Props;
 use crate::suggest;
 use crate::values;
 
-/// The font `text` uses when it names none; a scene can define its own font by this name.
 pub(crate) const DEFAULT_FONT: &str = "5x7";
 const DEFAULT_SOURCE: &str = include_str!("../fonts/5x7.kdl");
 
-/// PIECES.md §3: the largest grid a piece (and so a glyph) can have.
 const MAX_GLYPH_SIDE: u8 = 64;
 const INK: char = '#';
 const EMPTY: char = '.';
 
 pub(crate) type Fonts = BTreeMap<String, Font>;
 
-/// A pixel font (PIECES.md §10): every glyph is as tall as the font.
 #[derive(Clone, Debug)]
 pub struct Font {
     pub(crate) height: u8,
@@ -34,7 +31,6 @@ pub struct Glyph {
 }
 
 impl Font {
-    /// The built-in 5×7 font.
     #[must_use]
     pub fn builtin() -> Option<Self> {
         default_font()
@@ -60,7 +56,6 @@ impl Font {
         self.glyphs.get(&character)
     }
 
-    /// The hollow box drawn for a character the font has no glyph for.
     #[must_use]
     pub fn placeholder(&self) -> Glyph {
         let width = (self.height / 2 + 1).max(3);
@@ -79,14 +74,12 @@ impl Glyph {
         self.width
     }
 
-    /// Ink pixels as (x, y) from the glyph's top-left.
     #[must_use]
     pub fn ink(&self) -> &[(u8, u8)] {
         &self.ink
     }
 }
 
-/// The built-in font, parsed from the copy compiled into the crate.
 pub(crate) fn default_font() -> Option<Font> {
     let document = KdlDocument::parse_v2(DEFAULT_SOURCE).ok()?;
     let node = document.nodes().first()?;
@@ -138,7 +131,6 @@ pub(crate) fn parse(node: &KdlNode, diags: &mut Diagnostics) -> Option<(String, 
 }
 
 impl Font {
-    /// `glyph "A" """grid"""`, or `glyph " " width=3` for one without ink.
     fn add_glyph(&mut self, node: &KdlNode, diags: &mut Diagnostics) {
         let mut props = Props::new(node);
         let args: Vec<&KdlEntry> = props.args().collect();
@@ -180,7 +172,6 @@ impl Font {
         }
     }
 
-    /// Rows go one per line, or on one line separated by spaces: `".#. #.# .#."`.
     fn grid(&self, grid: &str, offset: usize, diags: &mut Diagnostics) -> Option<Glyph> {
         let rows: Vec<&str> = grid.split_whitespace().collect();
         let width = rows.first().map_or(0, |row| row.chars().count());

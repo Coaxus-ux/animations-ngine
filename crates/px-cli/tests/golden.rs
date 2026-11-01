@@ -1,7 +1,3 @@
-//! Golden-hash test for every scene and sequence in `examples/` and `benchmarks/*/`:
-//! indexed-buffer hashes per frame must match `tests/golden/<name>.txt` on every platform (benchmark
-//! names are prefixed with their folder). Set `PX_BLESS=1` to rewrite the files after an
-//! intended change, and review the diff.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"

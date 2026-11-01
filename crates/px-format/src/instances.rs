@@ -10,11 +10,9 @@ use crate::schema::Kind;
 use crate::suggest;
 use crate::timeline::Track;
 
-/// How deep scenes can be placed inside scenes.
 const MAX_DEPTH: usize = 8;
 const SEAM_TOLERANCE: f64 = 1e-6;
 
-/// Places the scene a `use-scene` names, once per copy, at the request's spot in the host.
 pub(crate) fn expand(
     builder: &mut Builder<'_, '_>,
     request: &Request,
@@ -118,7 +116,6 @@ pub(crate) fn expand(
     }
 }
 
-/// The scene a `use-scene` names and its file, unless it is unknown or would place itself.
 fn find<'l>(
     builder: &Builder<'_, 'l>,
     request: &Request,
@@ -143,7 +140,6 @@ fn find<'l>(
     Some((file, node))
 }
 
-/// The copies one `use-scene` makes: `count` of them, numbered `i` = 0..n.
 struct Copies {
     count: u32,
 }
@@ -184,8 +180,6 @@ impl Copies {
     }
 }
 
-/// A looping placement that plays through a looping host must fit a whole number of its
-/// own loops into one host loop, or the host's loop shows a seam.
 fn check_seam(request: &Request, window: Window, own: Option<f64>, diags: &mut Diagnostics) {
     let (Some(host), Some(own)) = (request.parent.loop_period, own) else {
         return;
@@ -215,7 +209,6 @@ fn prop_of<'p>(params: &'p [Param], name: &str) -> Option<&'p Param> {
         .and_then(|index| params.get(index))
 }
 
-/// Properties read when the file loads see `i` and `n` but not time.
 fn eval(param: &Param, env: &Env) -> f64 {
     param.value(env).unwrap_or(0.0)
 }

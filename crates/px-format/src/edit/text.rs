@@ -1,6 +1,5 @@
 use kdl::{KdlEntry, KdlNode};
 
-/// A byte range of the source text.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) struct Span {
     pub(super) start: usize,
@@ -35,7 +34,6 @@ impl Span {
         offset >= self.start && offset < self.end
     }
 
-    /// Without the whitespace the parser counts as part of a node's text at its end.
     pub(super) fn trimmed(self, text: &str) -> Self {
         let kept = text[self.start..self.end].trim_end().len();
         Self {
@@ -45,7 +43,6 @@ impl Span {
     }
 }
 
-/// Line arithmetic over the source text.
 pub(super) struct Lines<'t>(pub(super) &'t str);
 
 impl Lines<'_> {
@@ -55,14 +52,12 @@ impl Lines<'_> {
             .map_or(0, |newline| newline + 1)
     }
 
-    /// Just past the newline ending the line `offset` is on (or the end of the text).
     pub(super) fn line_end(&self, offset: usize) -> usize {
         self.0[offset..]
             .find('\n')
             .map_or(self.0.len(), |newline| offset + newline + 1)
     }
 
-    /// The whitespace before `offset` on its line, or nothing if other text precedes it.
     pub(super) fn indent_at(&self, offset: usize) -> &str {
         let before = &self.0[self.line_start(offset)..offset];
         if before.chars().all(char::is_whitespace) {
@@ -72,7 +67,6 @@ impl Lines<'_> {
         }
     }
 
-    /// `span` widened to its whole lines (with a trailing comment) when it is alone on them.
     pub(super) fn whole_lines(&self, span: Span) -> Span {
         let start = self.line_start(span.start);
         let end = self.line_end(span.end);

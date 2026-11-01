@@ -8,14 +8,11 @@ use super::surface::{Region, Surface};
 use super::values::Values;
 use crate::model::{Geometry, MAX_CLIPS, Scene, Shape};
 
-/// What every shape of a frame shares.
 pub(crate) struct Context<'c> {
     pub(crate) clips: &'c [Region; MAX_CLIPS],
     pub(crate) light: [f64; 3],
 }
 
-/// Draws every shape in order, copying a shape's stamp when it lands where it was captured;
-/// with `capture`, records new stamps.
 pub(crate) fn draw_shapes(
     pass: &mut Pass<'_, '_>,
     context: &Context<'_>,
@@ -59,7 +56,6 @@ pub(crate) fn draw_shapes(
     Ok(())
 }
 
-/// The regions of the clips `shape` is drawn inside, in order, padded with defaults.
 fn shape_clips(shape: &Shape, clips: &[Region; MAX_CLIPS]) -> [Region; MAX_NESTED_CLIPS] {
     let mut regions = [Region::default(); MAX_NESTED_CLIPS];
     for (target, clip) in regions.iter_mut().zip(&shape.style.clips) {
@@ -68,8 +64,6 @@ fn shape_clips(shape: &Shape, clips: &[Region; MAX_CLIPS]) -> [Region; MAX_NESTE
     regions
 }
 
-/// Shapes whose drawing reads the surface (shades darken it, contact shadows too) or the
-/// clock directly (particles) are drawn every frame.
 fn can_stamp(shape: &Shape) -> bool {
     !matches!(
         shape.geometry,
@@ -87,9 +81,6 @@ struct ShapeDraw<'d> {
 }
 
 impl ShapeDraw<'_> {
-    /// Draws the shape; returns whether anything about it changes over time or reads the
-    /// surface (which rules out a stamp), and how many non-finite values it reported since
-    /// `before`.
     fn draw(
         &self,
         mut values: Values<'_>,

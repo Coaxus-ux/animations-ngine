@@ -1,4 +1,3 @@
-//! Core types: paints, palettes, canvas views, time, hashing. Memory profile: strict heapless (`no_std`, no `alloc`).
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(clippy::disallowed_macros, clippy::disallowed_types)]

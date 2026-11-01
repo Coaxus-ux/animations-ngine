@@ -185,7 +185,6 @@ impl Kind {
         const LAYER: [Prop; 1] = [optional("fog", N, 0.0)];
         const AMBIENT: [Prop; 1] = [optional("darkness", N, 0.0)];
         const CAMERA: [Prop; 3] = [ORIGIN[0], ORIGIN[1], optional("zoom", N, 1.0)];
-        // Everything but x, y and scale is read once per copy when the file loads.
         const USE_SCENE: [Prop; 10] = [
             ORIGIN[0],
             ORIGIN[1],
@@ -263,7 +262,6 @@ impl Kind {
         }
     }
 
-    /// Shapes, lights and placed scenes can be attached to another object.
     pub(crate) const fn can_attach(self) -> bool {
         self.is_shape()
             || matches!(

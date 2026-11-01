@@ -37,16 +37,16 @@ fn no_errors(app: &App) {
 
 const SHUFFLED_HEX: &str = concat!(
     "; Lospec\n",
-    "3050c0\n", // blue, mid
-    "c02020\n", // red, mid
-    "7f7f7f\n", // gray
-    "102040\n", // blue, darkest
-    "208030\n", // green, dark
-    "ff8080\n", // red, light
-    "6080e0\n", // blue, light
-    "60c060\n", // green, light
-    "601010\n", // red, dark
-    "a0c0ff\n", // blue, lightest
+    "3050c0\n",
+    "c02020\n",
+    "7f7f7f\n",
+    "102040\n",
+    "208030\n",
+    "ff8080\n",
+    "6080e0\n",
+    "60c060\n",
+    "601010\n",
+    "a0c0ff\n",
 );
 
 #[test]

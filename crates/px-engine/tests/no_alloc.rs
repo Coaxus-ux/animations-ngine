@@ -1,5 +1,3 @@
-//! Certifies that `FrameBuffer::render` performs no heap activity after setup
-//! (`docs/engineering/RUST-STANDARDS.md` §13). Run alone: `--test-threads=1`.
 #![allow(
     unsafe_code,
     reason = "test-only counting allocator, see DECISIONS.md D-002"
@@ -257,7 +255,6 @@ fn environment(kit: &Kit) -> Environment {
     }
 }
 
-/// A flipped, scaled, time-shifted instance with a nested child that holds its last frame.
 fn instances() -> Vec<Instance> {
     vec![
         Instance {

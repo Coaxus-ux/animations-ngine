@@ -8,7 +8,6 @@ use crate::props::Props;
 use crate::units;
 use crate::values;
 
-/// Named points in a scene's time, written in its `timeline` block.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Markers(BTreeMap<String, f64>);
 
@@ -17,7 +16,6 @@ impl Markers {
         self.0.get(name).copied()
     }
 
-    /// Reads every `marker "name" at="2s"` inside the scene's `timeline` blocks.
     pub(crate) fn parse(scene: &KdlNode, fps: FrameRate, diags: &mut Diagnostics) -> Self {
         let mut markers = Self::default();
         let timelines = children(scene)
@@ -60,7 +58,6 @@ impl Markers {
         markers
     }
 
-    /// Every marker, earliest first.
     pub(crate) fn report(&self) -> Vec<Marker> {
         let mut markers: Vec<Marker> = self
             .0
@@ -83,7 +80,6 @@ fn seconds(text: &str, fps: FrameRate) -> Option<f64> {
     units::literal(text)?.seconds(fps)
 }
 
-/// What plays when in the root scene, for `pxe timeline` and the editor.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Timeline {
     pub duration: f64,
@@ -98,19 +94,16 @@ pub struct Marker {
     pub at: f64,
 }
 
-/// One `use-scene`, with times in its host's seconds.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Track {
     pub scene: String,
     pub id: Option<String>,
-    /// How many scenes it is nested in below the root.
     pub depth: usize,
     pub count: u32,
     pub start: f64,
     pub end: f64,
     pub offset: f64,
     pub speed: f64,
-    /// Length of the placed scene.
     pub duration: f64,
     pub looping: bool,
 }

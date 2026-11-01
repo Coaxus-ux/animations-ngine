@@ -19,15 +19,11 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-# --- Policy -----------------------------------------------------------------
-
-
 @dataclass(frozen=True)
 class Limit:
     kind: str
     max_lines: int | None
     max_bytes: int
-
 
 CODE = Limit("code", max_lines=400, max_bytes=64 * 1024)
 DOC = Limit("doc", max_lines=1000, max_bytes=128 * 1024)
@@ -44,7 +40,6 @@ SPLIT_HINT = (
     "(see docs/engineering/RUST-STANDARDS.md §0 and §7 and CLAUDE.md)."
 )
 
-
 def limit_for(path: Path) -> Limit | None:
     if path.name in EXEMPT_NAMES:
         return None
@@ -57,20 +52,14 @@ def limit_for(path: Path) -> Limit | None:
         return DATA
     return BINARY
 
-
-# --- Measurement --------------------------------------------------------------
-
-
 @dataclass(frozen=True)
 class Size:
     lines: int
     bytes: int
 
-
 def measure(data: bytes) -> Size:
     lines = data.count(b"\n") + (1 if data and not data.endswith(b"\n") else 0)
     return Size(lines=lines, bytes=len(data))
-
 
 def violations(limit: Limit, size: Size) -> list[str]:
     found = []
@@ -80,13 +69,8 @@ def violations(limit: Limit, size: Size) -> list[str]:
         found.append(f"{size.bytes} bytes > {limit.max_bytes} allowed for {limit.kind} files")
     return found
 
-
 def grew(before: Size | None, after: Size) -> bool:
     return before is None or after.lines > before.lines or after.bytes > before.bytes
-
-
-# --- Hook mode ----------------------------------------------------------------
-
 
 def read_text(path: Path) -> str:
     try:
@@ -94,10 +78,8 @@ def read_text(path: Path) -> str:
     except (FileNotFoundError, UnicodeDecodeError):
         return ""
 
-
 def apply_edit(text: str, old: str, new: str, replace_all: bool) -> str:
     return text.replace(old, new) if replace_all else text.replace(old, new, 1)
-
 
 def resulting_text(tool: str, tool_input: dict, current: str) -> str | None:
     if tool == "Write":
@@ -121,7 +103,6 @@ def resulting_text(tool: str, tool_input: dict, current: str) -> str | None:
         return text
     return None
 
-
 def inside_project(path: Path) -> bool:
     root = os.environ.get("CLAUDE_PROJECT_DIR")
     if not root:
@@ -131,7 +112,6 @@ def inside_project(path: Path) -> bool:
     except ValueError:
         return False
     return True
-
 
 def run_hook() -> int:
     payload = json.load(sys.stdin)
@@ -157,10 +137,6 @@ def run_hook() -> int:
         return 2
     return 0
 
-
-# --- Check mode ---------------------------------------------------------------
-
-
 def run_check(paths: list[str]) -> int:
     failed = False
     for raw in paths:
@@ -176,7 +152,6 @@ def run_check(paths: list[str]) -> int:
         print(SPLIT_HINT, file=sys.stderr)
     return 1 if failed else 0
 
-
 def main(argv: list[str]) -> int:
     if len(argv) >= 2 and argv[1] == "hook":
         return run_hook()
@@ -184,7 +159,6 @@ def main(argv: list[str]) -> int:
         return run_check(argv[2:])
     print("usage: file_size_guard.py hook | check <paths...>", file=sys.stderr)
     return 64
-
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

@@ -3,7 +3,6 @@ use std::collections::BTreeMap;
 use px_core::{Frame, Paint};
 use px_engine::{FrameBuffer, RenderError, Scene};
 
-/// A small indexed image with transparent pixels: an icon rendered by the engine.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Bitmap {
     width: i32,
@@ -12,8 +11,6 @@ pub struct Bitmap {
 }
 
 impl Bitmap {
-    /// Renders frame 0 of `scene`; pixels left at `transparent` (the scene's background,
-    /// usually) become see-through.
     pub fn render(scene: &Scene, transparent: Paint) -> Result<Self, RenderError> {
         let mut buffer = FrameBuffer::new(scene);
         let view = buffer.render(scene, Frame::new(0))?;
@@ -39,7 +36,6 @@ impl Bitmap {
         self.height
     }
 
-    /// Every opaque pixel as (row, column, paint).
     pub fn opaque(&self) -> impl Iterator<Item = (i32, i32, Paint)> + '_ {
         let width = usize::try_from(self.width.max(1)).unwrap_or(1);
         (0i32..)

@@ -18,8 +18,6 @@ const POLL: Duration = Duration::from_millis(100);
 struct Live {
     scene: Scene,
     buffer: FrameBuffer,
-    /// The frame on screen; the window refreshes faster than scenes play, and a paused
-    /// scene doesn't change, so a frame is rendered only when it changes.
     shown: Option<Frame>,
     rendering: Duration,
     rendered: u32,

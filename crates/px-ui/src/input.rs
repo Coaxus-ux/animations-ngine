@@ -1,4 +1,3 @@
-/// A key, independent of the window library.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Key {
     Letter(char),
@@ -49,28 +48,21 @@ pub struct Modifiers {
     pub shift: bool,
     pub ctrl: bool,
     pub alt: bool,
-    /// Ctrl, or Cmd on macOS: what shortcuts like save and undo use.
     pub command: bool,
 }
 
-/// One frame of input for one window, in UI pixels.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Input {
-    /// Pointer position, or `None` while it is outside the window.
     pub pointer: Option<(i32, i32)>,
-    /// Pointer position even outside the window (for panels dragged out of it).
     pub pointer_anywhere: (i32, i32),
     pub down: Buttons,
     pub pressed: Buttons,
     pub released: Buttons,
-    /// Wheel steps this frame; positive scrolls up (or zooms in).
     pub wheel: (f32, f32),
     pub keys: Vec<Key>,
     pub held: Vec<Key>,
     pub modifiers: Modifiers,
-    /// Characters typed this frame.
     pub text: String,
-    /// Milliseconds since the app started, for blinking and marching ants.
     pub time_ms: u64,
 }
 
@@ -85,7 +77,6 @@ impl Input {
         self.held.contains(&key)
     }
 
-    /// `key` pressed with the command modifier.
     #[must_use]
     pub fn shortcut(&self, key: Key) -> bool {
         self.modifiers.command && self.key(key)

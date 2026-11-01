@@ -1,5 +1,3 @@
-//! `pxe export` end to end: the GIF must not depend on `--jobs`, and its delta frames must
-//! decode to exactly the rendered frames.
 #![allow(
     clippy::unwrap_used,
     reason = "tests should fail loudly on unexpected errors"
@@ -14,7 +12,6 @@ use px_engine::FrameBuffer;
 use px_export::{Scale, resolve_rgb};
 use px_format::{LoadOptions, Work};
 
-/// 24 frames: two chunks, so the second starts from a re-rendered reference frame.
 const EXAMPLE: &str = "campfire-forest";
 
 fn export(example: &Path, jobs: u32, out: &Path) -> Vec<u8> {
@@ -29,7 +26,6 @@ fn export(example: &Path, jobs: u32, out: &Path) -> Vec<u8> {
     std::fs::read(out).unwrap()
 }
 
-/// Every frame as the screen shows it: each delta drawn over the frames before it.
 fn decoded_frames(bytes: &[u8]) -> Vec<Vec<u8>> {
     let mut options = gif::DecodeOptions::new();
     options.set_color_output(gif::ColorOutput::RGBA);

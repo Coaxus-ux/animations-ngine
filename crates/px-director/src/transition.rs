@@ -2,10 +2,8 @@ use px_core::{Paint, Palette, Size, Tone, dither_keep, dither_steps};
 
 use crate::sequence::{Edge, TransitionKind};
 
-/// Width in pixels of the dithered band along a wipe's edge.
 const WIPE_BAND: f64 = 6.0;
 
-/// One rendered shot: its slot in the sequence, its pixels and its palette.
 #[derive(Clone, Copy)]
 pub(crate) struct Side<'a> {
     pub(crate) shot: u8,
@@ -13,14 +11,11 @@ pub(crate) struct Side<'a> {
     pub(crate) palette: &'a Palette,
 }
 
-/// Where composed pixels go: the paint and the shot whose palette it belongs to.
 pub(crate) struct Target<'a> {
     pub(crate) paints: &'a mut [Paint],
     pub(crate) shots: &'a mut [u8],
 }
 
-/// Writes one transition frame. Colors are never blended (DIRECTOR.md §4.1): each pixel is
-/// a palette color of one shot or the other.
 pub(crate) fn compose(
     kind: TransitionKind,
     progress: f64,
@@ -55,7 +50,6 @@ fn coordinate(value: usize) -> i32 {
     i32::try_from(value).unwrap_or(i32::MAX)
 }
 
-/// Whether the incoming shot already covers this pixel.
 fn wiped(edge: Edge, progress: f64, size: Size, x: i32, y: i32) -> bool {
     let (width, height) = (i32::from(size.width()), i32::from(size.height()));
     let (along, extent) = match edge {
@@ -68,8 +62,6 @@ fn wiped(edge: Edge, progress: f64, size: Size, x: i32, y: i32) -> bool {
     dither_keep((front - f64::from(along)) / WIPE_BAND + 0.5, x, y)
 }
 
-/// Black and white step every tone toward the palette's end, the darker or lighter way,
-/// until the whole frame is that one color at the midpoint; then the next shot comes back.
 struct Fade<'a> {
     side: Side<'a>,
     toward: Option<Paint>,

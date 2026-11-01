@@ -30,7 +30,6 @@ fn error(body: &str) -> String {
         .clone()
 }
 
-/// Rows of the frame: `.` for the background, `0`/`1` for the two ink tones.
 fn picture(scene: &Scene, frame: u32) -> Vec<String> {
     let mut buffer = FrameBuffer::new(scene);
     let view = buffer.render(scene, Frame::new(frame)).unwrap();

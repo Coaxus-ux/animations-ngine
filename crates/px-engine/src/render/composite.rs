@@ -8,7 +8,6 @@ use super::texture::{clustered_noise, sample_texture};
 use super::transform::Transform;
 use crate::model::{Geometry, Gradient, GradientDirection, Outline, Shading, Shape};
 
-/// Everything about one shape that was evaluated for this frame.
 pub(crate) struct Evaluated<'c> {
     pub(crate) depth: u16,
     pub(crate) seed: u64,
@@ -20,11 +19,9 @@ pub(crate) struct Evaluated<'c> {
     pub(crate) fog_paint: Option<Paint>,
     pub(crate) clips: &'c [Region],
     pub(crate) light: [f64; 3],
-    /// Maps local coordinates to the canvas; textures are anchored to the local side.
     pub(crate) transform: Transform,
 }
 
-/// Draws the rasterized shape; every pixel it writes is also pushed to `writes`, if given.
 pub(crate) fn composite(
     shape: &Shape,
     frame: &Evaluated<'_>,
@@ -34,7 +31,6 @@ pub(crate) fn composite(
     mut writes: Option<&mut Vec<Write>>,
 ) {
     let style = &shape.style;
-    // Pixel art keeps its pixels as painted: cleanup would add pixels without a paint.
     let own_paints = matches!(shape.geometry, Geometry::Pixels(_));
     if style.cleanup && !own_paints {
         mask.clean();
@@ -46,7 +42,6 @@ pub(crate) fn composite(
         shade(frame, palette, mask, surface);
         return;
     }
-    // Selective outlines read the field too: it tells which edges face the light.
     let max_distance = match (style.shading, style.outline) {
         (Shading::Dome { .. }, _) | (_, Outline::Selective(_)) => f64::from(mask.distance_field()),
         _ => 1.0,
@@ -107,7 +102,6 @@ struct Fill<'a> {
     bbox: [i32; 4],
     max_distance: f64,
     ramp_len: u8,
-    /// Each pixel brings its own paint (`mask.paints`) instead of the shape's.
     own_paints: bool,
 }
 
@@ -143,8 +137,6 @@ impl Fill<'_> {
     }
 }
 
-/// Atmospheric perspective: the tone keeps its place in the ramp, moved into the fog ramp
-/// and pulled toward the fog tone. Rounded, not dithered: fog is uniform across a layer.
 fn fogged(paint: Paint, fog: Paint, amount: f64, palette: &Palette) -> Paint {
     let length = |ramp| palette.ramp(ramp).map_or(1, px_core::Ramp::len);
     let (own, target) = (length(paint.ramp), length(fog.ramp));
@@ -210,7 +202,6 @@ fn outline_paint(
     Some(color)
 }
 
-// Pixel-perfect lines: an edge pixel that only turns a corner doubles the line (RENDERING §7.2).
 fn is_l_corner(mask: &Mask<'_>, x: i32, y: i32) -> bool {
     let edge = |dx: i32, dy: i32| mask.is_edge(x + dx, y + dy);
     let neighbors = [
@@ -257,7 +248,6 @@ fn shading(
     let n = normal(mask, x, y, max_distance);
     let lit = n[0] * light[0] + n[1] * light[1] + n[2] * light[2] - light[2];
     let value = lit * 2.5 * f64::from(steps);
-    // Dithered bands only read as gradients on larger forms; small ones get hard bands (cleanup spike).
     if soft && max_distance >= 24.0 {
         value
     } else {

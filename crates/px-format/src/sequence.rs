@@ -14,8 +14,6 @@ use crate::{suggest, units, values};
 const KINDS: [&str; 5] = ["cut", "dither", "black", "white", "wipe"];
 const EDGES: [&str; 4] = ["left", "right", "top", "bottom"];
 
-/// `sequence "name" { shot …; transition …; shot … }` (DIRECTOR.md §4). Shots next to
-/// each other without a transition are cut together.
 pub(crate) fn parse(
     node: &KdlNode,
     file: usize,
@@ -71,7 +69,6 @@ pub(crate) fn parse(
         .ok()
 }
 
-/// Compiles the shot's scene with the shot's param overrides.
 fn shot(
     node: &KdlNode,
     file: usize,
@@ -187,7 +184,6 @@ fn transition(node: &KdlNode, fps: FrameRate, diags: &mut Diagnostics) -> Option
     Some(Transition { kind, frames })
 }
 
-/// A time value in whole frames; it can also name one of `markers`.
 fn whole_frames(
     entry: &KdlEntry,
     fps: FrameRate,

@@ -34,7 +34,6 @@ pub struct Clip {
 pub struct Camera {
     pub x: Param,
     pub y: Param,
-    /// Scale about the canvas center; shapes are rasterized again at every zoom.
     pub zoom: Param,
 }
 
@@ -94,7 +93,6 @@ pub struct Reflection {
     pub speed: Param,
     pub tone_shift: Param,
     pub opacity: Param,
-    /// Only pixels of this ramp (the water) receive the reflection.
     pub surface: Option<RampId>,
     pub instance: Option<usize>,
 }
@@ -108,6 +106,5 @@ pub struct Environment {
     pub ambient: Ambient,
     pub reflections: Vec<Reflection>,
     pub wind: Wind,
-    /// Parents come before their children.
     pub instances: Vec<Instance>,
 }

@@ -2,7 +2,6 @@ use px_raster::{Plot, Rect, fill_polygon, fill_rect};
 
 use super::raster::Raster;
 
-/// Which canvas pixels tools may change; empty means all of them.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Selection {
     width: i32,
@@ -22,7 +21,6 @@ impl Selection {
         }
     }
 
-    /// The pixels of the box spanned by two corners (inclusive).
     #[must_use]
     pub fn rectangle(width: i32, height: i32, a: (i32, i32), b: (i32, i32)) -> Self {
         let mut selection = Self::none(width, height);
@@ -41,7 +39,6 @@ impl Selection {
         selection
     }
 
-    /// The pixels inside the polygon traced by a lasso.
     #[must_use]
     pub fn lasso(width: i32, height: i32, points: &[(i32, i32)]) -> Self {
         let mut selection = Self::none(width, height);
@@ -76,7 +73,6 @@ impl Selection {
         !self.any
     }
 
-    /// Whether tools may change `(x, y)`: inside the selection, or anywhere without one.
     #[must_use]
     pub fn allows(&self, x: i32, y: i32) -> bool {
         !self.any || self.contains(x, y)
@@ -101,7 +97,6 @@ impl Selection {
         bounds
     }
 
-    /// Whether `(x, y)` is selected but a neighbor isn't: where marching ants go.
     #[must_use]
     pub fn is_edge(&self, x: i32, y: i32) -> bool {
         self.contains(x, y)
@@ -124,7 +119,6 @@ impl Selection {
         moved
     }
 
-    /// The selected pixels of `raster`, lifted out (left empty in it).
     pub fn lift(&self, raster: &mut Raster) -> Raster {
         let mut lifted = Raster::new(raster.width(), raster.height());
         for y in 0..self.height {
@@ -138,7 +132,6 @@ impl Selection {
         lifted
     }
 
-    /// Mirrors the selected pixels of `raster` inside the selection's box.
     pub fn flip(&self, raster: &mut Raster, horizontal: bool) {
         let Some((x0, y0, x1, y1)) = self.bounds() else {
             return;

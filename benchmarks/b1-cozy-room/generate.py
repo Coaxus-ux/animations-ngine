@@ -70,7 +70,6 @@ scene "cozy-room" palette="night-room" width=192 height=192 fps=12 duration="2s"
     line x1=63 y1=26 x2=63 y2=165 paint="wall.shade"
     line x1=63 y1=26 x2=191 y2=26 paint="wall.deep"''')
 
-# Wall speckle (texture would need noise + clustering)
 for _ in range(40):
     x, y = random.randint(66, 190), random.randint(28, 160)
     rect(x, y, 1, 1, "wall.base")
@@ -173,7 +172,6 @@ rect(153, 42, 11, 8, "book-green.lit")
 stack(168, 56, 6, 14, 20)
 rect(137, 127, 55, 3, "wood.lit", "right-desk")
 line(146, 130, 146, 136, "wood.lit")
-# Light cone: one 1-px rect per row (no polygons, no light model, no dither)
 for row in range(0, 29):
     y = 98 + row
     left = 150 - row // 4

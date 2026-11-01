@@ -3,10 +3,8 @@ use px_engine::{Looping, Scene};
 
 use crate::error::SequenceError;
 
-/// Shots are numbered by a `u8` in every composed cell.
 pub const MAX_SHOTS: usize = 256;
 
-/// A scene seen for a while, starting at `from` in the scene's own time.
 #[derive(Clone, Debug)]
 pub struct Shot {
     pub scene: Scene,
@@ -29,11 +27,9 @@ pub enum TransitionKind {
     Dither,
     Black,
     White,
-    /// The next shot comes in from this edge.
     Wipe(Edge),
 }
 
-/// How two shots join; it overlaps the end of the first with the start of the second.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Transition {
     pub kind: TransitionKind,
@@ -47,7 +43,6 @@ impl Transition {
     };
 }
 
-/// What a sequence frame shows: one shot, or two while a transition runs.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Moment {
     Shot {
@@ -58,12 +53,10 @@ pub(crate) enum Moment {
         from: (usize, Frame),
         to: (usize, Frame),
         kind: TransitionKind,
-        /// 0..1, never exactly 0 or 1, so every transition frame shows the change.
         progress: f64,
     },
 }
 
-/// Ordered shots joined by transitions (DIRECTOR.md §4).
 #[derive(Clone, Debug)]
 pub struct Sequence {
     name: String,
@@ -74,7 +67,6 @@ pub struct Sequence {
 }
 
 impl Sequence {
-    /// `transitions[i]` joins `shots[i]` and `shots[i + 1]`.
     pub fn new(
         name: String,
         shots: Vec<Shot>,
@@ -152,7 +144,6 @@ impl Sequence {
         self.duration
     }
 
-    /// First sequence frame of each shot.
     #[must_use]
     pub fn starts(&self) -> &[u32] {
         &self.starts
@@ -184,8 +175,6 @@ impl Sequence {
         }
     }
 
-    /// The shot's scene frame `local` frames after the shot starts: looping scenes wrap,
-    /// the others hold their last frame.
     fn scene_frame(&self, shot: usize, local: u32) -> Frame {
         let shot = &self.shots[shot];
         let timing = shot.scene.timing();

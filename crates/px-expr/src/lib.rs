@@ -1,4 +1,3 @@
-//! Expression language (`docs/FORMAT.md` §9). Memory profile: `compile` allocates once; `Program::eval` never allocates.
 #![no_std]
 #![forbid(unsafe_code)]
 
@@ -27,7 +26,6 @@ pub struct Reference {
     pub seed: u64,
 }
 
-/// Supplies `$param` values and `@id.prop` programs while compiling.
 pub trait Resolver {
     fn param(&mut self, name: &str) -> Result<f64, ResolveError>;
     fn reference(&mut self, path: &str) -> Result<Reference, ResolveError>;

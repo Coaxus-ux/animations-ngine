@@ -1,4 +1,3 @@
-//! Pixel-art rasterization into any `Plot` (canvas, mask). Memory profile: strict heapless (`no_std`, no `alloc`).
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(clippy::disallowed_macros, clippy::disallowed_types)]

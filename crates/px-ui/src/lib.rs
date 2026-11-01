@@ -1,7 +1,3 @@
-//! A pixel-art UI toolkit whose every pixel is drawn by the engine: an indexed UI canvas in
-//! a theme palette, the engine's pixel font, icons rendered from KDL scenes, and
-//! immediate-mode widgets. No window library and no I/O (D-012, D-015). Memory profile:
-//! allocation-conscious; canvases and state are reused across frames.
 #![forbid(unsafe_code)]
 
 mod area;

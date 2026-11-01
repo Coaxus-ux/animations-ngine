@@ -14,7 +14,6 @@ impl Param {
         }
     }
 
-    /// The same value in every frame (see `Program::is_timeless`).
     #[must_use]
     pub const fn is_timeless(&self) -> bool {
         match self {

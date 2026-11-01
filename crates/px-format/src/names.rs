@@ -7,8 +7,6 @@ use crate::font::Fonts;
 use crate::palette::NamedPalette;
 use crate::params::SceneParams;
 
-/// What a scene's objects can name: paints of its palette (also through a text param:
-/// `"$coat"` or `"$coat.lit"`), its params and the loaded fonts.
 pub(crate) struct Names<'a> {
     pub(crate) palette: &'a NamedPalette,
     pub(crate) params: &'a SceneParams,

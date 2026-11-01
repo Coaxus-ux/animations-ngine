@@ -1,6 +1,3 @@
-//! Tools turn pointer events on the canvas into changes (the strategy pattern): each kind
-//! is its own type behind `Tool`, so adding one changes nothing else (open/closed).
-
 mod paint;
 mod select;
 mod shapes;
@@ -10,32 +7,22 @@ use px_ui::Key;
 
 use crate::domain::{Raster, Selection};
 
-/// What a stroke works on: the active cel as it was when the stroke began (`base`) and as
-/// it is now (`raster`), the selection, and the paint (`None` erases).
 pub struct Work<'w> {
     pub raster: &'w mut Raster,
     pub base: &'w Raster,
     pub selection: &'w Selection,
     pub paint: Option<Paint>,
-    /// Shapes are filled instead of outlined.
     pub filled: bool,
-    /// Shift: lines snap to 45°, boxes become squares and circles.
     pub constrain: bool,
-    /// The fill bucket fills every matching pixel, not just the touching ones.
     pub global: bool,
 }
 
-/// What one pointer event did.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Effect {
-    /// `raster` changed: show it.
     pub repaint: bool,
-    /// The stroke is finished: keep `raster` as the cel.
     pub commit: bool,
     pub selection: Option<Selection>,
-    /// The paint under the pointer (`Some(None)` for an empty pixel).
     pub picked_paint: Option<Option<Paint>>,
-    /// A canvas pixel whose object should be selected.
     pub picked_object: Option<(i32, i32)>,
 }
 
@@ -43,7 +30,6 @@ pub trait Tool {
     fn press(&mut self, work: &mut Work<'_>, at: (i32, i32)) -> Effect;
     fn drag(&mut self, work: &mut Work<'_>, at: (i32, i32)) -> Effect;
     fn release(&mut self, work: &mut Work<'_>, at: (i32, i32)) -> Effect;
-    /// Canvas pixels to outline while the tool is in use (a lasso's path).
     fn guide(&self) -> &[(i32, i32)] {
         &[]
     }
@@ -97,7 +83,6 @@ impl ToolKind {
         }
     }
 
-    /// The tooltip: the tool's name and its shortcut.
     #[must_use]
     pub const fn tip(self) -> &'static str {
         match self {
@@ -115,7 +100,6 @@ impl ToolKind {
         }
     }
 
-    /// The tool a key selects (Aseprite's keys where it has them).
     #[must_use]
     pub fn for_key(key: Key, shift: bool) -> Option<Self> {
         Some(match key {
@@ -134,7 +118,6 @@ impl ToolKind {
         })
     }
 
-    /// Whether the tool changes pixels (and so needs a paintable layer).
     #[must_use]
     pub const fn paints(self) -> bool {
         !matches!(
@@ -160,7 +143,6 @@ impl ToolKind {
     }
 }
 
-/// The pixels of a line from `a` to `b`, endpoints included (Bresenham).
 #[must_use]
 pub fn line_points(a: (i32, i32), b: (i32, i32)) -> Vec<(i32, i32)> {
     let (dx, dy) = ((b.0 - a.0).abs(), -(b.1 - a.1).abs());

@@ -1,8 +1,5 @@
-/// Every f64 at or above 2^52 in magnitude is already an integer.
 const INTEGRAL_FROM: f64 = 4_503_599_627_370_496.0;
 
-/// Bit-identical to `libm::floor` for every input, but a few instructions instead of a call
-/// that decodes the exponent: it runs per pixel in dithering, shadow rays and noise.
 #[inline]
 #[must_use]
 pub fn floor(value: f64) -> f64 {
@@ -20,6 +17,5 @@ pub fn floor(value: f64) -> f64 {
     } else {
         truncated
     };
-    // Keeps -0.0 negative, as libm does.
     floored.copysign(value)
 }

@@ -40,7 +40,6 @@ fn error(body: &str) -> String {
         .clone()
 }
 
-/// Rows of the frame as text: `#` where the ink paint is.
 fn picture(scene: &Scene, frame: u32) -> Vec<String> {
     let mut buffer = FrameBuffer::new(scene);
     let view = buffer.render(scene, Frame::new(frame)).unwrap();
@@ -161,7 +160,6 @@ fn a_bigger_size_sits_on_the_same_bottom() {
     assert_eq!(&rows[5][..10], "###.######");
 }
 
-/// The built-in font needs no `use` and no `font`; italic leans its rows 0–3 one pixel.
 #[test]
 fn italic_leans_the_built_in_font() {
     let scene = |italic: &str| {

@@ -17,7 +17,6 @@ pub fn write_png(
     encode(writer, view.size(), scale, &rgb)
 }
 
-/// A PNG of a frame whose pixels already carry their colors, such as a sequence frame.
 pub fn write_png_colors(
     writer: impl Write,
     size: Size,

@@ -1,8 +1,5 @@
 pub const COORD_LIMIT: i32 = 1 << 15;
 
-// Rounding is half away from zero (FORMAT §9.7). Periodic math lands on halves only
-// approximately (2.4999999…), so values within this tolerance count as the half; otherwise
-// float noise turns into one-pixel jumps that break loops.
 const SNAP_EPSILON: f64 = 1e-6;
 
 #[must_use]

@@ -3,7 +3,6 @@ use px_raster::{Plot, Rect};
 
 pub(crate) const FULL: u8 = 255;
 
-/// Coverage of the shape being drawn (alpha 0..=255) plus the box it touched.
 pub(crate) struct Mask<'a> {
     pub(crate) width: i32,
     pub(crate) height: i32,
@@ -11,7 +10,6 @@ pub(crate) struct Mask<'a> {
     pub(crate) temp: &'a mut [u8],
     pub(crate) distance: &'a mut [u16],
     pub(crate) noise: &'a mut [i8],
-    /// Each covered pixel's own paint, for shapes painted pixel by pixel; stale elsewhere.
     pub(crate) paints: &'a mut [Paint],
     pub(crate) bbox: Option<[i32; 4]>,
 }
@@ -37,7 +35,6 @@ impl Mask<'_> {
         }
     }
 
-    /// Covers `rect` (clipped to the canvas) with `paint` as the pixels' own paint.
     pub(crate) fn fill_paint(&mut self, rect: Rect, paint: Paint) {
         let (x0, x1) = (rect.x.max(0), (rect.x + rect.width).min(self.width));
         let (y0, y1) = (rect.y.max(0), (rect.y + rect.height).min(self.height));
@@ -75,7 +72,6 @@ impl Mask<'_> {
         (y0..y1).flat_map(move |y| (x0..x1).map(move |x| (x, y)))
     }
 
-    /// Removes isolated pixels and fills one-pixel notches (RENDERING §7.1, §7.5).
     pub(crate) fn clean(&mut self) {
         for (x, y) in self.pixels() {
             if let Some(index) = self.index(x, y) {
@@ -109,7 +105,6 @@ impl Mask<'_> {
                 .any(|(dx, dy)| !self.covered(x + dx, y + dy))
     }
 
-    /// Chamfer distance (×3) from each covered pixel to the nearest uncovered one; returns the maximum.
     pub(crate) fn distance_field(&mut self) -> u16 {
         let Some([x0, y0, x1, y1]) = self.bbox else {
             return 1;

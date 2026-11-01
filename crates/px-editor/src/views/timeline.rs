@@ -8,7 +8,6 @@ const CELL: i32 = 8;
 const NAME: i32 = 44;
 const BUTTON: i32 = ROW + 1;
 
-/// Frames across, pixel layers down: a dot where a cel starts, a bar while it holds.
 pub(super) fn timeline(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
@@ -87,7 +86,6 @@ pub(super) fn timeline(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     }
 }
 
-/// Labeled buttons for playback and cels, then where the playhead is.
 fn controls(ui: &mut Ui<'_>, context: &mut Context<'_>, bar: Rect, frame: u32, frames: u32) {
     let roles = ui.theme.roles;
     let id = Id::new("timeline").with_name("controls");

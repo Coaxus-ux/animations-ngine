@@ -11,8 +11,6 @@ use px_engine::{
 
 const WIDTH: u16 = 8;
 
-/// A scene with a one-pixel mark moving right one pixel per frame, in a palette of four
-/// tones scaled by `tint`, so two scenes never share colors.
 fn scene(tint: [u8; 3], frames: u32, looping: Looping, size: (u16, u16)) -> Scene {
     let colors: Vec<Rgb> = (1..=4u8)
         .map(|step| Rgb::new(tint[0] * step, tint[1] * step, tint[2] * step))

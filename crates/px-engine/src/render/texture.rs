@@ -2,8 +2,6 @@ use super::mask::Mask;
 use super::transform::Transform;
 use crate::model::Texture;
 
-/// Noise is sampled in local coordinates, so it moves and scales with the shape instead of
-/// swimming when the camera pans or zooms.
 pub(crate) fn sample_texture(
     texture: Texture,
     seed: u64,
@@ -26,7 +24,6 @@ pub(crate) fn sample_texture(
     }
 }
 
-// A 3×3 majority vote groups noise into clumps instead of static (RENDERING §7.4).
 pub(crate) fn clustered_noise(mask: &Mask<'_>, x: i32, y: i32) -> i8 {
     let raw = |index: usize| {
         if mask.coverage[index] > 0 {
@@ -37,7 +34,6 @@ pub(crate) fn clustered_noise(mask: &Mask<'_>, x: i32, y: i32) -> i8 {
     };
     let vote = |noise: i8| usize::try_from(noise + 1).unwrap_or(1);
     let (left, right) = ((x - 1).max(0), (x + 1).min(mask.width - 1));
-    // Neighbors off the canvas vote 0.
     let mut counts = [0u8, 9, 0];
     for row in (y - 1).max(0)..=(y + 1).min(mask.height - 1) {
         if let (Some(start), Some(end)) = (mask.index(left, row), mask.index(right, row)) {

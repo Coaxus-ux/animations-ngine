@@ -19,8 +19,6 @@ const INTERPOLATIONS: [&str; 10] = [
     "hold-3",
 ];
 
-/// Where a property's keys live: an `anim <prop> { k <time> <value> }` block, or `k <time> prop=value`
-/// children of a multi-property node such as `camera`.
 #[derive(Clone, Copy)]
 pub(crate) struct Anim<'a> {
     pub(crate) node: &'a KdlNode,

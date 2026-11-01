@@ -21,7 +21,6 @@ pub fn fill_ellipse(plot: &mut impl Plot, bounds: Rect) {
     }
 }
 
-// Doubled coordinates: pixel `p` has its center at `2p + 1`, so even and odd sizes stay exact.
 struct Doubled {
     width: i64,
     height: i64,

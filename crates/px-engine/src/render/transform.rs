@@ -1,5 +1,3 @@
-/// A uniform scale, an optional mirror on x and a translation: how local coordinates
-/// (inside an instance, a layer, the camera) map to canvas pixels.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct Transform {
     pub(crate) scale: f64,
@@ -32,14 +30,12 @@ impl Transform {
         self.scale * length
     }
 
-    /// The left edge and width on the canvas of the local span `x..x + width`.
     pub(crate) fn span_x(&self, x: f64, width: f64) -> (f64, f64) {
         let width = self.extent(width);
         let left = self.x(x);
         (if self.flip { left - width } else { left }, width)
     }
 
-    /// An angle in radians as seen after the mirror (0 points right, y grows down).
     pub(crate) fn angle(&self, radians: f64) -> f64 {
         if self.flip {
             core::f64::consts::PI - radians
@@ -48,14 +44,12 @@ impl Transform {
         }
     }
 
-    /// The local coordinates of a canvas point.
     pub(crate) fn local(&self, [x, y]: [f64; 2]) -> [f64; 2] {
         let scale = if self.scale == 0.0 { 1.0 } else { self.scale };
         let lx = (x - self.dx) / scale;
         [if self.flip { -lx } else { lx }, (y - self.dy) / scale]
     }
 
-    /// `self` applied first, then `outer`.
     pub(crate) fn then(&self, outer: &Self) -> Self {
         Self {
             scale: self.scale * outer.scale,

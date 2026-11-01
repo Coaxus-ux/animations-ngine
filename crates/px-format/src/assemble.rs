@@ -16,37 +16,29 @@ use crate::style::Flags;
 use crate::timeline::Track;
 use crate::values;
 
-/// Everything a scene and the scenes it places add up to.
 #[derive(Debug, Default)]
 pub(crate) struct Output {
     pub(crate) shapes: Vec<Shape>,
-    /// Where each shape of `shapes` comes from.
     pub(crate) origins: Vec<Origin>,
     pub(crate) world: Environment,
     pub(crate) tracks: Vec<Track>,
     pub(crate) targets: Targets,
 }
 
-/// Where one scene's objects land: the instance that owns them (none for the root scene),
-/// the root of their seeds, and the host layer and clips they inherit.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Scope {
     pub(crate) instance: Option<usize>,
     pub(crate) seed: u64,
     pub(crate) layer: usize,
     pub(crate) clips: Vec<usize>,
-    /// The scene's loop length in seconds, when it loops.
     pub(crate) loop_period: Option<f64>,
 }
 
-/// A `use-scene` met while assembling, with its compiled properties in schema order.
 pub(crate) struct Request {
     pub(crate) placement: Box<Placement>,
     pub(crate) params: Vec<Param>,
     pub(crate) offset: usize,
-    /// Whether `seed` was written; otherwise each copy derives one.
     pub(crate) seeded: bool,
-    /// Position of the `use-scene` among the scene's objects, for derived seeds.
     pub(crate) order: usize,
     pub(crate) id: Option<String>,
     pub(crate) parent: Scope,
@@ -149,7 +141,6 @@ pub(crate) fn assemble(
     }
 }
 
-/// A node that adds to the scene's environment rather than drawing.
 struct SceneNode {
     kind: Kind,
     extras: Extras,
@@ -163,8 +154,6 @@ enum Added {
     Other,
 }
 
-/// Camera, ambient light and wind belong to the root scene; a placed scene's own are only
-/// for previewing it alone.
 fn world_node(node: SceneNode, next: &mut Next, scope: &Scope, world: &mut Environment) -> Added {
     let root = scope.instance.is_none();
     match (node.kind, node.extras) {
@@ -234,7 +223,6 @@ fn world_node(node: SceneNode, next: &mut Next, scope: &Scope, world: &mut Envir
     Added::Other
 }
 
-/// Adds a layer after the implicit root layer every layered scene starts with.
 fn push_layer(world: &mut Environment, layer: Layer) -> usize {
     if world.layers.is_empty() {
         world.layers.push(Layer::default());
@@ -243,7 +231,6 @@ fn push_layer(world: &mut Environment, layer: Layer) -> usize {
     world.layers.len() - 1
 }
 
-/// The host's clips followed by the scene's own, as indices into the host's clip list.
 fn clips(scope: &Scope, groups: &[usize], clip_ids: &[Option<usize>]) -> Vec<usize> {
     scope
         .clips

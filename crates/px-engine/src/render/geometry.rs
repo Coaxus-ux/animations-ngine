@@ -11,7 +11,6 @@ use super::mask::{FULL, Mask};
 use super::values::Values;
 use crate::model::{Bounds, Geometry, Param, Particles, Segment};
 
-/// Ropes are drawn as one segment per this many canvas pixels of length, within these bounds.
 const ROPE_PIXELS_PER_SEGMENT: f64 = 8.0;
 const ROPE_SEGMENTS: (u8, u8) = (16, 64);
 

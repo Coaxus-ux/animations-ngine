@@ -4,17 +4,12 @@ use crate::area::{Area, Rect, rect};
 use crate::text::{draw_text, fit_text, text_width};
 use crate::ui::{Id, Ui};
 
-/// Height of a row of text controls: the font plus a margin above and below.
 pub const ROW: i32 = 11;
-/// Height of a panel's title bar.
 pub const HEADER: i32 = 11;
-/// Side of toolbar icons and of their buttons.
 pub const ICON: i32 = 16;
 pub const TOOL_BUTTON: i32 = ICON + 4;
-/// Side of the small icons on rows and headers (eye, lock, pop out).
 pub const SMALL_ICON: i32 = 8;
 
-/// Text left-aligned and vertically centered in `area`, shortened to fit.
 pub fn label(ui: &mut Ui<'_>, area: Rect, text: &str, paint: Paint) {
     let fitted = fit_text(ui.font, text, area.width);
     let y = area.y + (area.height - i32::from(ui.font.height())) / 2;
@@ -35,7 +30,6 @@ pub fn centered_label(ui: &mut Ui<'_>, area: Rect, text: &str, paint: Paint) {
     );
 }
 
-/// A raised box that sinks while pressed and shows a dithered highlight on hover.
 fn button_face(ui: &mut Ui<'_>, area: Rect, hovered: bool, sunken: bool, selected: bool) {
     let roles = ui.theme.roles;
     let face = if selected { roles.accent } else { roles.panel };
@@ -65,7 +59,6 @@ pub fn button(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str) -> bool {
     response.clicked
 }
 
-/// A square button showing icon `icon` (or its first letter when the icon is missing).
 pub fn icon_button(
     ui: &mut Ui<'_>,
     id: Id,
@@ -84,7 +77,6 @@ pub fn icon_button(
     response.clicked
 }
 
-/// A flat icon that toggles; shows `icon_on` or `icon_off`. Returns whether it was clicked.
 pub fn toggle_icon(
     ui: &mut Ui<'_>,
     id: Id,
@@ -117,7 +109,6 @@ fn draw_icon(ui: &mut Ui<'_>, area: Rect, icon: &str, offset: i32, tint: Option<
     }
 }
 
-/// A box that is ticked or not, with its label; returns whether it was clicked.
 pub fn checkbox(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, checked: bool) -> bool {
     let roles = ui.theme.roles;
     let response = ui.interact(id, area);
@@ -136,7 +127,6 @@ pub fn checkbox(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, checked: bool) 
     response.clicked
 }
 
-/// A panel's frame and title bar; returns the title bar and the body.
 pub fn panel(ui: &mut Ui<'_>, area: Rect, title: &str) -> (Rect, Rect) {
     let roles = ui.theme.roles;
     ui.canvas.fill(area, roles.panel);
@@ -156,7 +146,6 @@ pub fn panel(ui: &mut Ui<'_>, area: Rect, title: &str) -> (Rect, Rect) {
     (header, body.inset(1))
 }
 
-/// A small icon button at the right end of a title bar, `slot` places from the end.
 pub fn header_button(
     ui: &mut Ui<'_>,
     id: Id,
@@ -170,7 +159,6 @@ pub fn header_button(
     toggle_icon(ui, id, area, true, (icon, icon), tip)
 }
 
-/// A horizontal line in the panel's dark edge color.
 pub fn separator(ui: &mut Ui<'_>, area: Rect) {
     let y = area.y + area.height / 2;
     ui.canvas

@@ -7,12 +7,8 @@ use super::transform::Transform;
 use super::values::Values;
 use crate::model::{Anchor, Instance};
 
-/// Frame numbers this close to a whole number are that number, so speeds and offsets
-/// don't leave `hold`/`on2` one frame early from rounding.
 const FRAME_SNAP: f64 = 1e-6;
 
-/// Where and when one instance is this frame: local coordinates map through `transform`,
-/// and its objects are evaluated with `env` (its local time).
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Placed {
     pub(crate) transform: Transform,
@@ -30,7 +26,6 @@ impl Placed {
     }
 }
 
-/// Places every instance, parents first, into `placed`.
 pub(crate) fn place(
     instances: &[Instance],
     root: Placed,
@@ -58,8 +53,6 @@ pub(crate) fn place(
     Ok(())
 }
 
-/// Where the local (0, 0) of an object hooked to `anchor` lands, or `None` while the
-/// anchor's instance is hidden.
 pub(crate) fn anchored(
     anchor: &Anchor,
     placed: &[Placed],
@@ -92,8 +85,6 @@ pub(crate) fn anchored(
     Ok(Some(point.then(&at.transform)))
 }
 
-/// `origin` is where the instance's position is measured from: its parent's origin, or the
-/// point it is hooked to; `None` hides it.
 fn place_one(
     instance: &Instance,
     parent: &Placed,
@@ -106,7 +97,6 @@ fn place_one(
         ..*parent
     };
     let window = instance.window;
-    // A looping host repeats its timeline, so frame `duration` places like frame 0.
     let host_time = parent
         .env
         .loop_period

@@ -7,20 +7,14 @@ use std::thread;
 
 use anyhow::Result;
 
-/// Frames per work item. A constant, not derived from the thread count, so whatever
-/// depends on chunk boundaries (a worker re-rendering the frame before its chunk) never
-/// makes the output depend on `--jobs`.
 pub(crate) const CHUNK: u32 = 16;
 
-/// Chunks finished ahead of the writer, per thread, before workers wait.
 const LOOKAHEAD: u32 = 2;
 
 pub(crate) fn default_jobs() -> NonZeroUsize {
     thread::available_parallelism().unwrap_or(NonZeroUsize::MIN)
 }
 
-/// Runs `produce` over `0..frames` in `CHUNK`-sized ranges on `jobs` threads, each with its
-/// own `make_worker()` state, and hands every item to `consume` in frame order.
 pub(crate) fn ordered<W, T>(
     frames: u32,
     jobs: NonZeroUsize,
@@ -91,7 +85,6 @@ fn drain<T>(
     Ok(())
 }
 
-/// How far the writer got; workers wait on it so finished chunks can't pile up unbounded.
 #[derive(Default)]
 struct Gate {
     state: Mutex<GateState>,
@@ -105,7 +98,6 @@ struct GateState {
 }
 
 impl Gate {
-    /// Waits until `chunk` is within `window` of the writer; false once the run is over.
     fn wait_for(&self, chunk: u32, window: u32) -> bool {
         let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         let state = self

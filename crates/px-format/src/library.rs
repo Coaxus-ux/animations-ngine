@@ -6,7 +6,6 @@ use crate::diagnostic::Diagnostics;
 use crate::sources::{self, SourceFile, Sources};
 use crate::values;
 
-/// The root file and every file it reaches through top-level `use` nodes, each parsed once.
 pub(crate) struct Library {
     pub(crate) files: Vec<SourceFile>,
     documents: Vec<Option<KdlDocument>>,
@@ -26,7 +25,6 @@ impl Library {
         library
     }
 
-    /// Every parsed file with its index, root first.
     pub(crate) fn documents(&self) -> impl Iterator<Item = (usize, &KdlDocument)> {
         self.documents
             .iter()
@@ -40,7 +38,6 @@ struct Loader<'s> {
     stack: Vec<PathBuf>,
 }
 
-/// The `use` node that asked for a file: its file and offset.
 type Origin = (usize, usize);
 
 impl Loader<'_> {

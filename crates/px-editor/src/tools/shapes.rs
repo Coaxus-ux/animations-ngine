@@ -10,8 +10,6 @@ pub enum Kind {
     Ellipse,
 }
 
-/// Line, rectangle and ellipse: redrawn from the stroke's start to the pointer on every
-/// move, over the cel as it was when the stroke began.
 pub struct ShapeTool {
     kind: Kind,
     start: (i32, i32),
@@ -41,7 +39,6 @@ impl ShapeTool {
             height: y1 - y0 + 1,
         };
         let (width, height) = (work.raster.width(), work.raster.height());
-        // The shape goes into a mask first, so outlines can be cut from it.
         let mut shape = Selection::none(width, height);
         match self.kind {
             Kind::Line => {
@@ -71,7 +68,6 @@ impl ShapeTool {
     }
 }
 
-/// Lines snap to the nearest 45°; boxes become squares.
 fn constrained(kind: Kind, start: (i32, i32), at: (i32, i32)) -> (i32, i32) {
     let (dx, dy) = (at.0 - start.0, at.1 - start.1);
     let side = dx.abs().max(dy.abs());

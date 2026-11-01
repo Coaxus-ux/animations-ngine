@@ -33,7 +33,6 @@ pub fn resolve_rgb(
     })
 }
 
-/// Writes each cell's `channels` bytes once, then repeats them `scale` times on both axes.
 pub(crate) fn upscale<T: Copy>(
     size: Size,
     cells: &[T],

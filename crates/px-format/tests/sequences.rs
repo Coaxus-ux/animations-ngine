@@ -8,7 +8,6 @@ use std::path::Path;
 use px_director::{Edge, TransitionKind};
 use px_format::{LoadOptions, MemorySources, Work, load, load_work};
 
-/// Two scenes in their own palettes and files, as a sequence's shots usually are.
 fn sources(sequence: &str) -> MemorySources {
     let red = r##"palette "red" { ramp "sky" "#200000" "#400000"; ramp "ink" "#ff0000" }
 scene "dawn" palette="red" width=8 height=4 fps=4 duration="2s" loop=#true background="sky" {

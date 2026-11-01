@@ -13,53 +13,46 @@ use crate::args::Input;
 use crate::commands::{output_path, warn_non_finite};
 use crate::source;
 
-/// `pxe export` flags beyond the input. The names mirror the editor's layout file
-/// (`gif|png|sequence|sheet`, `strip-h|strip-v|rows|columns`, D-023).
 #[derive(Debug, Args)]
 pub(crate) struct Options {
-    /// Output path (default: `out/<scene>.<ext>`). A sequence numbers it per frame; a
-    /// sheet's JSON goes next to it.
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "Output path (default: `out/<scene>.<ext>`). A sequence numbers it per frame; a sheet's JSON goes next to it"
+    )]
     pub(crate) out: Option<PathBuf>,
-    /// Threads that render and compress GIF frames (default: every core); a GIF without
-    /// --transparent or --frame only. The GIF is byte-identical for any value.
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "Threads that render and compress GIF frames (default: every core); a GIF without --transparent or --frame only. The GIF is byte-identical for any value"
+    )]
     pub(crate) jobs: Option<NonZeroUsize>,
-    /// What to write: a looping GIF, one frame as PNG, a numbered PNG sequence or a
-    /// sprite sheet.
-    #[arg(long, value_parser = kind_index, default_value = KIND_NAMES[0])]
+    #[arg(long, value_parser = kind_index, default_value = KIND_NAMES[0], help = "What to write: a looping GIF, one frame as PNG, a numbered PNG sequence or a sprite sheet")]
     pub(crate) format: usize,
-    /// Sprite sheet layout: strip-h, strip-v, rows or columns (default: strip-h).
-    #[arg(long, value_parser = layout_index)]
+    #[arg(long, value_parser = layout_index, help = "Sprite sheet layout: strip-h, strip-v, rows or columns (default: strip-h)")]
     pub(crate) layout: Option<usize>,
-    /// Columns of a `rows` sheet, rows of a `columns` sheet.
-    #[arg(long)]
+    #[arg(long, help = "Columns of a `rows` sheet, rows of a `columns` sheet")]
     pub(crate) count: Option<u16>,
-    /// Empty pixels between sheet frames.
-    #[arg(long)]
+    #[arg(long, help = "Empty pixels between sheet frames")]
     pub(crate) padding: Option<u16>,
-    /// Empty pixels around the sheet.
-    #[arg(long)]
+    #[arg(long, help = "Empty pixels around the sheet")]
     pub(crate) border: Option<u16>,
-    /// Transparent background by keyed render (D-018).
-    #[arg(long)]
+    #[arg(long, help = "Transparent background by keyed render (D-018)")]
     pub(crate) transparent: bool,
-    /// Sheet metadata file (default: json).
-    #[arg(long, value_enum)]
+    #[arg(long, value_enum, help = "Sheet metadata file (default: json)")]
     pub(crate) meta: Option<Meta>,
-    /// The frame to export (png: default 0); other formats export every frame unless given.
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "The frame to export (png: default 0); other formats export every frame unless given"
+    )]
     pub(crate) frame: Option<u32>,
-    /// Trim each frame to its opaque pixels (png, sequence or sheet).
-    #[arg(long)]
+    #[arg(
+        long,
+        help = "Trim each frame to its opaque pixels (png, sequence or sheet)"
+    )]
     pub(crate) trim: bool,
-    /// One output per layer (sequence or sheet).
-    #[arg(long)]
+    #[arg(long, help = "One output per layer (sequence or sheet)")]
     pub(crate) split_layers: bool,
 }
 
-/// The position of `text` in `names`, the editor's kind and layout tables, so the CLI
-/// accepts exactly what the editor's layout file does.
 fn index_in(text: &str, names: &[&str]) -> Result<usize, String> {
     names
         .iter()
@@ -95,7 +88,6 @@ pub(crate) fn export(input: &Input, options: &Options) -> Result<()> {
     Ok(())
 }
 
-/// A GIF with no editor-only option takes the parallel delta encoder (D-010).
 fn is_plain_gif(options: &Options) -> bool {
     flags::plain_kind(options.format) == ExportKind::Gif && flags::editor_only(options).is_empty()
 }

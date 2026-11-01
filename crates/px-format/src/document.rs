@@ -22,10 +22,8 @@ const MEMORY_FILE: &str = "scene.kdl";
 pub struct Loaded {
     pub scene: Scene,
     pub warnings: Vec<Diagnostic>,
-    /// Every file the scene was built from, root first.
     pub files: Vec<SourceFile>,
     pub timeline: Timeline,
-    /// The node each of `scene.shapes()` was built from.
     pub origins: Vec<Origin>,
     pub paint_names: PaintNames,
 }
@@ -34,11 +32,9 @@ pub struct Loaded {
 pub struct LoadedSequence {
     pub sequence: Sequence,
     pub warnings: Vec<Diagnostic>,
-    /// Every file the sequence and its scenes were built from, root first.
     pub files: Vec<SourceFile>,
 }
 
-/// What a file describes: one scene, or a sequence of shots of scenes.
 #[derive(Debug)]
 pub enum Work {
     Scene(Box<Loaded>),
@@ -47,39 +43,23 @@ pub enum Work {
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct LoadOptions<'a> {
-    /// The scene or sequence to load, when the root file has several.
     pub scene: Option<&'a str>,
     pub params: &'a [(String, String)],
 }
 
-/// Loads a scene from a file and every file it `use`s.
-///
-/// # Errors
-/// Returns every diagnostic of the load when any of them is an error.
 pub fn load_file(path: &Path, options: LoadOptions<'_>) -> Result<Loaded, LoadError> {
     load(path, &mut FsSources, options)
 }
 
-/// Loads a scene or a sequence from a file and every file it `use`s.
-///
-/// # Errors
-/// Returns every diagnostic of the load when any of them is an error.
 pub fn load_work_file(path: &Path, options: LoadOptions<'_>) -> Result<Work, LoadError> {
     load_work(path, &mut FsSources, options)
 }
 
-/// Loads a scene from text that uses no other files.
-///
-/// # Errors
-/// Returns every diagnostic of the load when any of them is an error.
 pub fn load_scene(source: &str, options: LoadOptions<'_>) -> Result<Loaded, LoadError> {
     let mut sources = MemorySources::default().with(MEMORY_FILE, source);
     load(Path::new(MEMORY_FILE), &mut sources, options)
 }
 
-/// # Errors
-/// Returns every diagnostic of the load when any of them is an error, or when the file
-/// holds a sequence.
 pub fn load(
     root: &Path,
     sources: &mut dyn Sources,
@@ -99,8 +79,6 @@ pub fn load(
     }
 }
 
-/// # Errors
-/// Returns every diagnostic of the load when any of them is an error.
 pub fn load_work(
     root: &Path,
     sources: &mut dyn Sources,
@@ -127,7 +105,6 @@ pub fn load_work(
             warnings,
             files,
         })),
-        // Every path that builds nothing reports an error, so `finish` has already failed.
         (Ok(diagnostics) | Err(diagnostics), _) => Err(LoadError { diagnostics, files }),
     }
 }
@@ -178,21 +155,17 @@ fn build(
     }
 }
 
-/// A scene or a sequence, with the file it was written in.
 #[derive(Clone, Copy)]
 enum Target<'l> {
     Scene(usize, &'l KdlNode),
     Sequence(usize, &'l KdlNode),
 }
 
-/// Palettes, fonts, scenes and sequences by name across every file of a load.
 pub(crate) struct Catalog<'l> {
     pub(crate) palettes: BTreeMap<String, NamedPalette>,
     pub(crate) fonts: Fonts,
-    /// Each scene with the file it was written in.
     pub(crate) scenes: BTreeMap<&'l str, (usize, &'l KdlNode)>,
     sequences: BTreeMap<&'l str, (usize, &'l KdlNode)>,
-    /// The scenes and sequences of the root file, which can be loaded without a name.
     roots: Vec<Target<'l>>,
 }
 
@@ -255,7 +228,6 @@ impl<'l> Catalog<'l> {
         }
     }
 
-    /// Scenes and sequences share one namespace, so a name picks exactly one.
     fn add_work(&mut self, file: usize, node: &'l KdlNode, diags: &mut Diagnostics) {
         let name = scene_name(node);
         let sequence = node.name().value() == "sequence";

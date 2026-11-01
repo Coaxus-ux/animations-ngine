@@ -2,10 +2,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
-/// Where scene files come from: the file system for the CLI, memory for tests.
 pub trait Sources {
-    /// # Errors
-    /// Returns a readable reason when the file can't be read.
     fn read(&mut self, path: &Path) -> Result<String, String>;
 }
 
@@ -40,21 +37,17 @@ impl Sources for MemorySources {
     }
 }
 
-/// One file read during a load, kept so diagnostics can show its lines.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceFile {
     pub path: PathBuf,
     pub text: String,
 }
 
-/// `target` as written in a `use` inside `from`: relative to that file's folder.
 pub(crate) fn resolve(from: &Path, target: &str) -> PathBuf {
     let base = from.parent().unwrap_or_else(|| Path::new(""));
     normalize(&base.join(target))
 }
 
-/// Removes `.` and folds `..` without touching the file system, so one file always has
-/// one name.
 pub(crate) fn normalize(path: &Path) -> PathBuf {
     let mut parts: Vec<Component<'_>> = Vec::new();
     for component in path.components() {

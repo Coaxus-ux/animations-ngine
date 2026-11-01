@@ -5,7 +5,7 @@ A general-purpose engine that renders pixel art scenes, characters, animations a
 ## Rules (always)
 - **Code is always SOLID and DRY.** One responsibility per crate, module, type and function; one source of truth for every rule, limit and constant.
 - **Follow [docs/engineering/RUST-STANDARDS.md](docs/engineering/RUST-STANDARDS.md).** Exceptions only via [docs/engineering/DECISIONS.md](docs/engineering/DECISIONS.md).
-- **No comments that restate code.** Code must explain itself; if it needs a comment, rename or restructure it. Comments only for a non-obvious *why*, an invariant types can't enforce, `SAFETY`, or spec references (D-007).
+- **No comments. Not one.** Code must explain itself through names, types and structure; if it needs a comment, rename or restructure it. Command-line help text lives in clap attributes, never in doc comments. Enforced by `tools/comment_guard.py` (`tools/check.sh`), see D-024.
 - **Small files.** Code ≤ 400 lines, docs ≤ 1000 lines (`tools/file_size_guard.py`). Split modules before a file grows past the limit.
 - **Generic core.** No engine code may name a benchmark, scene or prefab ([docs/BENCHMARKS.md](docs/BENCHMARKS.md)).
 - **Deterministic.** Integer frame time, seeded counter-based randomness, `libm` for transcendental math, no hash-map order in outputs. Golden tests compare indexed-buffer hashes.

@@ -295,7 +295,6 @@ impl<'a, 'r> Parser<'a, 'r> {
         Ok(ease)
     }
 
-    // `loop(expr, period)` must evaluate `period` before entering the scope that `expr` runs in.
     fn wrap_in_scope(
         &mut self,
         first_arg: usize,

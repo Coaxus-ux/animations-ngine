@@ -13,7 +13,6 @@ use px_export::{EncodedFrame, ExportError, GifFrameEncoder, GifScratch, GifWrite
 use crate::commands::create;
 use crate::parallel;
 
-/// Writes every frame of the scene; returns the merged report of all frames.
 pub(crate) fn write_scene(
     scene: &Scene,
     scale: Scale,
@@ -29,7 +28,6 @@ pub(crate) fn write_scene(
     })
 }
 
-/// Writes every frame of the sequence; each GIF frame gets the colors of the shots it shows.
 pub(crate) fn write_sequence(
     sequence: &Sequence,
     scale: Scale,
@@ -78,7 +76,6 @@ fn write<S: Source>(
     Ok(total)
 }
 
-/// Renders frames into the pixels a `GifFrameEncoder` takes.
 trait Source {
     type Pixel: Copy;
 
@@ -96,7 +93,6 @@ trait Source {
 
 struct Worker<S: Source> {
     source: S,
-    /// The pixels of frame `last`, which deltas are encoded against.
     previous: Vec<S::Pixel>,
     last: Option<u32>,
     scratch: GifScratch,

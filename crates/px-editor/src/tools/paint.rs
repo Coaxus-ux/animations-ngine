@@ -1,11 +1,8 @@
 use super::{Effect, Tool, Work, line_points};
 
-/// Pencil and eraser: one-pixel lines between pointer positions, kept pixel-perfect by
-/// undoing the corner pixel of every L a stroke makes (RENDERING §7.2).
 #[derive(Default)]
 pub struct Pencil {
     last: Option<(i32, i32)>,
-    /// The pixels painted this stroke, in order.
     trail: Vec<(i32, i32)>,
 }
 

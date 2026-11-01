@@ -15,8 +15,6 @@ pub(crate) fn print(input: &Input) -> Result<()> {
     Ok(())
 }
 
-/// The root scene's time as a ruler, a markers row, and one bar per placed scene: `=` while
-/// it plays, `.` while it's hidden.
 fn chart(name: &str, timeline: &Timeline) -> String {
     let duration = timeline.duration.max(f64::EPSILON);
     let column = |seconds: f64| -> usize {

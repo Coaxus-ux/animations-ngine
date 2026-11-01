@@ -17,29 +17,21 @@ import re
 import subprocess
 import sys
 
-# Coding agents and assistants, matched as whole words, case-insensitive.
-# Unambiguous names are never people's names or ordinary words.
 UNAMBIGUOUS = (
     "claude", "anthropic", "openai", "chatgpt", r"gpt-\d", "copilot", "codex", "gemini",
     "aider", "codeium", "windsurf", "tabnine", "codewhisperer", "amazon q", "ai assistant",
     "ai agent",
 )
-# Ambiguous names are also people's names or common words ("cursor position", "Devin").
 AMBIGUOUS = ("cursor", "devin", "jules", "cody")
-# Signs that an ambiguous name refers to an agent.
 AI_CONTEXT = r"(\bai\b|\bagent\b|\bbot\b|\[bot\]|\.ai\b|cognition)"
 
-# Trailers that can name people: ambiguous names count only with AI context.
 PERSON_KEYS = (
     "co-authored-by", "signed-off-by", "authored-by", "created-by", "written-by", "helped-by",
 )
-# Trailers that name tools: any agent name counts.
 TOOL_KEYS = ("assisted-by", "generated-by", "made-with", "ai-assisted", "ai-model", "model", "tool")
-
 
 def words(names: tuple[str, ...]) -> str:
     return r"\b(" + "|".join(names) + r")\b"
-
 
 CLEAR_AGENT = re.compile(words(UNAMBIGUOUS), re.IGNORECASE)
 ANY_AGENT = re.compile(words(UNAMBIGUOUS + AMBIGUOUS), re.IGNORECASE)
@@ -53,7 +45,6 @@ MARKERS = (
 )
 
 MAX_COMMITS = 10_000
-
 
 def is_attribution(line: str) -> bool:
     if any(marker.search(line) for marker in MARKERS):
@@ -71,7 +62,6 @@ def is_attribution(line: str) -> bool:
         return clear or (ANY_AGENT.search(value) is not None and CONTEXT.search(value) is not None)
     return False
 
-
 def message_problems(message: str) -> list[str]:
     problems = []
     for number, line in enumerate(message.splitlines(), start=1):
@@ -81,16 +71,13 @@ def message_problems(message: str) -> list[str]:
             problems.append(f"line {number}: agent attribution: {line.strip()!r}")
     return problems
 
-
 def identity_problems(label: str, identity: str) -> list[str]:
     if IDENTITY.search(identity):
         return [f"{label} looks like an agent: {identity.strip()!r}"]
     return []
 
-
 def git(*args: str) -> str:
     return subprocess.run(["git", *args], check=True, capture_output=True, text=True).stdout
-
 
 def report(problems: list[str], where: str) -> int:
     if not problems:
@@ -101,14 +88,12 @@ def report(problems: list[str], where: str) -> int:
     print("Remove the attribution and commit again (docs/engineering/DECISIONS.md D-005).", file=sys.stderr)
     return 1
 
-
 def run_msg(path: str) -> int:
     with open(path, encoding="utf-8") as file:
         problems = message_problems(file.read())
     for label, var in (("author", "GIT_AUTHOR_IDENT"), ("committer", "GIT_COMMITTER_IDENT")):
         problems += identity_problems(label, git("var", var).rsplit(">", 1)[0] + ">")
     return report(problems, "commit-msg")
-
 
 def run_history(revision_range: str) -> int:
     log = git("log", f"--max-count={MAX_COMMITS}", "--format=%H%x1f%an <%ae>%x1f%cn <%ce>%x1f%B%x1e", revision_range)
@@ -120,7 +105,6 @@ def run_history(revision_range: str) -> int:
         failed |= report(problems, sha[:12])
     return failed
 
-
 def main(argv: list[str]) -> int:
     if len(argv) == 3 and argv[1] == "msg":
         return run_msg(argv[2])
@@ -128,7 +112,6 @@ def main(argv: list[str]) -> int:
         return run_history(argv[2] if len(argv) == 3 else "HEAD")
     print("usage: commit_guard.py msg <file> | history [range]", file=sys.stderr)
     return 64
-
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

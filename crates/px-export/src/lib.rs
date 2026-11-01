@@ -1,4 +1,3 @@
-//! Indexed canvas to PNG and GIF; RGBA sprite sheets with Aseprite JSON. Memory profile: allocation-conscious; buffers are reused across frames.
 #![forbid(unsafe_code)]
 
 mod color_slots;

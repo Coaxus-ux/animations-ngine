@@ -8,8 +8,6 @@ pub const fn mix(mut z: u64) -> u64 {
     z ^ (z >> 31)
 }
 
-/// `hash_seed(seed, parts)` is `parts` folded into `seeded(seed)` with `absorb`; hot loops
-/// that share a seed or leading parts compute that prefix once.
 #[must_use]
 pub fn hash_seed(seed: u64, parts: &[u64]) -> u64 {
     parts

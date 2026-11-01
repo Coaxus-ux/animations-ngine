@@ -30,8 +30,6 @@ pub(crate) struct Pass<'s, 'r> {
 }
 
 impl Pass<'_, '_> {
-    /// Values for one object of `owner` (an instance, or the scene itself) drawn in `layer`,
-    /// positioned from `anchor` when it is hooked to one, or `None` while hidden.
     pub(super) fn values(
         &mut self,
         object: usize,
@@ -70,7 +68,6 @@ impl Pass<'_, '_> {
             .map_or(self.scene.seed(), |instance| instance.seed)
     }
 
-    /// The seed of an object that isn't a shape (a clip, a light, a reflection).
     fn object_seed(&self, owner: Option<usize>) -> u64 {
         object_seed(self.instance_seed(owner), usize::MAX)
     }
@@ -90,7 +87,6 @@ impl Pass<'_, '_> {
     }
 }
 
-/// Draws `frame`; with `capture`, also records the stamps of shapes that never change.
 pub(crate) fn render(
     scene: &Scene,
     frame: Frame,
@@ -242,7 +238,6 @@ fn light_scene(
     Ok(())
 }
 
-/// The camera: a pan scaled by each layer's parallax, then a zoom about the canvas center.
 struct View {
     x: f64,
     y: f64,
@@ -263,8 +258,6 @@ impl View {
     }
 }
 
-/// `time * speed` radians, with the speed rounded to whole turns per loop so looping
-/// scenes have no seam.
 fn loop_phase(env: &Env, speed: f64) -> f64 {
     match env.loop_period {
         Some(period) if period > 0.0 => {

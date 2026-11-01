@@ -6,19 +6,14 @@ use super::mask::Mask;
 use super::values::Values;
 use crate::model::PixelArt;
 
-/// Covers each painted pixel of the cel showing this frame with its own paint. Like text
-/// cells, every pixel's edges are snapped on their own, so pixels stay touching at any
-/// zoom (D-008).
 pub(crate) fn pixels(
     art: &PixelArt,
     values: &mut Values<'_>,
     mask: &mut Mask<'_>,
 ) -> Result<(), RenderError> {
     let (x, y) = (values.of(&art.x)?, values.of(&art.y)?);
-    // Which cel shows depends on the frame, which no param reports.
     values.timed |= art.is_animated();
     let env = values.env;
-    // A looping scene's frame `duration` is its frame 0 again, so cels loop with it.
     let frame = match env.loop_period {
         Some(period) if period > 0.0 => {
             let frames = libm::round(period * env.fps).max(1.0);

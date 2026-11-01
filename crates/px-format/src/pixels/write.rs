@@ -7,12 +7,8 @@ use px_engine::Cel;
 use super::EMPTY;
 use crate::source_map::PaintNames;
 
-/// Letters only: they are valid bare node names and never confused with numbers.
 const CODES: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-/// The children of a `pixels` node for `cels`: a legend with a code per paint used (one
-/// letter, or two once there are more paints than letters) and each cel cropped to its
-/// painted pixels. `None` when a paint has no name in `names`.
 #[must_use]
 pub fn write_pixels(cels: &[Cel], names: &PaintNames) -> Option<String> {
     let mut paints: Vec<Paint> = cels

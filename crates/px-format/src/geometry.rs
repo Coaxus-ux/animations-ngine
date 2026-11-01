@@ -4,7 +4,6 @@ use px_expr::{Blend, Program};
 use crate::extras::Extras;
 use crate::schema::Kind;
 
-/// Hands out a draft's compiled properties in schema order.
 pub(crate) struct Next(pub(crate) std::vec::IntoIter<Param>);
 
 impl Next {

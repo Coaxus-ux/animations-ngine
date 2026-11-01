@@ -3,9 +3,8 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand};
 use px_core::MAX_CANVAS_SIDE;
 
-/// Pixel art engine command-line tool.
 #[derive(Debug, Parser)]
-#[command(name = "pxe", version, about)]
+#[command(name = "pxe", version, about = "Pixel art engine command-line tool")]
 pub(crate) struct Cli {
     #[command(subcommand)]
     pub(crate) command: Command,
@@ -13,55 +12,58 @@ pub(crate) struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
-    /// Render one frame to a PNG.
+    #[command(about = "Render one frame to a PNG")]
     Render {
         #[command(flatten)]
         input: Input,
-        /// Frame index to render.
-        #[arg(long, default_value_t = 0)]
+        #[arg(long, default_value_t = 0, help = "Frame index to render")]
         frame: u32,
-        /// Output PNG path (default: `out/<scene>-<frame>.png`).
-        #[arg(long)]
+        #[arg(long, help = "Output PNG path (default: `out/<scene>-<frame>.png`)")]
         out: Option<PathBuf>,
     },
-    /// Open a live preview that reloads whenever the scene file changes.
+    #[command(about = "Open a live preview that reloads whenever the scene file changes")]
     Watch {
         #[command(flatten)]
         input: Input,
     },
-    /// Time every frame of the example and benchmark scenes (or the given files).
+    #[command(about = "Time every frame of the example and benchmark scenes (or the given files)")]
     Bench {
-        /// Scene files (default: `examples/*.kdl` and `benchmarks/*/*.kdl`).
+        #[arg(help = "Scene files (default: `examples/*.kdl` and `benchmarks/*/*.kdl`)")]
         files: Vec<PathBuf>,
-        /// Slowest allowed frame, in milliseconds.
-        #[arg(long, default_value_t = 33.3)]
+        #[arg(
+            long,
+            default_value_t = 33.3,
+            help = "Slowest allowed frame, in milliseconds"
+        )]
         budget_ms: f64,
-        /// Times each frame is rendered; the fastest run counts.
-        #[arg(long, default_value_t = 3)]
+        #[arg(
+            long,
+            default_value_t = 3,
+            help = "Times each frame is rendered; the fastest run counts"
+        )]
         rounds: u32,
-        /// Render each scene once per value of a scene param, e.g. `--sweep crowd=10,100,1000`,
-        /// to find where frames cross the budget.
-        #[arg(long, value_name = "NAME=V1,V2,…", value_parser = parse_sweep)]
+        #[arg(long, value_name = "NAME=V1,V2,…", value_parser = parse_sweep, help = "Render each scene once per value of a scene param, e.g. `--sweep crowd=10,100,1000`, to find where frames cross the budget")]
         sweep: Option<Sweep>,
     },
-    /// Print what plays when: every placed scene on a time ruler, with the markers.
+    #[command(
+        about = "Print what plays when: every placed scene on a time ruler, with the markers."
+    )]
     Timeline {
         #[command(flatten)]
         input: Input,
     },
-    /// Open the pixel-art editor, on a scene file when one is given (creating it with
-    /// `--size`).
+    #[command(
+        about = "Open the pixel-art editor, on a scene file when one is given (creating it with `--size`)."
+    )]
     Edit {
-        /// Scene file (.kdl).
+        #[arg(help = "Scene file (.kdl)")]
         file: Option<PathBuf>,
-        /// Canvas size for a new file, e.g. `--size 64x64`.
-        #[arg(long, value_parser = parse_size)]
+        #[arg(long, value_parser = parse_size, help = "Canvas size for a new file, e.g. `--size 64x64`")]
         size: Option<(u16, u16)>,
-        /// Window pixels per UI pixel (1..=4).
-        #[arg(long)]
+        #[arg(long, help = "Window pixels per UI pixel (1..=4)")]
         scale: Option<u8>,
     },
-    /// Render the scene as a GIF, a PNG, a PNG sequence or a sprite sheet.
+    #[command(about = "Render the scene as a GIF, a PNG, a PNG sequence or a sprite sheet")]
     Export {
         #[command(flatten)]
         input: Input,
@@ -72,16 +74,13 @@ pub(crate) enum Command {
 
 #[derive(Debug, Args)]
 pub(crate) struct Input {
-    /// Scene file (.kdl).
+    #[arg(help = "Scene file (.kdl)")]
     pub(crate) file: PathBuf,
-    /// Scene to use when the file holds several.
-    #[arg(long)]
+    #[arg(long, help = "Scene to use when the file holds several")]
     pub(crate) scene: Option<String>,
-    /// Integer upscale factor (1..=16).
-    #[arg(long, default_value_t = 4)]
+    #[arg(long, default_value_t = 4, help = "Integer upscale factor (1..=16)")]
     pub(crate) scale: u8,
-    /// Override a scene param, e.g. `--param wind=0.8` (repeatable).
-    #[arg(long = "param", value_name = "NAME=VALUE", value_parser = parse_param)]
+    #[arg(long = "param", value_name = "NAME=VALUE", value_parser = parse_param, help = "Override a scene param, e.g. `--param wind=0.8` (repeatable)")]
     pub(crate) params: Vec<(String, String)>,
 }
 

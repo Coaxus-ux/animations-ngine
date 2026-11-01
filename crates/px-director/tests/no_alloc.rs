@@ -1,5 +1,3 @@
-//! Certifies that `Player::render` performs no heap activity after setup, in shots and
-//! in every kind of transition. Run alone: `--test-threads=1`.
 #![allow(
     unsafe_code,
     reason = "test-only counting allocator, see DECISIONS.md D-002"
