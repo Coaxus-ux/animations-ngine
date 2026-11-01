@@ -16,6 +16,7 @@ mod tabs;
 mod text;
 mod theme;
 mod ui;
+mod wheel;
 mod widgets;
 
 pub use area::{Area, Rect, rect};
@@ -34,6 +35,7 @@ pub use tabs::{Tab, TabAction, tab_strip};
 pub use text::{draw_text, fit_text, text_width};
 pub use theme::{Roles, Theme};
 pub use ui::{Id, Response, Ui, UiState};
+pub use wheel::WHEEL_NOTCH;
 pub use widgets::{
     HEADER, ICON, ROW, SMALL_ICON, TOOL_BUTTON, button, button_if, centered_label, checkbox,
     header_button, icon_button, label, panel, separator, toggle_icon,

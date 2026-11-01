@@ -1,4 +1,4 @@
-use super::window::WindowKind;
+use super::window::{CodeMode, WindowKind};
 use super::{App, WindowId};
 use crate::views::Placement;
 
@@ -77,5 +77,14 @@ impl App {
                     i32::from(scene.size().height()),
                 )
             })
+    }
+
+    pub(super) fn set_code(&mut self, mode: CodeMode) {
+        if let Some(main) = self.main_mut() {
+            main.view.code = mode;
+            if mode == CodeMode::Hidden {
+                main.ui.focus = None;
+            }
+        }
     }
 }

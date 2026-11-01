@@ -46,6 +46,18 @@ pub fn elements(source: &Source) -> Vec<Element> {
     rows
 }
 
+#[must_use]
+pub fn within(rows: Vec<Element>, root: &NodePath) -> Vec<Element> {
+    let base = root.steps().len().saturating_sub(1);
+    rows.into_iter()
+        .filter(|row| row.path.steps().starts_with(root.steps()))
+        .map(|row| Element {
+            depth: row.depth.saturating_sub(base),
+            ..row
+        })
+        .collect()
+}
+
 fn collect(parent: &NodePath, siblings: &[KdlNode], depth: usize, rows: &mut Vec<Element>) {
     for node in siblings {
         let path = Source::path_of(parent, siblings, node);
@@ -126,6 +138,24 @@ mod tests {
         assert!(rows.iter().all(|row| row.editable));
         assert!(!rows.iter().any(|row| row.label.starts_with("legend")));
         assert!(!rows.iter().any(|row| row.label.starts_with("cel")));
+    }
+
+    #[test]
+    fn within_keeps_one_layer_and_its_children_from_depth_zero() {
+        let source = room();
+        let rows = elements(&source);
+        let cat = rows
+            .iter()
+            .find(|row| row.label == "layer \"cat\"")
+            .unwrap()
+            .path
+            .clone();
+        let kept = within(rows, &cat);
+        let summary: Vec<(&str, usize)> = kept
+            .iter()
+            .map(|row| (row.label.as_str(), row.depth))
+            .collect();
+        assert_eq!(summary, [("layer \"cat\"", 0), ("pixels \"cat-art\"", 1)]);
     }
 
     #[test]

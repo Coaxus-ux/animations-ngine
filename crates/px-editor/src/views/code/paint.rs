@@ -1,7 +1,8 @@
 use px_ui::{Area, Rect, Ui, draw_text, rect, text_width};
 
 use super::GUTTER;
-use super::cursor::line_column;
+use super::cursor::{index_of, line_column};
+use super::typing::selection;
 use crate::app::CodeBuffer;
 
 pub(super) fn draw(
@@ -18,6 +19,8 @@ pub(super) fn draw(
     let line_height = i32::from(ui.font.line_height());
     let (cursor_line, cursor_column) = line_column(&code.text, code.cursor);
     let clip = ui.canvas.clip_to(area);
+    let selected = selection(code);
+    let mut line_start = index_of(&code.text, code.scroll, 0);
     for (row, (number, content)) in
         (0i32..).zip(code.text.split('\n').enumerate().skip(code.scroll))
     {
@@ -34,6 +37,17 @@ pub(super) fn draw(
             roles.ink_dim,
         );
         let line_clip = ui.canvas.clip_to(body);
+        let length = content.chars().count();
+        if let Some(band) =
+            selected.and_then(|range| band(ui, content, (line_start, length), range))
+        {
+            let left = body.x + 2 - code.scroll_x;
+            ui.canvas.fill(
+                rect(left + band.0, y - 1, band.1 - band.0, line_height),
+                roles.accent,
+            );
+        }
+        line_start += length + 1;
         let mut x = body.x + 2 - code.scroll_x;
         for (piece, kind) in tokens(content) {
             let paint = match kind {
@@ -53,6 +67,25 @@ pub(super) fn draw(
     }
     ui.canvas.restore_clip(clip);
 }
+
+fn band(
+    ui: &Ui<'_>,
+    content: &str,
+    (start, length): (usize, usize),
+    (from, to): (usize, usize),
+) -> Option<(i32, i32)> {
+    let end = start + length;
+    if to <= start || from > end {
+        return None;
+    }
+    let width =
+        |chars: usize| text_width(ui.font, &content.chars().take(chars).collect::<String>());
+    let left = width(from.saturating_sub(start));
+    let right = width(to.min(end) - start) + if to > end { NEWLINE_WIDTH } else { 0 };
+    (right > left).then_some((left, right))
+}
+
+const NEWLINE_WIDTH: i32 = 3;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Token {

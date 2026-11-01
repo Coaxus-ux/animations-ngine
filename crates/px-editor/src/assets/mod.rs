@@ -36,7 +36,7 @@ const ICON_FILES: [(&str, &str, &[&str]); 3] = [
         &[
             "eye", "eye-off", "lock", "unlock", "popout", "plus", "trash", "up", "down", "cel",
             "hold", "home", "close", "minus", "folder", "file", "swatch", "scene", "pixels",
-            "shape", "node",
+            "shape", "node", "maximize", "restore", "side", "filter",
         ],
     ),
 ];

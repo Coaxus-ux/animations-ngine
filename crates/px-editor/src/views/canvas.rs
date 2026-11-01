@@ -1,5 +1,5 @@
 use px_engine::Geometry;
-use px_ui::{Area, Id, Input, Key, Rect, Theme, Ui, pack, rect};
+use px_ui::{Area, Id, Input, Key, Rect, Theme, Ui, WHEEL_NOTCH, pack, rect};
 
 use super::doc_view::{
     Placement, RenderCache, ViewPixels, draw_cursor, draw_document, draw_grid, draw_selection,
@@ -46,9 +46,12 @@ pub(super) fn canvas(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) -> 
         }
         return Some(area);
     }
-    if response.hovered && raw.wheel.1 != 0.0 {
-        #[expect(clippy::cast_possible_truncation, reason = "a few wheel steps")]
-        let steps = raw.wheel.1.signum() as i32;
+    let steps = if response.hovered {
+        -ui.wheel_steps(Id::new("canvas"), WHEEL_NOTCH).1
+    } else {
+        0
+    };
+    if steps != 0 {
         let at = raw.pointer.unwrap_or_default();
         context.intents.push(Intent::Zoom { steps, at });
     }

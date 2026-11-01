@@ -1,3 +1,4 @@
+mod clipboard;
 mod dialogs;
 pub(crate) mod files;
 mod host;
@@ -11,7 +12,9 @@ use anyhow::{Context, Result, anyhow};
 use px_editor::app::{App, Intent, Request, WindowId};
 use px_editor::assets::ThemeChoice;
 use px_editor::ports::FileStore;
+use px_ui::Key;
 
+use clipboard::Clipboard;
 use files::DiskFiles;
 use host::Host;
 
@@ -48,6 +51,7 @@ pub(crate) fn edit(file: Option<&Path>, size: Option<(u16, u16)>, scale: Option<
 fn run(app: &mut App, files: &mut DiskFiles) -> Result<()> {
     let start = Instant::now();
     let mut hosts: BTreeMap<WindowId, Host> = BTreeMap::new();
+    let mut clipboard = Clipboard::default();
     loop {
         for request in app.take_requests() {
             match request {
@@ -63,6 +67,7 @@ fn run(app: &mut App, files: &mut DiskFiles) -> Result<()> {
                 Request::Close { id } => {
                     hosts.remove(&id);
                 }
+                Request::Clipboard(text) => clipboard.write(text),
                 Request::Title { id, title } => {
                     if let Some(host) = hosts.get_mut(&id) {
                         host.window.set_title(&title);
@@ -91,7 +96,10 @@ fn run(app: &mut App, files: &mut DiskFiles) -> Result<()> {
                 closed.push(*id);
                 continue;
             }
-            let input = host.input(time_ms);
+            let mut input = host.input(time_ms);
+            if input.shortcut(Key::Letter('v')) {
+                input.clipboard = clipboard.read();
+            }
             let (width, height) = host.window.get_size();
             match app.frame(*id, &input, (width, height), files) {
                 Some(pixels) if width > 0 && height > 0 => {

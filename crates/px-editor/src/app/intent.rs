@@ -95,6 +95,7 @@ pub enum Intent {
     Copy,
     Cut,
     Paste,
+    CopyText(String),
     Flip {
         horizontal: bool,
     },
@@ -108,6 +109,7 @@ pub enum Intent {
     SetTheme(ThemeChoice),
     SetScale(Option<i32>),
     SetCode(CodeMode),
+    TogglePaletteSide,
     ToggleHelp,
     GlobalFill(bool),
     RecolorPicked,

@@ -10,6 +10,7 @@ mod intent;
 mod layout;
 mod node_ops;
 mod palette_ops;
+mod panels;
 mod selection_ops;
 mod shortcuts;
 mod status;
@@ -28,6 +29,7 @@ pub use dialog::{Dialog, DialogKind, Form, PickPurpose, keys};
 pub use documents::{DocumentId, Documents, Slot, TabInfo};
 pub use editing::Editing;
 pub use intent::{Button, Intent};
+pub use panels::{MIN_COLUMN, Panels, Side};
 pub(crate) use shortcuts::neighbour_tab;
 pub use status::Status;
 pub use window::{

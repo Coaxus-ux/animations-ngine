@@ -97,6 +97,7 @@ impl Host {
             held: held.into_iter().filter_map(key).collect(),
             modifiers,
             text,
+            clipboard: None,
             time_ms,
         }
     }

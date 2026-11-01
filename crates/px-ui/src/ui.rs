@@ -52,6 +52,7 @@ pub struct UiState {
     pub drafts: BTreeMap<Id, String>,
     pub key_focus: Option<Id>,
     pub menu_item: Option<usize>,
+    pub(crate) wheel_rest: BTreeMap<Id, (f32, f32)>,
     stops: Vec<Stop>,
     last_stops: Vec<Stop>,
     used_keys: Vec<Key>,

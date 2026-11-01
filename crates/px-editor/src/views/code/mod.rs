@@ -1,14 +1,15 @@
 mod cursor;
 mod paint;
+mod typing;
 
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 use px_format::edit::NodePath;
-use px_ui::{Area, Id, Key, ROW, Rect, Ui, draw_text, label};
+use px_ui::{Area, Id, Key, ROW, Rect, Ui, draw_text, header_button, label};
 
 use super::Context;
-use crate::app::{CodeBuffer, Intent};
+use crate::app::{CodeBuffer, CodeMode, Intent};
 use crate::domain::Document;
 use crate::domain::tree::label_of;
 
@@ -45,6 +46,31 @@ fn scope<'a>(document: &'a Document, selected: Option<&'a NodePath>) -> Scope<'a
     }
 }
 
+pub(super) fn pane_buttons(
+    ui: &mut Ui<'_>,
+    context: &mut Context<'_>,
+    id: Id,
+    header: Rect,
+) -> i32 {
+    let tip = "Close the code (F2 brings it back)";
+    if header_button(ui, id.with_name("close"), header, 0, "close", tip) {
+        context.intents.push(Intent::SetCode(CodeMode::Hidden));
+    }
+    let (icon, tip, mode) = if context.view.code == CodeMode::Only {
+        (
+            "restore",
+            "Show the canvas next to the code",
+            CodeMode::Split,
+        )
+    } else {
+        ("maximize", "Code only", CodeMode::Only)
+    };
+    if header_button(ui, id.with_name("size"), header, 1, icon, tip) {
+        context.intents.push(Intent::SetCode(mode));
+    }
+    2
+}
+
 pub(super) fn code(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
         return;
@@ -52,6 +78,7 @@ pub(super) fn code(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let roles = ui.theme.roles;
     let scope = scope(document, context.selected);
     let area = header(ui, context, &scope, area);
+    let area = super::preview::strip(ui, context, area);
     let errors = document.errors();
     let error_lines = i32::try_from(errors.len().min(3)).unwrap_or(0);
     let line_height = i32::from(ui.font.line_height());
@@ -66,28 +93,41 @@ pub(super) fn code(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     );
     let id = Id::new("code");
     let response = ui.interact(id, editor);
+    let before = context.code.cursor;
     if response.pressed {
         ui.state.focus = Some(id);
         if let Some(pointer) = ui.input.pointer {
-            context.code.cursor = cursor::click(ui, context.code, editor, pointer);
+            let at = cursor::click(ui, context.code, editor, pointer);
+            let code = &mut *context.code;
+            code.anchor = if ui.input.modifiers.shift {
+                code.anchor.or(Some(code.cursor))
+            } else {
+                Some(at)
+            };
+            code.cursor = at;
         }
+    } else if response.held
+        && let Some(pointer) = ui.input.pointer
+    {
+        context.code.cursor = cursor::click(ui, context.code, editor, pointer);
     } else if ui.input.pressed.left && !response.hovered && ui.state.focus == Some(id) {
         ui.state.focus = None;
     }
     let focused = ui.state.focus == Some(id);
     let visible = usize::try_from((editor.height / line_height.max(1)).max(1)).unwrap_or(1);
-    if focused && cursor::type_keys(ui, context.code, visible) {
+    let typed = if focused {
+        typing::type_keys(ui, context.code, visible)
+    } else {
+        typing::Typed::default()
+    };
+    if typed.changed {
         context.code.edited_at = Some(ui.input.time_ms);
     }
-    if response.hovered && ui.input.wheel.1 != 0.0 {
-        let lines = context.code.text.lines().count();
-        let down = ui.input.wheel.1 < 0.0;
-        let scroll = &mut context.code.scroll;
-        *scroll = if down {
-            (*scroll + 3).min(lines.saturating_sub(1))
-        } else {
-            scroll.saturating_sub(3)
-        };
+    if let Some(text) = typed.copied {
+        context.intents.push(Intent::CopyText(text));
+    }
+    if response.hovered {
+        wheel(ui, context.code, id, visible);
     }
     if let Some(at) = context.code.edited_at
         && ui.input.time_ms.saturating_sub(at) >= DEBOUNCE_MS
@@ -103,11 +143,8 @@ pub(super) fn code(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
             None => Intent::SetText(text),
         });
     }
-    cursor::follow(ui, context.code, editor);
-    if response.hovered && ui.input.wheel.0 != 0.0 {
-        #[expect(clippy::cast_possible_truncation, reason = "a few wheel steps")]
-        let steps = ui.input.wheel.0.round() as i32;
-        context.code.scroll_x = (context.code.scroll_x - steps * 12).max(0);
+    if typed.changed || context.code.cursor != before {
+        cursor::reveal(ui, context.code, editor, visible);
     }
     paint::draw(ui, context.code, editor, focused, scope.first_line);
     ui.canvas.fill(error_area, roles.panel_dark);
@@ -122,6 +159,16 @@ pub(super) fn code(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
             roles.warning,
         );
     }
+}
+
+fn wheel(ui: &mut Ui<'_>, code: &mut CodeBuffer, id: Id, visible: usize) {
+    let line_height = i32::from(ui.font.line_height());
+    let lines = ui.wheel_steps(id.with_name("lines"), line_height).1;
+    let pixels = ui.wheel_steps(id.with_name("pixels"), 1).0;
+    let last = code.text.split('\n').count().saturating_sub(visible);
+    let moved = i64::try_from(code.scroll).unwrap_or(0) + i64::from(lines);
+    code.scroll = usize::try_from(moved.max(0)).unwrap_or(0).min(last);
+    code.scroll_x = (code.scroll_x + pixels).max(0);
 }
 
 fn header(ui: &mut Ui<'_>, context: &mut Context<'_>, scope: &Scope<'_>, area: Rect) -> Rect {
@@ -155,6 +202,7 @@ fn sync(
         if *scope.text != code.text {
             code.text = scope.text.to_string();
             code.cursor = 0;
+            code.anchor = None;
             code.scroll = 0;
             code.scroll_x = 0;
         }
@@ -164,6 +212,7 @@ fn sync(
         code.text = scope.text.to_string();
         code.base.clone_from(&code.text);
         code.cursor = code.cursor.min(code.text.chars().count());
+        code.anchor = None;
     }
     if picked != code.jumped {
         code.jumped = picked;
@@ -180,6 +229,7 @@ fn jump(code: &mut CodeBuffer, document: &Document, picked: Option<usize>) {
         .map(|origin| origin.offset.min(code.text.len()));
     if let Some(offset) = offset {
         code.cursor = code.text[..offset].chars().count();
+        code.anchor = None;
         let line = code.text[..offset].matches('\n').count();
         code.scroll = line.saturating_sub(3);
     }

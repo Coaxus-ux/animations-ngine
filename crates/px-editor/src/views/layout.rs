@@ -1,7 +1,9 @@
 use px_ui::{Area, Id, ROW, Rect, TOOL_BUTTON, Tab, TabAction, Ui, tab_strip};
 
-use super::{Context, canvas, home, menus, panel_view, tools};
-use crate::app::{CodeMode, Intent, PanelKind, WindowKind};
+use super::columns::{self, GRIP, column};
+use super::panel_frame::{COLLAPSED, is_collapsed, panel_view};
+use super::{Context, canvas, home, menus, tools};
+use crate::app::{CodeMode, Intent, MIN_COLUMN, PanelKind, Side, WindowKind};
 
 const SIDE: (i32, i32) = (104, 150);
 const TIMELINE: i32 = 70;
@@ -71,29 +73,53 @@ fn tab_bar(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
 
 fn main_panels(ui: &mut Ui<'_>, context: &mut Context<'_>, mut rest: Rect) -> Option<Rect> {
     let docked = |panel: PanelKind| !context.popped.contains(&panel);
-    let side = (ui.canvas.width() / 5).clamp(SIDE.0, SIDE.1);
-    if docked(PanelKind::Palette) {
-        let (left, remaining) = rest.take_left(side);
+    let auto = (ui.canvas.width() / 5).clamp(SIDE.0, SIDE.1);
+    let widest = (ui.canvas.width() / 3).max(MIN_COLUMN);
+    let width = |side: Side| {
+        context
+            .panels
+            .width(side)
+            .unwrap_or(auto)
+            .clamp(MIN_COLUMN, widest)
+    };
+    let (left_width, right_width) = (width(Side::Left), width(Side::Right));
+    let palette_right = context.panels.palette_right;
+    if docked(PanelKind::Palette) && !palette_right {
+        let (left, remaining) = rest.take_left(left_width);
+        let (grip, remaining) = remaining.take_left(GRIP);
         rest = remaining;
-        let (paints, palette) = left.take_bottom(tools::PAINTS);
-        panel_view(ui, context, PanelKind::Palette, palette);
-        tools::paints(ui, context, paints);
+        column(ui, context, &[PanelKind::Palette], left);
+        columns::grip(ui, context, Side::Left, (left, grip));
     }
     let (tool_bar, remaining) = rest.take_right(TOOL_BAR);
     rest = remaining;
     tools::column(ui, context, tool_bar);
     let wide = ui.canvas.width() >= ROOM_FOR_INSPECTOR;
-    let stacked: Vec<PanelKind> = [PanelKind::Layers, PanelKind::Elements, PanelKind::Inspector]
-        .into_iter()
-        .filter(|panel| docked(*panel) && (*panel != PanelKind::Inspector || wide))
-        .collect();
+    let stacked: Vec<PanelKind> = [
+        PanelKind::Palette,
+        PanelKind::Layers,
+        PanelKind::Elements,
+        PanelKind::Inspector,
+    ]
+    .into_iter()
+    .filter(|panel| docked(*panel))
+    .filter(|panel| *panel != PanelKind::Palette || palette_right)
+    .filter(|panel| *panel != PanelKind::Inspector || wide)
+    .collect();
     if !stacked.is_empty() {
-        let (right, remaining) = rest.take_right(side);
+        let (right, remaining) = rest.take_right(right_width);
+        let (grip, remaining) = remaining.take_right(GRIP);
         rest = remaining;
-        stack(ui, context, &stacked, right);
+        column(ui, context, &stacked, right);
+        columns::grip(ui, context, Side::Right, (right, grip));
     }
     if docked(PanelKind::Timeline) {
-        let (bottom, remaining) = rest.take_bottom(TIMELINE);
+        let height = if is_collapsed(context, PanelKind::Timeline) {
+            COLLAPSED
+        } else {
+            TIMELINE
+        };
+        let (bottom, remaining) = rest.take_bottom(height);
         rest = remaining;
         panel_view(ui, context, PanelKind::Timeline, bottom);
     }
@@ -108,20 +134,5 @@ fn main_panels(ui: &mut Ui<'_>, context: &mut Context<'_>, mut rest: Rect) -> Op
             canvas::canvas(ui, context, left)
         }
         _ => canvas::canvas(ui, context, rest),
-    }
-}
-
-fn stack(ui: &mut Ui<'_>, context: &mut Context<'_>, panels: &[PanelKind], mut area: Rect) {
-    let count = i32::try_from(panels.len()).unwrap_or(1).max(1);
-    let each = area.height / count;
-    for (index, panel) in panels.iter().enumerate() {
-        let slot = if index + 1 == panels.len() {
-            area
-        } else {
-            let (top, remaining) = area.take_top(each);
-            area = remaining;
-            top
-        };
-        panel_view(ui, context, *panel, slot);
     }
 }

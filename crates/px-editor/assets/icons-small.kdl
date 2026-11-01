@@ -337,3 +337,67 @@ scene "node" palette="theme" width=8 height=8 fps=1 duration="1f" background="ke
         """
     }
 }
+
+scene "maximize" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "maximize-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        iiiiiiii
+        iiiiiiii
+        i......i
+        i......i
+        i......i
+        i......i
+        i......i
+        iiiiiiii
+        """
+    }
+}
+
+scene "restore" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "restore-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ..iiiiii
+        ..iiiiii
+        ..i....i
+        iiiiii.i
+        iiiiii.i
+        i....iii
+        i....i..
+        iiiiii..
+        """
+    }
+}
+
+scene "side" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "side-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        ..i.....
+        .ii.....
+        iiiiiiii
+        .ii.....
+        .....ii.
+        iiiiiiii
+        .....ii.
+        .....i..
+        """
+    }
+}
+
+scene "filter" palette="theme" width=8 height=8 fps=1 duration="1f" background="key.0" {
+    pixels "filter-icon" {
+        legend { i "ink.1"; d "ink.0"; a "accent.0"; b "accent.1"; w "warning.0"; p "panel.0"; k "panel.2" }
+        cel """
+        iiiiiiii
+        .iiiiii.
+        ..iiii..
+        ...ii...
+        ...ii...
+        ...ii...
+        ...ii...
+        ........
+        """
+    }
+}

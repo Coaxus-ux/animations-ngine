@@ -1,19 +1,15 @@
 use crate::area::{Area, Rect, rect};
 use crate::input::Key;
 use crate::ui::{Id, Response, Ui};
-use crate::widgets::{ROW, SMALL_ICON, label};
+use crate::widgets::{SMALL_ICON, label};
 
 pub(crate) const SCROLLBAR: i32 = 5;
-const WHEEL_STEP: i32 = ROW;
-
 pub fn scroll_area(ui: &mut Ui<'_>, id: Id, area: Rect, content_height: i32) -> (Rect, i32) {
     let roles = ui.theme.roles;
     let overflow = (content_height - area.height).max(0);
     let mut offset = ui.state.scroll.get(&id).copied().unwrap_or(0);
     if ui.hovering(area) {
-        #[expect(clippy::cast_possible_truncation, reason = "a few wheel steps")]
-        let steps = ui.input.wheel.1.round() as i32;
-        offset -= steps * WHEEL_STEP;
+        offset += ui.wheel_steps(id, 1).1;
     }
     if overflow == 0 {
         ui.state.scroll.insert(id, 0);

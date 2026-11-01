@@ -12,6 +12,15 @@ pub(super) fn elements(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
         return;
     };
     let rows = tree::elements(document.source());
+    let layer = context
+        .view
+        .layer
+        .and_then(|index| document.layers().get(index))
+        .filter(|_| !context.panels.every_element);
+    let rows = match layer {
+        Some(layer) => tree::within(rows, &layer.path),
+        None => rows,
+    };
     let id = Id::new("elements");
     let total_height = i32::try_from(rows.len()).unwrap_or(0) * ROW;
     let (view, offset) = scroll_area(ui, id, area, total_height);

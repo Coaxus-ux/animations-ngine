@@ -63,6 +63,7 @@ pub struct Input {
     pub held: Vec<Key>,
     pub modifiers: Modifiers,
     pub text: String,
+    pub clipboard: Option<String>,
     pub time_ms: u64,
 }
 

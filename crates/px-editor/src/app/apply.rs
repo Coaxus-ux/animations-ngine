@@ -3,7 +3,7 @@ use px_ui::Input;
 
 use super::intent::Intent;
 use super::selection_ops::SelectionOp;
-use super::window::{CodeMode, Picker, WindowKind};
+use super::window::{Picker, WindowKind};
 use super::{App, WindowId};
 use crate::app::Status;
 use crate::domain::{Command, Selection};
@@ -238,12 +238,8 @@ impl App {
                 self.editing.selection = Selection::none(width, height);
             }
             Intent::CycleCode => {
-                if let Some(main) = self.main_mut() {
-                    main.view.code = match main.view.code {
-                        CodeMode::Hidden => CodeMode::Split,
-                        CodeMode::Split => CodeMode::Only,
-                        CodeMode::Only => CodeMode::Hidden,
-                    };
+                if let Some(mode) = self.main_mut().map(|main| main.view.code.next()) {
+                    self.set_code(mode);
                 }
             }
             Intent::NewWindow => self.focused = self.open_window(WindowKind::Canvas),
@@ -256,11 +252,13 @@ impl App {
                 }
             }
             Intent::SetScale(scale) => self.set_scale(scale),
-            Intent::SetCode(mode) => {
+            Intent::SetCode(mode) => self.set_code(mode),
+            Intent::TogglePaletteSide => {
                 if let Some(main) = self.main_mut() {
-                    main.view.code = mode;
+                    main.panels.palette_right = !main.panels.palette_right;
                 }
             }
+            Intent::CopyText(text) => self.requests.push(super::Request::Clipboard(text)),
             Intent::ToggleHelp => self.window_mut(source, |window| window.help = !window.help),
             other => return Some(other),
         }

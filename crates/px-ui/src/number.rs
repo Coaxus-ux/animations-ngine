@@ -2,6 +2,7 @@ use crate::area::{Area, Rect, rect};
 use crate::input::Key;
 use crate::text::text_width;
 use crate::ui::{Id, Ui};
+use crate::wheel::WHEEL_NOTCH;
 use crate::widgets::{label, step_button};
 
 pub fn number_field(
@@ -23,7 +24,7 @@ pub fn number_field(
     }
     ui.focusable_text(id);
     if ui.hovering(field) {
-        *value += wheel_step(ui.input.wheel.1);
+        *value -= i64::from(ui.wheel_steps(id, WHEEL_NOTCH).1);
     }
     let response = ui.interact(id, field);
     if response.pressed {
@@ -114,14 +115,4 @@ fn draw_field(ui: &mut Ui<'_>, id: Id, field: Rect, value: i64, focused: bool) {
 
 fn arrow_step(ui: &mut Ui<'_>) -> i64 {
     i64::from(ui.take_key(Key::Up)) - i64::from(ui.take_key(Key::Down))
-}
-
-fn wheel_step(wheel: f32) -> i64 {
-    if wheel > 0.0 {
-        1
-    } else if wheel < 0.0 {
-        -1
-    } else {
-        0
-    }
 }

@@ -233,6 +233,12 @@ fn view<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
             code == CodeMode::Only,
             Some(Intent::SetCode(CodeMode::Only)),
         ),
+        check(
+            "Palette on the right",
+            "",
+            context.panels.palette_right,
+            Some(Intent::TogglePaletteSide),
+        ),
         separator(),
         check(
             "Dark theme",

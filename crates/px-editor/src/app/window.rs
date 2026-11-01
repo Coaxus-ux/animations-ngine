@@ -84,6 +84,17 @@ pub enum CodeMode {
     Only,
 }
 
+impl CodeMode {
+    #[must_use]
+    pub const fn next(self) -> Self {
+        match self {
+            Self::Hidden => Self::Split,
+            Self::Split => Self::Only,
+            Self::Only => Self::Hidden,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ViewState {
     pub zoom: i32,
@@ -100,6 +111,7 @@ pub struct ViewState {
 pub struct CodeBuffer {
     pub text: String,
     pub cursor: usize,
+    pub anchor: Option<usize>,
     pub scroll: usize,
     pub scroll_x: i32,
     pub base: String,
@@ -132,6 +144,7 @@ pub struct Window {
     pub dialog: Option<Dialog>,
     pub selected: Option<NodePath>,
     pub palette_edit: bool,
+    pub panels: super::Panels,
     pub drawn: Option<(u64, u64)>,
 }
 
@@ -157,6 +170,7 @@ impl Window {
             dialog: None,
             selected: None,
             palette_edit: false,
+            panels: super::Panels::default(),
             drawn: None,
         }
     }
@@ -177,6 +191,7 @@ pub enum Request {
         id: WindowId,
         title: String,
     },
+    Clipboard(String),
     PickFile {
         window: WindowId,
         purpose: PickPurpose,

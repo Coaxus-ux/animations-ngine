@@ -49,6 +49,7 @@ pub(super) fn collect(
                 Key::Letter('s') if shift => Intent::SaveAs(PathBuf::new()),
                 Key::Letter('s') => Intent::Save,
                 Key::Letter('x') if shift => Intent::RepeatExport,
+                Key::Letter('c' | 'x' | 'v' | 'a') if typing => continue,
                 Key::Letter('c') => Intent::Copy,
                 Key::Letter('x') => Intent::Cut,
                 Key::Letter('v') => Intent::Paste,

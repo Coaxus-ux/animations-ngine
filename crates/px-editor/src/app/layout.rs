@@ -30,7 +30,7 @@ impl App {
                 WindowKind::Canvas => {
                     let _ = writeln!(text, "    canvas zoom={}", window.view.zoom);
                 }
-                WindowKind::Main => {}
+                WindowKind::Main => text.push_str(&window.panels.to_kdl()),
             }
         }
         text.push_str(&self.recent.to_kdl());
@@ -99,6 +99,11 @@ impl App {
                         .map(PathBuf::from);
                 }
                 "export" => self.last_export = ExportJob::from_node(node),
+                "panels" => {
+                    if let Some(main) = self.main_mut() {
+                        main.panels = super::Panels::from_node(node);
+                    }
+                }
                 "canvas" => {
                     let id = self.open_window(WindowKind::Canvas);
                     let zoom = integer(node, "zoom").and_then(|zoom| i32::try_from(zoom).ok());

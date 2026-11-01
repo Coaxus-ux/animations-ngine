@@ -91,7 +91,7 @@ impl App {
         window.pixels.resize(width * height, 0);
         window.size = size;
 
-        let canvas_area = {
+        let (canvas_area, preview) = {
             let mut ui = Ui::new(
                 &mut window.canvas,
                 &self.assets.theme,
@@ -114,6 +114,7 @@ impl App {
                 dialog: window.dialog.as_mut(),
                 selected: window.selected.as_ref(),
                 palette_edit: window.palette_edit,
+                panels: &mut window.panels,
                 code: &mut window.code,
                 picker: window.picker,
                 fields: &mut window.fields,
@@ -130,11 +131,12 @@ impl App {
                     scale: self.scale,
                 },
                 help: window.help,
+                preview: None,
                 intents,
             };
             let area = views::draw(&mut ui, &mut context);
             ui.finish();
-            area
+            (area, context.preview)
         };
         present(
             &window.canvas,
@@ -152,20 +154,10 @@ impl App {
             )
         });
         if let Some(area) = canvas_area {
-            let guide = self
-                .stroke
-                .as_ref()
-                .map_or(&[][..], |stroke| stroke.guide());
-            let canvas = views::CanvasPaint {
-                document: self.document(),
-                view,
-                cache,
-                editing: &self.editing,
-                guide,
-                input,
-                theme: &self.assets.theme,
-            };
-            views::paint_canvas(&mut window.pixels, width, area, scale, &canvas);
+            self.paint_canvas(window, area, (view, cache, input), scale);
+        }
+        if let Some(area) = preview {
+            views::paint_preview(&mut window.pixels, width, area, scale, cache);
         }
         present_top(
             &window.canvas,
@@ -174,6 +166,30 @@ impl App {
             &mut window.pixels,
             width,
         );
+    }
+
+    fn paint_canvas(
+        &self,
+        window: &mut super::Window,
+        area: px_ui::Rect,
+        (view, cache, input): (&super::ViewState, &views::RenderCache, &Input),
+        scale: i32,
+    ) {
+        let guide = self
+            .stroke
+            .as_ref()
+            .map_or(&[][..], |stroke| stroke.guide());
+        let canvas = views::CanvasPaint {
+            document: self.document(),
+            view,
+            cache,
+            editing: &self.editing,
+            guide,
+            input,
+            theme: &self.assets.theme,
+        };
+        let width = window.size.0;
+        views::paint_canvas(&mut window.pixels, width, area, scale, &canvas);
     }
 
     fn tick(&mut self, now: u64) {
