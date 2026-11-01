@@ -32,10 +32,10 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
             chosen = Some(index);
         }
     }
-    if ui.input.key(Key::Enter) {
+    if chosen.is_none() && ui.take_key(Key::Enter) {
         chosen = Some(SAVE);
     }
-    if ui.input.key(Key::Escape) {
+    if ui.take_key(Key::Escape) {
         chosen = Some(CANCEL);
     }
     let Some(chosen) = chosen else { return };

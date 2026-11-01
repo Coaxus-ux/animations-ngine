@@ -5,6 +5,7 @@ use super::intent::Intent;
 use super::selection_ops::SelectionOp;
 use super::window::{CodeMode, Picker, WindowKind};
 use super::{App, WindowId};
+use crate::app::Status;
 use crate::domain::{Command, Selection};
 use crate::ports::FileStore;
 
@@ -64,7 +65,7 @@ impl App {
         match intent {
             Intent::Tool(tool) => {
                 self.editing.tool = tool;
-                tool.tip().clone_into(&mut self.editing.status);
+                self.editing.status = Status::info(tool.tip());
             }
             Intent::Filled(filled) => self.editing.filled = filled,
             Intent::PrimaryPaint(paint) => self.editing.primary = paint,
@@ -130,6 +131,9 @@ impl App {
             Intent::MoveLayer { from, to } => self.move_layer(from, to, store),
             Intent::StartRename(layer) => {
                 self.window_mut(source, |window| window.renaming = Some(layer));
+            }
+            Intent::CancelRename => {
+                self.window_mut(source, |window| window.renaming = None);
             }
             Intent::RenameLayer { layer, name } => {
                 self.window_mut(source, |window| window.renaming = None);

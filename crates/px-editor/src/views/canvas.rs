@@ -1,10 +1,10 @@
 use px_engine::Geometry;
-use px_ui::{Area, Id, Input, Key, Rect, Theme, Ui, centered_label, pack, rect};
+use px_ui::{Area, Id, Input, Key, Rect, Theme, Ui, pack, rect};
 
-use super::Context;
 use super::doc_view::{
     Placement, RenderCache, ViewPixels, draw_cursor, draw_document, draw_grid, draw_selection,
 };
+use super::{Context, unavailable};
 use crate::app::{Button, Editing, Intent, ViewState};
 use crate::domain::Document;
 
@@ -12,12 +12,7 @@ pub(super) fn canvas(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) -> 
     let roles = ui.theme.roles;
     let Some(scene) = context.document.and_then(Document::scene) else {
         ui.canvas.fill(area, roles.window);
-        centered_label(
-            ui,
-            area,
-            "The scene doesn't load: see the code view (F2)",
-            roles.warning,
-        );
+        unavailable(ui, context, area);
         return None;
     };
     let scale = context.scale;

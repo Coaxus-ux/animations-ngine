@@ -12,6 +12,7 @@ mod node_ops;
 mod palette_ops;
 mod selection_ops;
 mod shortcuts;
+mod status;
 mod stroke;
 mod tabs_ops;
 mod timeline_ops;
@@ -28,6 +29,7 @@ pub use documents::{DocumentId, Documents, Slot, TabInfo};
 pub use editing::Editing;
 pub use intent::{Button, Intent};
 pub(crate) use shortcuts::neighbour_tab;
+pub use status::Status;
 pub use window::{
     CodeBuffer, CodeMode, PanelKind, Picker, Request, ViewState, Window, WindowId, WindowKind,
 };

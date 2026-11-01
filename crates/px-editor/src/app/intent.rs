@@ -45,6 +45,7 @@ pub enum Intent {
         name: String,
     },
     StartRename(usize),
+    CancelRename,
     Opacity {
         layer: usize,
         value: f64,

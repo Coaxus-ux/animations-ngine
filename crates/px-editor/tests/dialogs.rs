@@ -51,9 +51,9 @@ fn canvas_size_with_a_center_anchor_shifts_cels_by_half_the_delta_in_one_undo_st
     assert_eq!(shown_paint(&app, (10, 8)), paint);
     assert_ne!(shown_paint(&app, (2, 2)), paint);
     assert!(
-        app.editing().status.contains("80×60"),
+        app.editing().status.text.contains("80×60"),
         "{}",
-        app.editing().status
+        app.editing().status.text
     );
 
     app.dispatch(Intent::Undo, main, &mut files);
@@ -108,7 +108,7 @@ fn properties_rewrites_fps_duration_and_loop_in_one_undo_step() {
         "{text}"
     );
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         "Timing is now 24 fps, 30 frames, once"
     );
 
@@ -122,9 +122,9 @@ fn properties_rewrites_fps_duration_and_loop_in_one_undo_step() {
         &mut files,
     );
     assert!(
-        app.editing().status.contains("already"),
+        app.editing().status.text.contains("already"),
         "{}",
-        app.editing().status
+        app.editing().status.text
     );
 
     app.dispatch(Intent::Undo, main, &mut files);

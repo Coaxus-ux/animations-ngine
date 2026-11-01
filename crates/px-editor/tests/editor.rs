@@ -11,7 +11,7 @@ use common::{FILE, layer, open, shown_paint, stroke};
 use px_editor::app::{App, Intent};
 use px_editor::assets::ThemeChoice;
 use px_editor::tools::ToolKind;
-use px_ui::Input;
+use px_ui::{Input, Key};
 
 #[test]
 fn the_ui_draws_the_same_pixels_every_time() {
@@ -71,6 +71,28 @@ fn layers_are_added_renamed_moved_and_deleted_in_the_file() {
     app.dispatch(Intent::DeleteLayer(0), main, &mut files);
     assert_eq!(app.document().unwrap().layers().len(), count);
     assert_eq!(app.document().unwrap().errors(), [] as [String; 0]);
+}
+
+#[test]
+fn escape_cancels_a_layer_rename_and_keeps_the_name() {
+    let (mut app, mut files, main) = open();
+    let cat = layer(&app, "cat");
+    app.dispatch(Intent::StartRename(cat), main, &mut files);
+    app.frame(main, &Input::default(), common::SIZE, &mut files);
+    assert_eq!(app.window(main).unwrap().renaming, Some(cat));
+    let typed = Input {
+        text: "zz".to_owned(),
+        ..Input::default()
+    };
+    app.frame(main, &typed, common::SIZE, &mut files);
+    let escape = Input {
+        keys: vec![Key::Escape],
+        ..Input::default()
+    };
+    app.frame(main, &escape, common::SIZE, &mut files);
+    assert_eq!(app.window(main).unwrap().renaming, None);
+    app.frame(main, &Input::default(), common::SIZE, &mut files);
+    assert_eq!(app.document().unwrap().layers()[cat].name, "cat");
 }
 
 #[test]

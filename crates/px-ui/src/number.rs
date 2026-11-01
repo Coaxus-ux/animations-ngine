@@ -2,7 +2,7 @@ use crate::area::{Area, Rect, rect};
 use crate::input::Key;
 use crate::text::text_width;
 use crate::ui::{Id, Ui};
-use crate::widgets::{button, label};
+use crate::widgets::{label, step_button};
 
 pub fn number_field(
     ui: &mut Ui<'_>,
@@ -15,12 +15,13 @@ pub fn number_field(
     let before = *value;
     let (minus, rest) = area.take_left(area.height);
     let (plus, field) = rest.take_right(area.height);
-    if button(ui, id.with_name("minus"), minus, "-") {
+    if step_button(ui, id.with_name("minus"), minus, "-") {
         *value -= 1;
     }
-    if button(ui, id.with_name("plus"), plus, "+") {
+    if step_button(ui, id.with_name("plus"), plus, "+") {
         *value += 1;
     }
+    ui.focusable_text(id);
     if ui.hovering(field) {
         *value += wheel_step(ui.input.wheel.1);
     }
@@ -32,6 +33,18 @@ pub fn number_field(
         ui.state.focus = None;
     }
     if ui.state.focus == Some(id) {
+        ui.state.key_focus = Some(id);
+        let shown = *value;
+        ui.state
+            .drafts
+            .entry(id)
+            .or_insert_with(|| shown.to_string());
+        *value += arrow_step(ui);
+        if *value != before {
+            ui.state
+                .drafts
+                .insert(id, (*value).clamp(min, max).to_string());
+        }
         edit_draft(ui, id);
     }
     let focused = ui.state.focus == Some(id);
@@ -97,6 +110,10 @@ fn draw_field(ui: &mut Ui<'_>, id: Id, field: Rect, value: i64, focused: bool) {
             .fill(rect(x, inner.y, 1, inner.height), roles.accent_light);
     }
     ui.canvas.restore_clip(clip);
+}
+
+fn arrow_step(ui: &mut Ui<'_>) -> i64 {
+    i64::from(ui.take_key(Key::Up)) - i64::from(ui.take_key(Key::Down))
 }
 
 fn wheel_step(wheel: f32) -> i64 {

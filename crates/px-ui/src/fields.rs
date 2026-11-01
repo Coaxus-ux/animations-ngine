@@ -21,8 +21,15 @@ pub fn slider(
 ) -> bool {
     let (min, max) = range;
     let roles = ui.theme.roles;
+    let focused = ui.focusable(id);
     let response = ui.interact(id, area);
     let before = *value;
+    if focused {
+        let nudge = if step > 0.0 { step } else { (max - min) / 20.0 };
+        let up = ui.take_key(Key::Right) || ui.take_key(Key::Up);
+        let down = ui.take_key(Key::Left) || ui.take_key(Key::Down);
+        *value += (f64::from(u8::from(up)) - f64::from(u8::from(down))) * nudge;
+    }
     if response.held
         && let Some((x, _)) = ui.input.pointer
     {
@@ -67,11 +74,15 @@ pub fn slider(
         &text,
         roles.ink,
     );
+    if focused {
+        ui.focus_ring(area);
+    }
     (*value - before).abs() > f64::EPSILON
 }
 
 pub fn text_field(ui: &mut Ui<'_>, id: Id, area: Rect, text: &mut String) -> FieldResponse {
     let roles = ui.theme.roles;
+    ui.focusable_text(id);
     let response = ui.interact(id, area);
     if response.pressed {
         ui.state.focus = Some(id);
@@ -89,13 +100,14 @@ pub fn text_field(ui: &mut Ui<'_>, id: Id, area: Rect, text: &mut String) -> Fie
         ..FieldResponse::default()
     };
     if focused {
+        ui.state.key_focus = Some(id);
         let input = ui.input;
         let mut cursor = ui
             .state
             .cursor
             .get(&id)
             .copied()
-            .unwrap_or(0)
+            .unwrap_or(text.chars().count())
             .min(text.chars().count());
         for character in input.text.chars().filter(|c| !c.is_control()) {
             let at = byte_index(text, cursor);

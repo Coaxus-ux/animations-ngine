@@ -1,7 +1,7 @@
 use px_core::{MAX_CANVAS_SIDE, MAX_FPS, MAX_FRAMES};
 use px_ui::{
-    Area, DialogAction, HEADER, Id, ROW, Rect, Ui, focus_next, label, number_field, ok_cancel,
-    segmented, text_field,
+    Area, DialogAction, HEADER, Id, ROW, Rect, Ui, label, number_field, ok_cancel, segmented,
+    text_field,
 };
 
 use super::Context;
@@ -97,7 +97,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
         form.choice(keys::BACKGROUND, 0),
     );
 
-    focus_next(ui, &ids);
     match ok_cancel(ui, id.with_name("buttons"), row(), "Create", true) {
         DialogAction::Ok => {
             context

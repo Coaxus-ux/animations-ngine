@@ -99,7 +99,7 @@ fn a_sprite_sheet_is_a_transparent_rgba_png_with_aseprite_json() {
         main,
         &mut files,
     );
-    assert_eq!(app.editing().status, "Exported 2 files to out");
+    assert_eq!(app.editing().status.text, "Exported 2 files to out");
     let image = Png::decode(&files.bytes[Path::new("out/room.png")]);
     assert_eq!((image.width, image.height), (2 * WIDTH, 9 * HEIGHT));
     assert_eq!(image.pixel(x, y)[3], 0);
@@ -145,7 +145,7 @@ fn an_opaque_sheet_keeps_the_background() {
         main,
         &mut files,
     );
-    assert_eq!(app.editing().status, "Exported 1 file to out");
+    assert_eq!(app.editing().status.text, "Exported 1 file to out");
     assert!(!files.bytes.contains_key(Path::new("out/room.json")));
     let image = Png::decode(&files.bytes[Path::new("out/room.png")]);
     assert_eq!(image.pixel(x, y), [color.r, color.g, color.b, 255]);
@@ -173,7 +173,7 @@ fn the_png_sequence_names_frames_in_order() {
         expected.iter().map(PathBuf::as_path).collect::<Vec<_>>()
     );
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         format!("Exported {FRAMES} files to out")
     );
     let first = Png::decode(&files.bytes[Path::new("out/room-0000.png")]);
@@ -234,7 +234,7 @@ fn the_current_frame_exports_as_png_and_the_scene_as_gif() {
     );
     let gif = &files.bytes[Path::new("out/room.gif")];
     assert_eq!(&gif[..6], b"GIF89a");
-    assert_eq!(app.editing().status, "Exported 1 file to out");
+    assert_eq!(app.editing().status.text, "Exported 1 file to out");
 }
 
 #[test]
@@ -245,7 +245,10 @@ fn a_png_of_every_frame_is_refused_instead_of_exporting_frame_zero() {
         main,
         &mut files,
     );
-    assert_eq!(app.editing().status, "PNG exports one frame: pick Current");
+    assert_eq!(
+        app.editing().status.text,
+        "PNG exports one frame: pick Current"
+    );
     assert!(files.bytes.is_empty());
 }
 
@@ -301,7 +304,7 @@ fn hidden_layers_stay_out_of_the_export() {
 fn repeat_export_targets_the_active_document() {
     let (mut app, mut files, main) = open();
     app.dispatch(Intent::RepeatExport, main, &mut files);
-    assert_eq!(app.editing().status, "Nothing exported yet");
+    assert_eq!(app.editing().status.text, "Nothing exported yet");
     app.dispatch(
         Intent::Export(job(
             ExportKind::Png,
@@ -318,7 +321,7 @@ fn repeat_export_targets_the_active_document() {
         files.bytes.keys().collect::<Vec<_>>(),
         [Path::new("out/room.png")]
     );
-    assert_eq!(app.editing().status, "Exported 1 file to out");
+    assert_eq!(app.editing().status.text, "Exported 1 file to out");
 
     files
         .files

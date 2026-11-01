@@ -3,7 +3,7 @@ use px_ui::{Area, Id, Key, Ui, button, draw_text, panel, rect, scroll_area};
 use super::Context;
 use crate::app::Intent;
 
-const HELP: [(&str, &[&str]); 9] = [
+const HELP: [(&str, &[&str]); 10] = [
     (
         "Files and tabs",
         &[
@@ -70,6 +70,14 @@ const HELP: [(&str, &[&str]); 9] = [
         &[
             "Window menu: put any panel in its own window, or open another canvas.",
             "Ctrl+Z undoes anything, from strokes to typing.",
+        ],
+    ),
+    (
+        "Keyboard",
+        &[
+            "F10 opens the menus: arrows move between them, Enter picks, Esc closes.",
+            "Tab and Shift+Tab move the ring between controls; Enter or Space presses.",
+            "Arrows step sliders, choices and number fields, and move along lists.",
         ],
     ),
 ];

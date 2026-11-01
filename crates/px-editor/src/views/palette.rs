@@ -1,17 +1,15 @@
 use px_core::{Paint, Rgb};
 use px_ui::{Area, Id, ROW, Rect, Ui, button, label, rect, scroll_area, slider, text_field};
 
-use super::Context;
+use super::{Context, unavailable};
 use crate::app::Intent;
 
 const SWATCH: i32 = 9;
 const NAME: i32 = 34;
 
 pub(super) fn palette(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
-    let Some(document) = context.document else {
-        return;
-    };
-    let Some(loaded) = document.loaded() else {
+    let Some(loaded) = context.document.and_then(|document| document.loaded()) else {
+        unavailable(ui, context, area);
         return;
     };
     let palette = loaded.scene.palette();
@@ -128,6 +126,7 @@ fn swatch(
             rect(cell.x - 1, cell.y - 1, cell.width + 2, cell.height + 2),
             roles.accent_light,
         );
+        ui.canvas.frame(cell, roles.field);
     } else if response.hovered {
         ui.canvas.frame(
             rect(cell.x - 1, cell.y - 1, cell.width + 2, cell.height + 2),

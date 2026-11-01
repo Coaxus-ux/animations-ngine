@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use px_export::{Padding, SheetLayout, place};
 use px_ui::{
-    Area, DialogAction, Id, ROW, Rect, Ui, button, checkbox, focus_next, label, number_field,
-    ok_cancel, segmented, text_field,
+    Area, DialogAction, Id, ROW, Rect, Ui, button, checkbox, label, number_field, ok_cancel,
+    segmented, text_field,
 };
 
 use super::Context;
@@ -104,7 +104,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
     text_field(ui, id(keys::OUT), out_field, form.text(keys::OUT, ""));
     order.push(id(keys::OUT));
     let browse_clicked = button(ui, id("browse"), browse, "...");
-    focus_next(ui, &order);
 
     let job = job_from(form, context.view.frame);
     let ink = ui.theme.roles.ink_dim;

@@ -1,10 +1,10 @@
 use px_engine::Param;
 use px_ui::{
-    Area, Id, ROW, Rect, Ui, button, drop_index, label, list_row, rect, scroll_area, slider,
+    Area, Id, ROW, Rect, Ui, button_if, drop_index, label, list_row, rect, scroll_area, slider,
     text_field, toggle_icon,
 };
 
-use super::Context;
+use super::{Context, unavailable};
 use crate::app::Intent;
 use crate::domain::{Document, Layer};
 
@@ -12,6 +12,7 @@ const BUTTONS: i32 = 2 * (ROW + 2);
 
 pub(super) fn layers(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
+        unavailable(ui, context, area);
         return;
     };
     let rows = document.layers();
@@ -104,16 +105,19 @@ fn layer_row(
     }
     if context.renaming == Some(index) {
         let field = id.with_name("rename");
-        let text = context
-            .fields
-            .entry(field)
-            .or_insert_with(|| layer.name.clone());
-        ui.state.focus = Some(field);
-        if text_field(ui, field, name, text).submitted {
+        let text = context.fields.entry(field).or_insert_with(|| {
+            ui.state.focus = Some(field);
+            layer.name.clone()
+        });
+        let response = text_field(ui, field, name, text);
+        if response.submitted {
             let name = context.fields.remove(&field).unwrap_or_default();
             context
                 .intents
                 .push(Intent::RenameLayer { layer: index, name });
+        } else if ui.state.focus != Some(field) {
+            context.fields.remove(&field);
+            context.intents.push(Intent::CancelRename);
         }
         return Drag::default();
     }
@@ -194,7 +198,7 @@ fn actions(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
         let width = row.width / count;
         for (slot, (text, intent)) in (0i32..).zip(buttons) {
             let at = rect(row.x + slot * width, row.y, width - 1, row.height - 1);
-            if button(ui, id.with_name(text), at, text)
+            if button_if(ui, id.with_name(text), at, text, intent.is_some())
                 && let Some(intent) = intent.clone()
             {
                 context.intents.push(intent);

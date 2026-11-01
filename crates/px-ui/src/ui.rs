@@ -5,7 +5,7 @@ use px_format::Font;
 use crate::area::{Area, Rect};
 use crate::bitmap::Icons;
 use crate::canvas::UiCanvas;
-use crate::input::Input;
+use crate::input::{Input, Key};
 use crate::theme::Theme;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -50,6 +50,45 @@ pub struct UiState {
     pub modal: bool,
     pub last_click: Option<(Id, u64)>,
     pub drafts: BTreeMap<Id, String>,
+    pub key_focus: Option<Id>,
+    pub menu_item: Option<usize>,
+    stops: Vec<Stop>,
+    last_stops: Vec<Stop>,
+    used_keys: Vec<Key>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct Stop {
+    id: Id,
+    takes_text: bool,
+}
+
+impl UiState {
+    fn step_focus(&mut self, backwards: bool) {
+        let ring = &self.last_stops;
+        if ring.is_empty() {
+            return;
+        }
+        let current = self
+            .key_focus
+            .and_then(|focus| ring.iter().position(|stop| stop.id == focus));
+        let next = match current {
+            None if backwards => ring.len() - 1,
+            None => 0,
+            Some(index) if backwards => (index + ring.len() - 1) % ring.len(),
+            Some(index) => (index + 1) % ring.len(),
+        };
+        let stop = ring[next];
+        self.key_focus = Some(stop.id);
+        self.focus = stop.takes_text.then_some(stop.id);
+    }
+
+    fn tab_moves_focus(&self) -> bool {
+        self.open_menu.is_none()
+            && self
+                .focus
+                .is_none_or(|focus| self.last_stops.iter().any(|stop| stop.id == focus))
+    }
 }
 
 const DOUBLE_CLICK_MS: u64 = 400;
@@ -91,6 +130,17 @@ impl<'a> Ui<'a> {
         state: &'a mut UiState,
     ) -> Self {
         state.blocked = core::mem::take(&mut state.blocking);
+        state.last_stops = core::mem::take(&mut state.stops);
+        state.used_keys.clear();
+        if input.pressed.any() {
+            state.key_focus = None;
+        }
+        if input.key(Key::Escape) && state.focus.is_none() {
+            state.key_focus = None;
+        }
+        if input.key(Key::Tab) && !input.modifiers.command && state.tab_moves_focus() {
+            state.step_focus(input.modifiers.shift);
+        }
         Self {
             canvas,
             theme,
@@ -169,6 +219,42 @@ impl<'a> Ui<'a> {
             right_clicked: hovered && input.pressed.right,
             drag,
         }
+    }
+
+    pub fn focusable(&mut self, id: Id) -> bool {
+        self.stop(id, false)
+    }
+
+    pub fn focusable_text(&mut self, id: Id) -> bool {
+        self.stop(id, true)
+    }
+
+    fn stop(&mut self, id: Id, takes_text: bool) -> bool {
+        if self.state.modal && !self.in_popup {
+            return false;
+        }
+        self.state.stops.push(Stop { id, takes_text });
+        self.state.key_focus == Some(id)
+    }
+
+    pub fn activated(&mut self, focused: bool) -> bool {
+        focused && (self.take_key(Key::Enter) || self.take_key(Key::Space))
+    }
+
+    pub fn take_key(&mut self, key: Key) -> bool {
+        let free = self.input.key(key) && !self.state.used_keys.contains(&key);
+        if free {
+            self.state.used_keys.push(key);
+        }
+        free
+    }
+
+    pub fn step_focus(&mut self, backwards: bool) {
+        self.state.step_focus(backwards);
+    }
+
+    pub fn focus_ring(&mut self, area: Rect) {
+        self.canvas.frame(area.inset(1), self.theme.roles.ink);
     }
 
     pub fn tooltip(&mut self, text: &str) {

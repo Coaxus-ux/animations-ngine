@@ -11,6 +11,7 @@ use super::dialog::PickPurpose;
 use super::intent::Intent;
 use super::window::Request;
 use super::{App, Targets, WindowId};
+use crate::app::Status;
 use crate::assets::palettes;
 use crate::domain::Command;
 use crate::domain::palette_import::ramps_by_hue;
@@ -69,7 +70,7 @@ impl App {
                     Ok(name) => {
                         self.pick_palette_file(window, PickPurpose::SavePalette, Some(name));
                     }
-                    Err(status) => self.editing.status = status,
+                    Err(status) => self.editing.status = Status::problem(status),
                 }
             }
             Intent::SavePalette(path)
@@ -103,10 +104,10 @@ impl App {
         match planned {
             Ok(command) => {
                 self.run(&command, store);
-                self.editing.status.starts_with("Done")
+                !self.editing.status.problem
             }
             Err(status) => {
-                self.editing.status = status;
+                self.editing.status = Status::problem(status);
                 false
             }
         }
@@ -177,7 +178,8 @@ impl App {
         {
             Ok(colors) => colors,
             Err(error) => {
-                self.editing.status = format!("Could not import {}: {error}", path.display());
+                self.editing.status =
+                    Status::problem(format!("Could not import: {error} ({})", path.display()));
                 return;
             }
         };
@@ -204,22 +206,21 @@ impl App {
             })
         });
         if done {
-            self.editing.status = format!(
+            self.editing.status = Status::info(format!(
                 "Imported {count} ramp{} from {}",
                 if count == 1 { "" } else { "s" },
                 path.display()
-            );
+            ));
         }
     }
 
     fn save_palette(&mut self, path: &Path, store: &mut dyn FileStore) {
-        self.editing.status = match self.palette() {
-            Ok((_, model)) => match store.write(path, &model.to_kdl()) {
-                Ok(()) => format!("Saved palette \"{}\" to {}", model.name, path.display()),
-                Err(error) => format!("Could not save the palette: {error}"),
-            },
-            Err(status) => status,
-        };
+        self.editing.status = Status::from_result(self.palette().and_then(|(_, model)| {
+            store
+                .write(path, &model.to_kdl())
+                .map(|()| format!("Saved palette \"{}\" to {}", model.name, path.display()))
+                .map_err(|error| format!("Could not save the palette: {error}"))
+        }));
     }
 
     fn apply_preset(&mut self, name: &str, store: &mut dyn FileStore) {
@@ -229,7 +230,7 @@ impl App {
         {
             Ok(preset) => preset,
             Err(status) => {
-                self.editing.status = status;
+                self.editing.status = Status::problem(status);
                 return;
             }
         };

@@ -25,3 +25,17 @@ pub(super) fn pick(
         }
     }
 }
+
+pub(super) fn tell(title: &str, text: &str, warning: bool) {
+    let level = if warning {
+        rfd::MessageLevel::Warning
+    } else {
+        rfd::MessageLevel::Info
+    };
+    rfd::MessageDialog::new()
+        .set_level(level)
+        .set_title(title)
+        .set_description(text)
+        .set_buttons(rfd::MessageButtons::Ok)
+        .show();
+}

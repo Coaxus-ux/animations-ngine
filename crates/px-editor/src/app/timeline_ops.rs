@@ -1,6 +1,7 @@
 use kdl::KdlValue;
 
 use super::{App, WindowId};
+use crate::app::Status;
 use crate::domain::{Command, scene_path};
 use crate::ports::FileStore;
 
@@ -13,13 +14,14 @@ impl App {
             Ok(target) => {
                 let target = target.starting_at(frame);
                 if target.has_cel() {
-                    self.editing.status = format!("A cel already starts at frame {}", frame + 1);
+                    self.editing.status =
+                        Status::problem(format!("A cel already starts at frame {}", frame + 1));
                     return;
                 }
                 let command = target.command(&target.raster);
                 self.run(&command, store);
             }
-            Err(reason) => self.editing.status = reason,
+            Err(reason) => self.editing.status = Status::problem(reason),
         }
     }
 
@@ -31,13 +33,14 @@ impl App {
             Ok(target) => {
                 let target = target.starting_at(frame);
                 if !target.has_cel() {
-                    self.editing.status = format!("No cel starts at frame {}", frame + 1);
+                    self.editing.status =
+                        Status::problem(format!("No cel starts at frame {}", frame + 1));
                     return;
                 }
                 let command = target.without_cel();
                 self.run(&command, store);
             }
-            Err(reason) => self.editing.status = reason,
+            Err(reason) => self.editing.status = Status::problem(reason),
         }
     }
 
@@ -59,9 +62,7 @@ impl App {
             return;
         };
         let result = document.apply(command, store);
-        self.editing.status = match result {
-            Ok(()) => format!("Done: {}", command.label()),
-            Err(error) => error,
-        };
+        self.editing.status =
+            Status::from_result(result.map(|()| format!("Done: {}", command.label())));
     }
 }

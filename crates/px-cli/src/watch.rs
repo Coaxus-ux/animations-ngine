@@ -132,7 +132,7 @@ fn reload(
 fn title(live: &Live, frame: Frame, paused: bool) -> String {
     let timing = live.scene.timing();
     let mut title = format!(
-        "{} — frame {}/{} — {} fps — {:.2} ms/frame",
+        "{}: frame {}/{}, {} fps, {:.2} ms/frame",
         live.scene.name(),
         frame.index() + 1,
         timing.duration.get(),
@@ -140,7 +140,7 @@ fn title(live: &Live, frame: Frame, paused: bool) -> String {
         live.frame_ms()
     );
     if paused {
-        let _ = write!(title, " — paused");
+        let _ = write!(title, ", paused");
     }
     title
 }

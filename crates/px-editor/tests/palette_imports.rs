@@ -86,7 +86,10 @@ fn a_lospec_hex_file_imports_as_ramps_clustered_by_hue() {
         ]
     );
     assert_eq!(ramp_colors(&app, "gray"), vec![Rgb::new(0x7f, 0x7f, 0x7f)]);
-    assert_eq!(app.editing().status, "Imported 4 ramps from colors.hex");
+    assert_eq!(
+        app.editing().status.text,
+        "Imported 4 ramps from colors.hex"
+    );
     no_errors(&app);
     app.dispatch(Intent::Undo, main, &mut files);
     assert_eq!(room_palette(&app).ramps.len(), before);
@@ -110,7 +113,10 @@ fn a_family_of_more_than_eight_tones_imports_as_numbered_ramps() {
         ramp_colors(&app, "green-2"),
         vec![Rgb::new(0x10, 0xd0, 0x10), Rgb::new(0x10, 0xe4, 0x10)]
     );
-    assert_eq!(app.editing().status, "Imported 2 ramps from greens.hex");
+    assert_eq!(
+        app.editing().status.text,
+        "Imported 2 ramps from greens.hex"
+    );
     no_errors(&app);
 }
 
@@ -128,7 +134,7 @@ fn a_gpl_file_imports_as_ramps() {
     );
     assert_eq!(ramp_colors(&app, "red"), vec![Rgb::new(255, 154, 138)]);
     assert_eq!(ramp_colors(&app, "gray"), vec![Rgb::new(0, 0, 0)]);
-    assert_eq!(app.editing().status, "Imported 2 ramps from mini.gpl");
+    assert_eq!(app.editing().status.text, "Imported 2 ramps from mini.gpl");
 }
 
 #[test]
@@ -141,12 +147,13 @@ fn an_unreadable_import_leaves_the_document_alone() {
         &mut files,
     );
     assert_eq!(text(&app), before);
+    let status = &app.editing().status;
     assert!(
-        app.editing()
-            .status
-            .starts_with("Could not import missing.hex"),
+        status.problem
+            && status.text.starts_with("Could not import: ")
+            && status.text.ends_with("(missing.hex)"),
         "{}",
-        app.editing().status
+        status.text
     );
 }
 
@@ -163,5 +170,5 @@ fn a_gpl_with_a_channels_header_imports() {
         &mut files,
     );
     assert_eq!(ramp_colors(&app, "gray"), vec![Rgb::new(0, 0, 0)]);
-    assert_eq!(app.editing().status, "Imported 1 ramp from alpha.gpl");
+    assert_eq!(app.editing().status.text, "Imported 1 ramp from alpha.gpl");
 }

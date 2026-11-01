@@ -72,7 +72,10 @@ fn the_palette_saves_as_a_standalone_file_that_loads_through_memory_sources() {
         6
     );
     loads_with(saved, "room", "wall").unwrap();
-    assert_eq!(app.editing().status, "Saved palette \"room\" to pal.kdl");
+    assert_eq!(
+        app.editing().status.text,
+        "Saved palette \"room\" to pal.kdl"
+    );
 }
 
 #[test]
@@ -105,9 +108,10 @@ fn a_preset_replaces_the_ramps_of_a_palette_nobody_paints_with() {
     assert!(
         app.editing()
             .status
+            .text
             .contains("\"ink\" is used by background of scene"),
         "{}",
-        app.editing().status
+        app.editing().status.text
     );
     app.dispatch(
         Intent::AddRamp {
@@ -190,7 +194,7 @@ fn a_palette_in_a_used_file_is_refused_with_a_status() {
     );
     assert_eq!(text(&app), before);
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         "Palette \"pond\" lives in another file"
     );
 }
@@ -286,7 +290,7 @@ fn a_preset_keeps_twins_and_comments() {
         &mut files,
     );
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         "Ramp \"sky\" is used by twin \"sky\" and preset \"gameboy-4\" has no such ramp"
     );
 }

@@ -2,6 +2,7 @@ use kdl::KdlValue;
 use px_engine::Geometry;
 
 use super::{App, WindowId};
+use crate::app::Status;
 use crate::domain::palette_model::palette_path;
 use crate::domain::{Command, scene_path};
 use crate::ports::FileStore;
@@ -40,8 +41,9 @@ impl App {
             };
             self.run(&command, store);
         } else {
-            "Pick a shape first (pick tool, O); pixel layers keep their own colors"
-                .clone_into(&mut self.editing.status);
+            self.editing.status = Status::problem(
+                "Pick a shape first (pick tool, O); pixel layers keep their own colors",
+            );
         }
     }
 
@@ -63,7 +65,7 @@ impl App {
         let path = match palette_path(document) {
             Ok(palette) => palette.child("ramp", Some(ramp), 0),
             Err(status) => {
-                self.editing.status = status;
+                self.editing.status = Status::problem(status);
                 return;
             }
         };
@@ -165,22 +167,24 @@ impl App {
         } else {
             document.redo(store)
         };
-        self.editing.status = match (label, undo) {
+        self.editing.status = Status::info(match (label, undo) {
             (Some(label), true) => format!("Undid {label}"),
             (Some(label), false) => format!("Redid {label}"),
             (None, true) => "Nothing to undo".to_owned(),
             (None, false) => "Nothing to redo".to_owned(),
-        };
+        });
     }
 
     pub(super) fn save(&mut self, store: &mut dyn FileStore) {
         let Some(document) = self.document_mut() else {
             return;
         };
-        self.editing.status = match document.save(store) {
-            Ok(()) => format!("Saved {}", document.path().display()),
-            Err(error) => format!("Could not save: {error}"),
-        };
+        self.editing.status = Status::from_result(
+            document
+                .save(store)
+                .map(|()| format!("Saved {}", document.path().display()))
+                .map_err(|error| format!("Could not save: {error}")),
+        );
         self.retitle();
     }
 }

@@ -1,8 +1,9 @@
 use crate::area::{Area, Rect, rect};
+use crate::input::Key;
 use crate::ui::{Id, Response, Ui};
 use crate::widgets::{ROW, SMALL_ICON, label};
 
-const SCROLLBAR: i32 = 5;
+pub(crate) const SCROLLBAR: i32 = 5;
 const WHEEL_STEP: i32 = ROW;
 
 pub fn scroll_area(ui: &mut Ui<'_>, id: Id, area: Rect, content_height: i32) -> (Rect, i32) {
@@ -73,11 +74,21 @@ pub fn list_row_icon(
 
 fn row_face(ui: &mut Ui<'_>, id: Id, area: Rect, selected: bool) -> Response {
     let roles = ui.theme.roles;
-    let response = ui.interact(id, area);
+    let focused = ui.focusable(id);
+    let mut response = ui.interact(id, area);
     if selected {
         ui.canvas.fill(area, roles.accent);
     } else if response.hovered {
         ui.canvas.dither(area, roles.panel_light);
+    }
+    if focused {
+        ui.focus_ring(area);
+        response.clicked |= ui.activated(true);
+        if ui.take_key(Key::Down) {
+            ui.step_focus(false);
+        } else if ui.take_key(Key::Up) {
+            ui.step_focus(true);
+        }
     }
     response
 }

@@ -7,6 +7,7 @@ use super::dialog::{Dialog, DialogKind, keys};
 use super::intent::Intent;
 use super::window::WindowKind;
 use super::{App, Targets, WindowId};
+use crate::app::Status;
 use crate::domain::{Anchor, Command, Document, Selection, resize, scene_path};
 use crate::ports::FileStore;
 
@@ -133,12 +134,12 @@ impl App {
         };
         if self.ran(&command, store) {
             self.editing.selection = Selection::none(i32::from(size.0), i32::from(size.1));
-            self.editing.status = format!(
+            self.editing.status = Status::info(format!(
                 "Canvas is now {}×{} ({} anchored); undo brings the old size back",
                 size.0,
                 size.1,
                 anchor_name(anchor)
-            );
+            ));
         }
     }
 
@@ -163,7 +164,7 @@ impl App {
         .flatten()
         .collect();
         if values.is_empty() {
-            "Timing is already like that".clone_into(&mut self.editing.status);
+            self.editing.status = Status::info("Timing is already like that");
             return;
         }
         let command = Command::SetProperties {
@@ -172,7 +173,9 @@ impl App {
         };
         if self.ran(&command, store) {
             let looping = if looping { "looping" } else { "once" };
-            self.editing.status = format!("Timing is now {fps} fps, {duration} frames, {looping}");
+            self.editing.status = Status::info(format!(
+                "Timing is now {fps} fps, {duration} frames, {looping}"
+            ));
         }
     }
 }

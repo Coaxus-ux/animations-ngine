@@ -33,10 +33,15 @@ pub(crate) fn edit(file: Option<&Path>, size: Option<(u16, u16)>, scale: Option<
             .with_context(|| format!("cannot open {}", file.display()))?;
     }
     run(&mut app, &mut files)?;
-    if let Some(path) = layout {
-        let _ = files.write(&path, &app.layout_text());
+    if let Some(path) = layout
+        && let Err(error) = files.write(&path, &app.layout_text())
+    {
+        eprintln!(
+            "could not save the window layout to {}: {error}",
+            path.display()
+        );
     }
-    keep_unsaved(&app, &mut files);
+    report_unsaved(&keep_unsaved(&app, &mut files));
     Ok(())
 }
 
@@ -103,25 +108,62 @@ fn run(app: &mut App, files: &mut DiskFiles) -> Result<()> {
     }
 }
 
-fn keep_unsaved(app: &App, files: &mut DiskFiles) {
+struct Kept {
+    saved: Vec<PathBuf>,
+    lost: Vec<String>,
+}
+
+fn keep_unsaved(app: &App, files: &mut DiskFiles) -> Kept {
+    let mut kept = Kept {
+        saved: Vec::new(),
+        lost: Vec::new(),
+    };
     for slot in app.documents().iter() {
         let document = &slot.document;
         if !document.is_dirty() {
             continue;
         }
+        let title = document.path().display().to_string();
         let path = if document.is_untitled() {
-            let Some(name) = document.path().file_name() else {
-                continue;
-            };
-            let Some(folder) = config_dir() else { continue };
-            folder.join("unsaved").join(name)
+            document
+                .path()
+                .file_name()
+                .zip(config_dir())
+                .map(|(name, folder)| folder.join("unsaved").join(name))
         } else {
-            document.path().with_extension("unsaved.kdl")
+            Some(document.path().with_extension("unsaved.kdl"))
         };
-        if files.write(&path, document.text()).is_ok() {
-            eprintln!("unsaved changes kept in {}", path.display());
+        match path.map(|path| files.write(&path, document.text()).map(|()| path)) {
+            Some(Ok(path)) => kept.saved.push(path),
+            Some(Err(error)) => kept.lost.push(format!("{title}: {error}")),
+            None => kept
+                .lost
+                .push(format!("{title}: no place to keep it (HOME is not set)")),
         }
     }
+    kept
+}
+
+fn report_unsaved(kept: &Kept) {
+    if kept.saved.is_empty() && kept.lost.is_empty() {
+        return;
+    }
+    let mut lines = Vec::new();
+    if !kept.saved.is_empty() {
+        lines.push("Unsaved changes were kept in:".to_owned());
+        lines.extend(
+            kept.saved
+                .iter()
+                .map(|path| format!("  {}", path.display())),
+        );
+    }
+    if !kept.lost.is_empty() {
+        lines.push("These changes could not be kept and are lost:".to_owned());
+        lines.extend(kept.lost.iter().map(|line| format!("  {line}")));
+    }
+    let text = lines.join("\n");
+    eprintln!("{text}");
+    dialogs::tell("Unsaved changes", &text, !kept.lost.is_empty());
 }
 
 fn layout_path() -> Option<PathBuf> {

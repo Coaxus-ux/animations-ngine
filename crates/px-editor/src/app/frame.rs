@@ -18,10 +18,12 @@ impl App {
         let index = self.windows.iter().position(|window| window.id == id)?;
         let mut intents = Vec::new();
         let kind = self.windows[index].kind;
-        let typing = self.windows[index].ui.focus.is_some();
+        let ui_state = &self.windows[index].ui;
+        let typing = ui_state.focus.is_some();
+        let navigating = ui_state.key_focus.is_some() || ui_state.open_menu.is_some();
         let modal = self.windows[index].dialog.is_some();
         let tabs = (self.documents.active_index(), self.documents.len());
-        shortcuts::collect(input, typing, modal, tabs, &mut intents);
+        shortcuts::collect(input, (typing, navigating), modal, tabs, &mut intents);
         self.tick(input.time_ms);
         if kind == WindowKind::Main
             && input.time_ms % DISK_CHECK_MS < 20

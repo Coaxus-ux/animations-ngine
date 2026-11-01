@@ -20,7 +20,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use px_format::edit::NodePath;
-use px_ui::{Area, HEADER, Id, Input, Rect, Ui, header_button, panel};
+use px_ui::{Area, HEADER, Id, Input, Rect, Ui, centered_label, header_button, panel};
 
 pub use canvas::{CanvasPaint, paint_canvas};
 pub use doc_view::{Placement, RenderCache};
@@ -75,6 +75,22 @@ pub fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>) -> Option<Rect> {
         dialogs::draw(ui, context);
     }
     area
+}
+
+fn unavailable(ui: &mut Ui<'_>, context: &Context<'_>, area: Rect) {
+    let roles = ui.theme.roles;
+    let (text, ink) = match context.document {
+        None => ("No scene is open", roles.ink_dim),
+        Some(_) if context.kind == WindowKind::Main => (
+            "The scene doesn't load: see the code view (F2)",
+            roles.warning,
+        ),
+        Some(_) => (
+            "The scene doesn't load: fix it in the main window's code view",
+            roles.warning,
+        ),
+    };
+    centered_label(ui, area, text, ink);
 }
 
 fn panel_view(ui: &mut Ui<'_>, context: &mut Context<'_>, kind: PanelKind, area: Rect) {

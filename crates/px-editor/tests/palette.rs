@@ -63,7 +63,7 @@ fn adding_a_ramp_inserts_one_line_in_the_palette_node() {
     assert_eq!(added, vec!["    ramp \"sky\" \"#102030\"".to_owned()]);
     assert!(removed.is_empty(), "{removed:?}");
     assert_eq!(ramp_colors(&app, "sky"), vec![SKY]);
-    assert_eq!(app.editing().status, "Done: add ramp");
+    assert_eq!(app.editing().status.text, "Done: add ramp");
 }
 
 #[test]
@@ -146,9 +146,9 @@ fn renaming_a_ramp_to_a_taken_name_is_refused() {
     );
     assert_eq!(text(&app), before);
     assert!(
-        app.editing().status.contains("already exists"),
+        app.editing().status.text.contains("already exists"),
         "{}",
-        app.editing().status
+        app.editing().status.text
     );
 }
 
@@ -158,7 +158,7 @@ fn removing_a_referenced_ramp_is_refused_and_names_the_first_user() {
     let before = text(&app);
     app.dispatch(Intent::RemoveRamp("wall".to_owned()), main, &mut files);
     assert_eq!(text(&app), before);
-    let status = &app.editing().status;
+    let status = &app.editing().status.text;
     assert!(
         status.contains("\"wall\"") && status.contains("used by"),
         "{status}"
@@ -181,7 +181,7 @@ fn an_unused_ramp_can_be_removed() {
     assert_ne!(text(&app), before);
     app.dispatch(Intent::RemoveRamp("spare".to_owned()), main, &mut files);
     assert_eq!(text(&app), before);
-    assert_eq!(app.editing().status, "Done: remove ramp");
+    assert_eq!(app.editing().status.text, "Done: remove ramp");
 }
 
 #[test]
@@ -201,7 +201,7 @@ fn dropping_a_tone_someone_paints_with_is_refused_and_names_the_user() {
         &mut files,
     );
     assert_eq!(text(&app), before);
-    let status = &app.editing().status;
+    let status = &app.editing().status.text;
     assert!(
         status.starts_with("Tone 3 of ramp \"fur\" is used by"),
         "{status}"
@@ -245,7 +245,7 @@ fn removing_a_ramp_a_twin_needs_is_refused() {
     app.dispatch(Intent::RemoveRamp("warm".to_owned()), main, &mut files);
     assert_eq!(text(&app), before);
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         "Ramp \"warm\" is used by light color \"warm\" of twin \"sky\""
     );
     app.dispatch(
@@ -259,7 +259,7 @@ fn removing_a_ramp_a_twin_needs_is_refused() {
     );
     assert_eq!(text(&app), before);
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         "Ramp \"warm\" and its twin \"sky\" must have the same number of tones"
     );
     app.dispatch(
@@ -273,9 +273,9 @@ fn removing_a_ramp_a_twin_needs_is_refused() {
     );
     assert_eq!(text(&app), before);
     assert!(
-        app.editing().status.contains("its twin \"warm\""),
+        app.editing().status.text.contains("its twin \"warm\""),
         "{}",
-        app.editing().status
+        app.editing().status.text
     );
 }
 
@@ -285,12 +285,12 @@ fn outline_and_fog_paints_count_as_uses() {
     let before = text(&app);
     app.dispatch(Intent::RemoveRamp("edge".to_owned()), main, &mut files);
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         "Ramp \"edge\" is used by outline-paint of rect"
     );
     app.dispatch(Intent::RemoveRamp("haze".to_owned()), main, &mut files);
     assert_eq!(
-        app.editing().status,
+        app.editing().status.text,
         "Ramp \"haze\" is used by fog-paint of layer \"far\""
     );
     assert_eq!(text(&app), before);

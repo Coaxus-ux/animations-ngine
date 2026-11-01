@@ -134,9 +134,9 @@ fn replace_node_rewrites_only_that_node_and_keeps_it_selected_after_a_rename() {
     assert_ne!(kitten, cat);
     assert_eq!(app.window(main).unwrap().selected, Some(kitten));
     assert!(
-        app.editing().status.contains("edit code"),
+        app.editing().status.text.contains("edit code"),
         "{}",
-        app.editing().status
+        app.editing().status.text
     );
 }
 
@@ -158,7 +158,7 @@ fn bad_node_text_is_refused_and_the_scene_stays() {
     assert_eq!(app.document().unwrap().errors(), [] as [String; 0]);
     assert_eq!(size_of_scene(&app), (64, 48));
     assert_eq!(app.window(main).unwrap().selected, Some(cat));
-    let status = &app.editing().status;
+    let status = &app.editing().status.text;
     assert!(
         !status.is_empty() && !status.starts_with("Done"),
         "{status}"

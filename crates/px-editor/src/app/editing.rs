@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use px_core::Paint;
 
+use super::Status;
 use crate::domain::{Raster, Selection};
 use crate::tools::ToolKind;
 
@@ -18,5 +19,5 @@ pub struct Editing {
     pub locked: BTreeSet<String>,
     pub playing: bool,
     pub played_at: u64,
-    pub status: String,
+    pub status: Status,
 }

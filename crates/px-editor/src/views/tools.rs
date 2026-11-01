@@ -1,5 +1,6 @@
 use px_ui::{
-    Area, Id, Rect, TOOL_BUTTON, Ui, button, checkbox, icon_button, label, rect, text_width,
+    Area, Id, Rect, TOOL_BUTTON, Ui, button, checkbox, icon_button, label, rect, scroll_area,
+    text_width,
 };
 
 use super::{Context, Placement};
@@ -15,8 +16,16 @@ pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     ui.canvas
         .fill(rect(area.x, area.y, 1, area.height), roles.panel_dark);
     let id = Id::new("tools");
-    let x = area.x + 3;
-    let mut y = area.y + 3;
+    let count = i32::try_from(ToolKind::ALL.len()).unwrap_or(0);
+    let (view, offset) = scroll_area(
+        ui,
+        id.with_name("scroll"),
+        area,
+        count * (TOOL_BUTTON + 1) + 5,
+    );
+    let clip = ui.canvas.clip_to(view);
+    let x = view.x + (view.width - TOOL_BUTTON) / 2;
+    let mut y = view.y + 3 - offset;
     for tool in ToolKind::ALL {
         let slot = rect(x, y, TOOL_BUTTON, TOOL_BUTTON);
         let selected = context.editing.tool == tool;
@@ -32,6 +41,7 @@ pub(super) fn column(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
         }
         y += TOOL_BUTTON + 1;
     }
+    ui.canvas.restore_clip(clip);
 }
 
 pub(super) fn paints(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
@@ -211,22 +221,21 @@ pub(super) fn status(
     label(ui, left, &format!(" {info}"), roles.ink);
     ui.canvas
         .fill(rect(left.right(), left.y, 1, left.height), roles.panel_dark);
-    let (message, ink) = match context
+    let status = &context.editing.status;
+    let scene_error = context
         .document
-        .and_then(|document| document.errors().first())
-    {
-        Some(error) => (error.clone(), roles.warning),
-        None if context.editing.status.is_empty() => {
-            ("F1: help and shortcuts".to_owned(), roles.ink_dim)
-        }
-        None => (context.editing.status.clone(), roles.ink_dim),
+        .and_then(|document| document.errors().first());
+    let (message, ink) = match scene_error {
+        _ if status.problem => (status.text.as_str(), roles.warning),
+        Some(error) => (error.as_str(), roles.warning),
+        None if status.text.is_empty() => ("F1: help and shortcuts", roles.ink_dim),
+        None => (status.text.as_str(), roles.ink_dim),
     };
-    label(
-        ui,
-        rect(right.x + 4, right.y, right.width - 4, right.height),
-        &message,
-        ink,
-    );
+    let message_area = rect(right.x + 4, right.y, right.width - 4, right.height);
+    label(ui, message_area, message, ink);
+    if ui.hovering(message_area) && text_width(ui.font, message) > message_area.width {
+        ui.tooltip(message);
+    }
 }
 
 fn facts(context: &Context<'_>, document: &Document, canvas_area: Option<Rect>) -> Vec<String> {

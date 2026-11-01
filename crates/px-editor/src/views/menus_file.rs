@@ -56,7 +56,7 @@ pub(super) fn file<'a>(context: &Context<'_>, recent: &'a [String]) -> Vec<Entry
             open(Intent::RepeatExport),
         ),
         separator(),
-        entry("New canvas window", "Ctrl+Shift+N", Some(Intent::NewWindow)),
+        entry("New canvas window", "Ctrl+Shift+N", open(Intent::NewWindow)),
         entry("Quit", "Ctrl+Q", Some(Intent::Quit)),
     ]);
     entries

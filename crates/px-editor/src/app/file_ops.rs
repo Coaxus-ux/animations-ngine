@@ -8,6 +8,7 @@ use super::dialog::{Dialog, DialogKind, PickPurpose};
 use super::intent::Intent;
 use super::window::{Request, WindowId};
 use super::{App, Targets};
+use crate::app::Status;
 use crate::assets::palettes;
 use crate::domain::{Document, NewSpec, template};
 use crate::ports::FileStore;
@@ -57,7 +58,7 @@ impl App {
                 purpose: PickPurpose::SaveAs,
                 path: Some(path),
             } => self.save_as(source, &path, input, store),
-            Intent::Picked { path: None, .. } => "Cancelled".clone_into(&mut self.editing.status),
+            Intent::Picked { path: None, .. } => self.editing.status = Status::info("Cancelled"),
             Intent::CloseTab { index, discard } => self.close_tab(source, index, discard, store),
             Intent::SaveAndClose { index, then } => {
                 self.save_and_close(source, index, then, input, store);
@@ -80,7 +81,8 @@ impl App {
     fn new_document(&mut self, spec: NewSpec, store: &mut dyn FileStore) {
         let spec = spec.clamped();
         let Some(preset) = palettes::preset(&spec.preset) else {
-            self.editing.status = format!("No palette preset named {:?}", spec.preset);
+            self.editing.status =
+                Status::problem(format!("No palette preset named {:?}", spec.preset));
             return;
         };
         let text = template::new_text(&spec, preset);
@@ -88,14 +90,17 @@ impl App {
         match Document::new_unsaved(&path, text, store) {
             Ok(document) => {
                 self.add_document(document, store);
-                self.editing.status = format!(
+                self.editing.status = Status::info(format!(
                     "New {}x{} scene {:?}; it has no file until you save it (Ctrl+S)",
                     spec.width,
                     spec.height,
                     path.display()
-                );
+                ));
             }
-            Err(error) => self.editing.status = format!("Could not create the scene: {error}"),
+            Err(error) => {
+                self.editing.status =
+                    Status::problem(format!("Could not create the scene: {error}"));
+            }
         }
     }
 
@@ -125,10 +130,10 @@ impl App {
             name,
             filters: KDL_FILTER,
         });
-        self.editing.status = match purpose {
-            PickPurpose::SaveAs => "Choose where to save the scene".to_owned(),
-            _ => "Choose a scene file to open".to_owned(),
-        };
+        self.editing.status = Status::info(match purpose {
+            PickPurpose::SaveAs => "Choose where to save the scene",
+            _ => "Choose a scene file to open",
+        });
     }
 
     fn open_file(&mut self, path: &Path, store: &mut dyn FileStore) {
@@ -136,27 +141,29 @@ impl App {
         match self.open(path, None, store) {
             Ok(()) => {
                 self.remember(path);
-                self.editing.status = format!("Opened {}", path.display());
+                self.editing.status = Status::info(format!("Opened {}", path.display()));
             }
             Err(error) => {
-                self.editing.status = format!("Could not open {}: {error}", path.display());
+                self.editing.status =
+                    Status::problem(format!("Could not open: {error} ({})", path.display()));
             }
         }
     }
 
     fn save_as(&mut self, source: WindowId, path: &Path, input: &Input, store: &mut dyn FileStore) {
         let Some(document) = self.document_mut() else {
-            "Nothing to save: no scene is open".clone_into(&mut self.editing.status);
+            self.editing.status = Status::problem("Nothing to save: no scene is open");
             return;
         };
         match document.save_to(path, store) {
             Ok(()) => {
                 self.remember(path);
-                self.editing.status = format!("Saved {}", path.display());
+                self.editing.status = Status::info(format!("Saved {}", path.display()));
                 self.resume_closing(source, input, store);
             }
             Err(error) => {
-                self.editing.status = format!("Could not save {}: {error}", path.display());
+                self.editing.status =
+                    Status::problem(format!("Could not save: {error} ({})", path.display()));
             }
         }
         self.retitle();

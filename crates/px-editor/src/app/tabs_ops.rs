@@ -5,6 +5,7 @@ use super::editing::Editing;
 use super::intent::Intent;
 use super::window::{ViewState, WindowKind};
 use super::{App, Targets};
+use crate::app::Status;
 use crate::domain::{Command, Document};
 use crate::ports::FileStore;
 
@@ -112,7 +113,7 @@ impl App {
             }
         }
         if let Some(error) = refused {
-            self.editing.status = error;
+            self.editing.status = Status::problem(error);
         }
     }
 

@@ -133,7 +133,7 @@ fn a_cancelled_pick_changes_nothing() {
     assert_eq!(app.documents().len(), 1);
     assert_eq!(app.document().unwrap().text(), text);
     assert!(app.recent().is_empty());
-    assert_eq!(app.editing().status, "Cancelled");
+    assert_eq!(app.editing().status.text, "Cancelled");
 }
 
 #[test]
@@ -335,10 +335,11 @@ fn recent_files_folder_round_trip_through_the_layout_text() {
         main,
         &mut files,
     );
+    let status = &app.editing().status;
     assert!(
-        app.editing()
-            .status
-            .starts_with("Could not open missing.kdl")
+        status.problem && status.text.ends_with("(missing.kdl)"),
+        "{}",
+        status.text
     );
     let layout = app.layout_text();
     assert!(layout.contains("folder \"scenes\""), "{layout}");

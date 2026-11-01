@@ -2,7 +2,7 @@ use crate::area::{Area, Rect, rect};
 use crate::input::Key;
 use crate::text::text_width;
 use crate::ui::{Id, Ui};
-use crate::widgets::{ROW, button, centered_label, panel};
+use crate::widgets::{ROW, button, button_if, panel};
 
 const BUTTON_PAD: i32 = 12;
 const BUTTON_GAP: i32 = 4;
@@ -48,46 +48,17 @@ pub fn ok_cancel(ui: &mut Ui<'_>, id: Id, area: Rect, ok: &str, enabled: bool) -
     let (cancel_area, rest) = row.take_right(button_width(ui, "Cancel"));
     let (ok_area, _) = rest.take_right(button_width(ui, ok) + BUTTON_GAP);
     let ok_area = ok_area.take_left(ok_area.width - BUTTON_GAP).0;
-    let confirmed = if enabled {
-        button(ui, id.with_name("ok"), ok_area, ok)
-    } else {
-        disabled_button(ui, ok_area, ok);
-        false
-    };
+    let confirmed = button_if(ui, id.with_name("ok"), ok_area, ok, enabled);
     let cancelled = button(ui, id.with_name("cancel"), cancel_area, "Cancel");
-    if confirmed || (enabled && ui.input.key(Key::Enter)) {
-        DialogAction::Ok
-    } else if cancelled || ui.input.key(Key::Escape) {
+    if cancelled || ui.take_key(Key::Escape) {
         DialogAction::Cancel
+    } else if confirmed || (enabled && ui.take_key(Key::Enter)) {
+        DialogAction::Ok
     } else {
         DialogAction::None
     }
 }
 
-pub fn focus_next(ui: &mut Ui<'_>, fields: &[Id]) {
-    if fields.is_empty() || !ui.input.key(Key::Tab) {
-        return;
-    }
-    let current = ui
-        .state
-        .focus
-        .and_then(|focus| fields.iter().position(|field| *field == focus));
-    let next = match current {
-        None => 0,
-        Some(index) if ui.input.modifiers.shift => (index + fields.len() - 1) % fields.len(),
-        Some(index) => (index + 1) % fields.len(),
-    };
-    ui.state.focus = Some(fields[next]);
-}
-
 fn button_width(ui: &Ui<'_>, text: &str) -> i32 {
     (text_width(ui.font, text) + BUTTON_PAD).max(MIN_BUTTON)
-}
-
-fn disabled_button(ui: &mut Ui<'_>, area: Rect, text: &str) {
-    let roles = ui.theme.roles;
-    ui.canvas.fill(area, roles.panel);
-    ui.canvas
-        .bevel(area, roles.panel_light, roles.panel_dark, false);
-    centered_label(ui, area, text, roles.ink_disabled);
 }

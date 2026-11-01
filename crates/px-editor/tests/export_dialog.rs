@@ -150,17 +150,12 @@ fn gif_honours_the_frame_scope_and_keeps_transparency() {
 fn tab_visits_only_the_fields_the_kind_shows() {
     let (mut app, mut files, main) = open();
     export(&mut app, &mut files, main, ExportKind::Gif, "out/room.gif");
-    app.dispatch(Intent::ShowDialog(DialogKind::Export), main, &mut files);
-    app.frame(main, &Input::default(), SIZE, &mut files);
-    let focus = |app: &App| app.window(main).unwrap().ui.focus;
-    assert_eq!(focus(&app), None);
-    press(&mut app, &mut files, main, Key::Tab);
-    assert_eq!(focus(&app), Some(field(keys::SCALE)));
-    press(&mut app, &mut files, main, Key::Tab);
-    assert_eq!(focus(&app), Some(field(keys::OUT)));
-    press(&mut app, &mut files, main, Key::Tab);
-    assert_eq!(focus(&app), Some(field(keys::SCALE)));
-    press(&mut app, &mut files, main, Key::Escape);
+    let gif = tab_stops(&mut app, &mut files, main);
+    assert!(gif.contains(&field(keys::SCALE)) && gif.contains(&field(keys::OUT)));
+    assert!(!gif.contains(&field(keys::BORDER)) && !gif.contains(&field(keys::SHAPE)));
+    let scale = gif.iter().position(|id| *id == field(keys::SCALE));
+    let out = gif.iter().position(|id| *id == field(keys::OUT));
+    assert!(scale < out, "Tab follows the dialog from top to bottom");
 
     export(
         &mut app,
@@ -169,12 +164,31 @@ fn tab_visits_only_the_fields_the_kind_shows() {
         ExportJob::default().kind,
         "out/room.png",
     );
-    app.dispatch(Intent::ShowDialog(DialogKind::Export), main, &mut files);
-    app.frame(main, &Input::default(), SIZE, &mut files);
-    press(&mut app, &mut files, main, Key::Tab);
-    assert_eq!(focus(&app), Some(field(keys::BORDER)));
-    press(&mut app, &mut files, main, Key::Tab);
-    assert_eq!(focus(&app), Some(field(keys::SHAPE)));
-    press(&mut app, &mut files, main, Key::Tab);
-    assert_eq!(focus(&app), Some(field(keys::SCALE)));
+    let png = tab_stops(&mut app, &mut files, main);
+    let at = |name: &str| png.iter().position(|id| *id == field(name)).unwrap();
+    assert!(at(keys::BORDER) < at(keys::SHAPE) && at(keys::SHAPE) < at(keys::SCALE));
+}
+
+fn tab_stops(app: &mut App, files: &mut MemoryFiles, main: WindowId) -> Vec<Id> {
+    app.dispatch(Intent::ShowDialog(DialogKind::Export), main, files);
+    app.frame(main, &Input::default(), SIZE, files);
+    let mut stops = Vec::new();
+    loop {
+        press(app, files, main, Key::Tab);
+        let ui = &app.window(main).unwrap().ui;
+        let stop = ui.key_focus.unwrap();
+        if stops.contains(&stop) {
+            break;
+        }
+        if ui.focus.is_some() {
+            assert_eq!(
+                ui.focus,
+                Some(stop),
+                "a field reached with Tab takes typing"
+            );
+        }
+        stops.push(stop);
+    }
+    press(app, files, main, Key::Escape);
+    stops
 }

@@ -4,6 +4,7 @@ use super::super::App;
 use super::super::dialog::{Dialog, DialogKind, PickPurpose, keys};
 use super::super::intent::Intent;
 use super::super::window::WindowId;
+use crate::app::Status;
 use crate::domain::Document;
 use crate::ports::FileStore;
 
@@ -69,7 +70,7 @@ impl App {
             window.dialog = Some(dialog);
             window.ui.focus = None;
         });
-        self.editing.status = format!("{title} has unsaved changes");
+        self.editing.status = Status::info(format!("{title} has unsaved changes"));
     }
 
     pub(super) fn save_and_close(

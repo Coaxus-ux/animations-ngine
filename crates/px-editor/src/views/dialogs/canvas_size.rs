@@ -1,7 +1,6 @@
 use px_core::MAX_CANVAS_SIDE;
 use px_ui::{
-    Area, DialogAction, Id, ROW, Rect, Ui, focus_next, icon_button, label, number_field, ok_cancel,
-    rect,
+    Area, DialogAction, Id, ROW, Rect, Ui, icon_button, label, number_field, ok_cancel, rect,
 };
 
 use super::Context;
@@ -38,7 +37,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
         label(ui, caption_area, caption, roles.ink_dim);
         number_field(ui, field_id, field, dialog.form.number(key, 1), range);
     }
-    focus_next(ui, &[width_id, height_id]);
     let chosen = dialog.form.choice(keys::ANCHOR, Anchor::default_index());
     anchor_grid(ui, id.with_name(keys::ANCHOR), grid, chosen);
     let anchor = Anchor::ALL.get(*chosen).copied().unwrap_or_default();

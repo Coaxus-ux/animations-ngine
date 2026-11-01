@@ -4,6 +4,7 @@ use px_ui::Input;
 
 use super::intent::Intent;
 use super::{App, Targets};
+use crate::app::Status;
 use crate::ports::FileStore;
 
 pub mod keys {
@@ -115,7 +116,7 @@ impl App {
         match intent {
             Intent::ShowDialog(kind) => {
                 if kind.needs_document() && self.document().is_none() {
-                    "Open a scene first".clone_into(&mut self.editing.status);
+                    self.editing.status = Status::problem("Open a scene first");
                     return None;
                 }
                 let dialog = self.dialog_for(kind);

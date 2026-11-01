@@ -144,7 +144,7 @@ fn the_tab_strip_switches_and_closes_tabs_by_click() {
         ..Input::default()
     };
     app.frame(main, &middle, SIZE, &mut files);
-    assert_eq!(app.documents().len(), 1, "{}", app.editing().status);
+    assert_eq!(app.documents().len(), 1, "{}", app.editing().status.text);
     assert_eq!(app.document().unwrap().path(), Path::new(common::FILE));
 }
 
@@ -236,7 +236,7 @@ fn tab_shortcuts_and_menu_entries_agree() {
 fn document_only_shortcuts_do_nothing_on_the_home_tab() {
     let (mut app, mut files, main) = open_empty();
     app.take_requests();
-    let status = app.editing().status.clone();
+    let status = app.editing().status.text.clone();
     let command_keys = [
         Key::Letter('e'),
         Key::Letter('p'),
@@ -263,7 +263,7 @@ fn document_only_shortcuts_do_nothing_on_the_home_tab() {
             .any(|request| matches!(request, Request::PickFile { .. })),
         "{requests:?}"
     );
-    assert_eq!(app.editing().status, status);
+    assert_eq!(app.editing().status.text, status);
     app.frame(main, &keys(&[Key::Letter('n')], COMMAND), SIZE, &mut files);
     assert_eq!(dialog(&app, main), Some(DialogKind::New));
 }
@@ -308,12 +308,12 @@ fn palette_menu_edits_the_selected_ramp() {
         generated[ramp].1, before[ramp].1,
         "Generate ramp recolors it"
     );
-    let status = app.editing().status.clone();
+    let status = app.editing().status.text.clone();
     choose(&mut app, &mut files, 2);
     let after = ramps(&app);
     assert!(
-        after.len() == before.len() - 1 || app.editing().status != status,
+        after.len() == before.len() - 1 || app.editing().status.text != status,
         "Remove ramp removes it or says who paints with it: {}",
-        app.editing().status
+        app.editing().status.text
     );
 }

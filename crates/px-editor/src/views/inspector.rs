@@ -2,7 +2,7 @@ use kdl::{KdlEntry, KdlValue};
 use px_format::edit::NodePath;
 use px_ui::{Area, Id, ROW, Rect, Ui, label, rect, scroll_area, text_field, toggle_icon};
 
-use super::Context;
+use super::{Context, unavailable};
 use crate::app::Intent;
 use crate::domain::{Document, scene_path};
 
@@ -10,6 +10,7 @@ const KEY: i32 = 58;
 
 pub(super) fn inspector(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
+        unavailable(ui, context, area);
         return;
     };
     let roles = ui.theme.roles;

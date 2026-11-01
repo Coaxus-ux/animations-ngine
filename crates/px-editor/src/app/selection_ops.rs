@@ -1,4 +1,5 @@
 use super::{App, WindowId};
+use crate::app::Status;
 use crate::domain::{Raster, Selection};
 use crate::ports::FileStore;
 
@@ -21,7 +22,7 @@ impl App {
         let mut target = match self.paint_target(window) {
             Ok(target) => target,
             Err(reason) => {
-                self.editing.status = reason;
+                self.editing.status = Status::problem(reason);
                 return;
             }
         };
@@ -35,7 +36,7 @@ impl App {
         let changed = match op {
             SelectionOp::Copy => {
                 self.editing.clipboard = Some(selection.lift(&mut raster.clone()));
-                "Copied".clone_into(&mut self.editing.status);
+                self.editing.status = Status::info("Copied");
                 false
             }
             SelectionOp::Cut => {
@@ -52,11 +53,11 @@ impl App {
             }
             SelectionOp::Paste => {
                 let Some(clipboard) = self.editing.clipboard.clone() else {
-                    "Nothing to paste".clone_into(&mut self.editing.status);
+                    self.editing.status = Status::info("Nothing to paste");
                     return;
                 };
                 self.editing.selection = paste(&mut raster, &clipboard);
-                "Pasted: move it with the move tool (V)".clone_into(&mut self.editing.status);
+                self.editing.status = Status::info("Pasted: move it with the move tool (V)");
                 true
             }
         };
@@ -69,7 +70,7 @@ impl App {
             .document_mut()
             .map(|document| document.apply(&command, store))
         {
-            self.editing.status = error;
+            self.editing.status = Status::problem(error);
         }
     }
 }

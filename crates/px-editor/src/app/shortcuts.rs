@@ -8,7 +8,7 @@ use crate::tools::ToolKind;
 
 pub(super) fn collect(
     input: &Input,
-    typing: bool,
+    (typing, navigating): (bool, bool),
     modal: bool,
     tabs: (Option<usize>, usize),
     intents: &mut Vec<Intent>,
@@ -21,7 +21,8 @@ pub(super) fn collect(
     if input.modifiers.command {
         for key in &input.keys {
             let intent = match key {
-                Key::Letter('n') if shift => Intent::NewWindow,
+                Key::Letter('n') if shift && open => Intent::NewWindow,
+                Key::Letter('n') if shift => continue,
                 Key::Letter('n') => Intent::ShowDialog(DialogKind::New),
                 Key::Letter('o') => Intent::OpenFile(PathBuf::new()),
                 Key::Letter('q') => Intent::Quit,
@@ -95,6 +96,7 @@ pub(super) fn collect(
             Key::Letter('h') => Intent::Flip { horizontal: true },
             Key::Comma => Intent::StepFrame(-1),
             Key::Period => Intent::StepFrame(1),
+            Key::Enter | Key::Escape if navigating => continue,
             Key::Enter => Intent::TogglePlay,
             Key::Delete | Key::Backspace => Intent::DeleteSelection,
             Key::Escape => Intent::Deselect,

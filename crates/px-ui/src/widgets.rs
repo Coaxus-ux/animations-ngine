@@ -46,6 +46,24 @@ fn button_face(ui: &mut Ui<'_>, area: Rect, hovered: bool, sunken: bool, selecte
 }
 
 pub fn button(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str) -> bool {
+    let focused = ui.focusable(id);
+    pressable(ui, id, area, text, focused)
+}
+
+pub fn button_if(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, enabled: bool) -> bool {
+    if enabled {
+        button(ui, id, area, text)
+    } else {
+        disabled_button(ui, area, text);
+        false
+    }
+}
+
+pub(crate) fn step_button(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str) -> bool {
+    pressable(ui, id, area, text, false)
+}
+
+fn pressable(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, focused: bool) -> bool {
     let response = ui.interact(id, area);
     button_face(ui, area, response.hovered, response.held, false);
     let offset = i32::from(response.held);
@@ -56,7 +74,25 @@ pub fn button(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str) -> bool {
         text,
         ink,
     );
-    response.clicked
+    if focused {
+        ui.focus_ring(area);
+    }
+    response.clicked || ui.activated(focused)
+}
+
+fn disabled_button(ui: &mut Ui<'_>, area: Rect, text: &str) {
+    let roles = ui.theme.roles;
+    ui.canvas.fill(area, roles.panel);
+    ui.canvas.frame(area, roles.panel_dark);
+    let width = text_width(ui.font, text);
+    let y = area.y + (area.height - i32::from(ui.font.height())) / 2;
+    engraved_text(ui, area.x + (area.width - width) / 2, y, text);
+}
+
+pub(crate) fn engraved_text(ui: &mut Ui<'_>, x: i32, y: i32, text: &str) {
+    let roles = ui.theme.roles;
+    draw_text(ui.canvas, ui.font, x + 1, y + 1, text, roles.panel_light);
+    draw_text(ui.canvas, ui.font, x, y, text, roles.ink_disabled);
 }
 
 pub fn icon_button(
@@ -67,14 +103,18 @@ pub fn icon_button(
     selected: bool,
     tip: &str,
 ) -> bool {
+    let focused = ui.focusable(id);
     let response = ui.interact(id, area);
     button_face(ui, area, response.hovered, response.held, selected);
     let offset = i32::from(response.held || selected);
     draw_icon(ui, area, icon, offset, None);
-    if response.hovered && !tip.is_empty() {
+    if focused {
+        ui.focus_ring(area);
+    }
+    if (response.hovered || focused) && !tip.is_empty() {
         ui.tooltip(tip);
     }
-    response.clicked
+    response.clicked || ui.activated(focused)
 }
 
 pub fn toggle_icon(
@@ -85,16 +125,20 @@ pub fn toggle_icon(
     icons: (&str, &str),
     tip: &str,
 ) -> bool {
+    let focused = ui.focusable(id);
     let response = ui.interact(id, area);
     if response.hovered {
         ui.canvas.dither(area, ui.theme.roles.panel_light);
-        if !tip.is_empty() {
-            ui.tooltip(tip);
-        }
+    }
+    if (response.hovered || focused) && !tip.is_empty() {
+        ui.tooltip(tip);
     }
     let tint = (!on).then_some(ui.theme.roles.ink_dim);
     draw_icon(ui, area, if on { icons.0 } else { icons.1 }, 0, tint);
-    response.clicked
+    if focused {
+        ui.focus_ring(area);
+    }
+    response.clicked || ui.activated(focused)
 }
 
 fn draw_icon(ui: &mut Ui<'_>, area: Rect, icon: &str, offset: i32, tint: Option<Paint>) {
@@ -111,6 +155,7 @@ fn draw_icon(ui: &mut Ui<'_>, area: Rect, icon: &str, offset: i32, tint: Option<
 
 pub fn checkbox(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, checked: bool) -> bool {
     let roles = ui.theme.roles;
+    let focused = ui.focusable(id);
     let response = ui.interact(id, area);
     if response.hovered {
         ui.canvas.dither(area, roles.panel_light);
@@ -124,7 +169,10 @@ pub fn checkbox(ui: &mut Ui<'_>, id: Id, area: Rect, text: &str, checked: bool) 
     }
     let rest = rect(mark.right() + 3, area.y, area.width - side - 4, area.height);
     label(ui, rest, text, roles.ink);
-    response.clicked
+    if focused {
+        ui.focus_ring(area);
+    }
+    response.clicked || ui.activated(focused)
 }
 
 pub fn panel(ui: &mut Ui<'_>, area: Rect, title: &str) -> (Rect, Rect) {

@@ -300,7 +300,7 @@ fn window<'a>(context: &Context<'_>) -> Vec<Entry<'a>> {
     entries.push(entry(
         "New canvas window",
         "Ctrl+Shift+N",
-        Some(Intent::NewWindow),
+        context.document.map(|_| Intent::NewWindow),
     ));
     entries
 }

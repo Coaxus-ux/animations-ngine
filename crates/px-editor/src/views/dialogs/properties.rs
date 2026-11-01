@@ -1,7 +1,5 @@
 use px_core::{MAX_FPS, MAX_FRAMES};
-use px_ui::{
-    Area, DialogAction, Id, ROW, Rect, Ui, checkbox, focus_next, label, number_field, ok_cancel,
-};
+use px_ui::{Area, DialogAction, Id, ROW, Rect, Ui, checkbox, label, number_field, ok_cancel};
 
 use super::Context;
 use crate::app::{Dialog, Intent, keys};
@@ -69,7 +67,6 @@ pub(super) fn draw(ui: &mut Ui<'_>, context: &mut Context<'_>, dialog: &mut Dial
         *looping = !*looping;
     }
     let looping = *looping;
-    focus_next(ui, &[fps_id, frames_id]);
 
     match ok_cancel(ui, id, buttons, "Apply", true) {
         DialogAction::Ok => {

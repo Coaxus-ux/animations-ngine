@@ -1,7 +1,7 @@
 use px_engine::Geometry;
-use px_ui::{Area, Id, ROW, Rect, Ui, button, checkbox, label, rect, text_width};
+use px_ui::{Area, Id, ROW, Rect, Ui, button, checkbox, label, rect, scroll_area, text_width};
 
-use super::Context;
+use super::{Context, unavailable};
 use crate::app::Intent;
 
 const CELL: i32 = 8;
@@ -9,10 +9,11 @@ const NAME: i32 = 44;
 const BUTTON: i32 = ROW + 1;
 
 pub(super) fn timeline(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
-    let Some(document) = context.document else {
-        return;
-    };
-    let Some(scene) = document.scene() else {
+    let Some((document, scene)) = context
+        .document
+        .and_then(|document| Some((document, document.scene()?)))
+    else {
+        unavailable(ui, context, area);
         return;
     };
     let roles = ui.theme.roles;
@@ -21,14 +22,6 @@ pub(super) fn timeline(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let (bar, grid) = area.take_top(BUTTON + 2);
     controls(ui, context, bar, frame, frames);
 
-    let (names, cells) = grid.take_left(NAME);
-    let visible = u32::try_from((cells.width / CELL).max(1)).unwrap_or(1);
-    let first = frame
-        .saturating_sub(visible / 2)
-        .min(frames.saturating_sub(visible));
-    let column = |f: u32| cells.x + i32::try_from(f - first).unwrap_or(0) * CELL;
-    let current = rect(column(frame), cells.y, CELL, cells.height);
-    ui.canvas.fill(current, roles.panel_light);
     let id = Id::new("timeline");
     let rows: Vec<(usize, &crate::domain::Layer)> = document
         .layers()
@@ -37,10 +30,21 @@ pub(super) fn timeline(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
         .filter(|(_, layer)| layer.art.is_some())
         .rev()
         .collect();
+    let rows_height = i32::try_from(rows.len()).unwrap_or(0) * (CELL + 2);
+    let (grid, offset) = scroll_area(ui, id.with_name("rows"), grid, rows_height);
+    let clip = ui.canvas.clip_to(grid);
+    let (names, cells) = grid.take_left(NAME);
+    let visible = u32::try_from((cells.width / CELL).max(1)).unwrap_or(1);
+    let first = frame
+        .saturating_sub(visible / 2)
+        .min(frames.saturating_sub(visible));
+    let column = |f: u32| cells.x + i32::try_from(f - first).unwrap_or(0) * CELL;
+    let current = rect(column(frame), cells.y, CELL, cells.height);
+    ui.canvas.fill(current, roles.panel_light);
     for (slot, (index, layer)) in (0i32..).zip(rows) {
-        let y = grid.y + slot * (CELL + 2);
-        if y + CELL > grid.bottom() {
-            break;
+        let y = grid.y + slot * (CELL + 2) - offset;
+        if y + CELL < grid.y || y > grid.bottom() {
+            continue;
         }
         let selected = context.view.layer == Some(index);
         let name_row = rect(names.x, y, names.width, CELL + 1);
@@ -84,6 +88,7 @@ pub(super) fn timeline(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
             }
         }
     }
+    ui.canvas.restore_clip(clip);
 }
 
 fn controls(ui: &mut Ui<'_>, context: &mut Context<'_>, bar: Rect, frame: u32, frames: u32) {

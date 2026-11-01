@@ -1,6 +1,6 @@
 use px_ui::{Area, Id, ROW, Rect, Ui, list_row_icon, rect, scroll_area};
 
-use super::Context;
+use super::{Context, unavailable};
 use crate::app::{CodeMode, Intent};
 use crate::domain::{ElementKind, tree};
 
@@ -8,6 +8,7 @@ const INDENT: i32 = 6;
 
 pub(super) fn elements(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) {
     let Some(document) = context.document else {
+        unavailable(ui, context, area);
         return;
     };
     let rows = tree::elements(document.source());

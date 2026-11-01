@@ -48,7 +48,7 @@ fn recent_list(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect, recent: &
     let (clear, caption) = heading.take_right(30);
     label(ui, caption, "Recent files", roles.ink_dim);
     if recent.is_empty() {
-        centered_label(ui, rest, "Nothing opened yet", roles.ink_disabled);
+        centered_label(ui, rest, "Nothing opened yet", roles.ink_dim);
         return;
     }
     if button(ui, id.with_name("clear"), clear, "Clear") {

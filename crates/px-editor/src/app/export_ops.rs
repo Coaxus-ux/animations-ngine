@@ -6,6 +6,7 @@ use super::dialog::{Dialog, DialogKind, Form, PickPurpose, keys};
 use super::intent::Intent;
 use super::window::Request;
 use super::{App, Targets};
+use crate::app::Status;
 use crate::domain::Document;
 use crate::domain::export::{self, ExportJob, ExportKind, FrameScope, layout_count, layout_index};
 use crate::ports::FileStore;
@@ -67,7 +68,7 @@ impl App {
 
     fn repeat_export(&mut self, targets: Targets, store: &mut dyn FileStore) {
         let Some(mut job) = self.last_export.clone() else {
-            "Nothing exported yet".clone_into(&mut self.editing.status);
+            self.editing.status = Status::problem("Nothing exported yet");
             return;
         };
         match self
@@ -116,7 +117,7 @@ impl App {
             .map(|window| window.view.hidden.clone())
             .unwrap_or_default();
         let Some(document) = self.document() else {
-            "Nothing to export: open a scene first".clone_into(&mut self.editing.status);
+            self.editing.status = Status::problem("Nothing to export: open a scene first");
             return;
         };
         let written = export::run(job, document, &hidden).and_then(|outputs| {
@@ -125,11 +126,10 @@ impl App {
             }
             Ok(outputs.len())
         });
-        self.editing.status = match written {
-            Ok(1) => format!("Exported 1 file to {}", folder_of(&job.out)),
-            Ok(count) => format!("Exported {count} files to {}", folder_of(&job.out)),
-            Err(reason) => reason,
-        };
+        self.editing.status = Status::from_result(written.map(|count| match count {
+            1 => format!("Exported 1 file to {}", folder_of(&job.out)),
+            count => format!("Exported {count} files to {}", folder_of(&job.out)),
+        }));
     }
 }
 

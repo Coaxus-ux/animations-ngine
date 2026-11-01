@@ -95,7 +95,7 @@ fn trim_crops_every_frame_to_the_common_bounds_and_records_the_offset() {
         main,
         &mut files,
     );
-    assert_eq!(app.editing().status, "Exported 2 files to out");
+    assert_eq!(app.editing().status.text, "Exported 2 files to out");
     let size = png_size(&files.bytes[Path::new("out/room.png")]);
     assert_eq!(size, (u32::from(COLUMNS) * bounds.w, 9 * bounds.h));
     let json = text(&files, "out/room.json");
@@ -121,7 +121,7 @@ fn split_layers_writes_one_sheet_per_visible_layer() {
         main,
         &mut files,
     );
-    assert_eq!(app.editing().status, "Exported 6 files to out");
+    assert_eq!(app.editing().status.text, "Exported 6 files to out");
     let names: Vec<&Path> = files.bytes.keys().map(PathBuf::as_path).collect();
     let expected = [
         "out/room-cat.json",
@@ -294,7 +294,7 @@ fn an_opaque_export_is_not_reported_as_trimmed() {
         main,
         &mut files,
     );
-    assert_eq!(app.editing().status, "Exported 2 files to out");
+    assert_eq!(app.editing().status.text, "Exported 2 files to out");
     assert_eq!(
         png_size(&files.bytes[Path::new("out/room.png")]),
         (u32::from(COLUMNS) * 64, 9 * 48)

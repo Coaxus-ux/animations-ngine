@@ -5,6 +5,7 @@ use px_ui::Input;
 
 use super::intent::Button;
 use super::{App, WindowId};
+use crate::app::Status;
 use crate::domain::{Command, Raster};
 use crate::ports::FileStore;
 use crate::tools::{Effect, Tool, ToolKind, Work};
@@ -133,7 +134,7 @@ impl App {
         let target = match self.paint_target(window) {
             Ok(target) => Some(target),
             Err(reason) if kind.paints() => {
-                self.editing.status = reason;
+                self.editing.status = Status::problem(reason);
                 return;
             }
             Err(_) => None,
@@ -227,10 +228,10 @@ impl App {
                 .caches
                 .get(&window)
                 .and_then(|cache| cache.shape_at(x, y));
-            self.editing.status = match self.editing.picked {
+            self.editing.status = Status::info(match self.editing.picked {
                 Some(shape) => format!("Picked shape #{shape}: click a swatch to recolor it"),
                 None => "Nothing there to pick".to_owned(),
-            };
+            });
         }
         let Some(target) = &stroke.target else { return };
         let commit = effect.commit.then(|| target.command(&stroke.raster));
@@ -242,7 +243,7 @@ impl App {
         if let Some(command) = commit {
             if let Err(error) = document.apply(&command, store) {
                 document.cancel_preview();
-                self.editing.status = error;
+                self.editing.status = Status::problem(error);
             }
         } else if let Some((shape, cels)) = preview {
             document.preview_cels(shape, cels);
