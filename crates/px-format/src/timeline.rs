@@ -5,6 +5,7 @@ use px_core::FrameRate;
 
 use crate::diagnostic::Diagnostics;
 use crate::props::Props;
+use crate::source_map::Origin;
 use crate::units;
 use crate::values;
 
@@ -86,12 +87,21 @@ pub struct Timeline {
     pub looping: bool,
     pub markers: Vec<Marker>,
     pub tracks: Vec<Track>,
+    pub keys: Vec<Keyed>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Marker {
     pub name: String,
     pub at: f64,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Keyed {
+    pub object: String,
+    pub property: String,
+    pub origin: Origin,
+    pub times: Vec<f64>,
 }
 
 #[derive(Clone, Debug, PartialEq)]

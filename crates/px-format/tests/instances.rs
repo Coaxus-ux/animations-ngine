@@ -214,6 +214,48 @@ fn markers_name_times_for_placements_and_keys() {
 }
 
 #[test]
+fn keys_are_reported_per_property_of_the_root_scene_only() {
+    let text = format!(
+        "{PALETTE}\n{}{}",
+        scene(
+            "dot",
+            "",
+            "rect x=0 y=0 width=1 height=1 paint=\"ink\" { anim x { k \"0s\" 0; k \"1s\" 2 } }"
+        ),
+        scene(
+            "main",
+            "",
+            "timeline { marker \"in\" at=\"0.5s\" }\nuse-scene \"dot\"\ncamera { k \"0s\" x=0 zoom=1; k \"in\" x=2 zoom=2 }\nrect \"box\" y=1 width=2 height=2 paint=\"ink\" { anim x { k \"0s\" 0; k \"+3f\" 4 } }"
+        )
+    );
+    let options = LoadOptions {
+        scene: Some("main"),
+        ..LoadOptions::default()
+    };
+    let keys = load_scene(&text, options).unwrap().timeline.keys;
+    let summary: Vec<(&str, &str, &[f64])> = keys
+        .iter()
+        .map(|keyed| {
+            (
+                keyed.object.as_str(),
+                keyed.property.as_str(),
+                keyed.times.as_slice(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        summary,
+        [
+            ("camera", "x", &[0.0, 0.5][..]),
+            ("camera", "zoom", &[0.0, 0.5][..]),
+            ("box", "x", &[0.0, 0.75][..]),
+        ]
+    );
+    assert_eq!(keys[0].origin, keys[1].origin);
+    assert_ne!(keys[0].origin, keys[2].origin);
+}
+
+#[test]
 fn placements_that_break_the_host_loop_are_warned_about() {
     let short = scene("blink", "", BALL).replace("duration=\"2s\"", "duration=\"1.5s\"");
     let text = format!(

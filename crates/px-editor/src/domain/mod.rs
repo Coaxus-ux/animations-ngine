@@ -11,6 +11,7 @@ mod recent;
 pub mod resize;
 mod selection;
 pub mod template;
+pub mod timeline;
 pub mod tree;
 pub mod visibility;
 

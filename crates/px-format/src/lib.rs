@@ -40,4 +40,4 @@ pub use font::{Font, Glyph};
 pub use pixels::write_pixels;
 pub use source_map::{Origin, PaintNames};
 pub use sources::{FsSources, MemorySources, SourceFile, Sources};
-pub use timeline::{Marker, Timeline, Track};
+pub use timeline::{Keyed, Marker, Timeline, Track};

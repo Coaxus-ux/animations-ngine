@@ -135,6 +135,7 @@ mod tests {
                 track("backdrop", 0.0, f64::INFINITY, 0),
                 track("lantern", 4.0, 6.0, 1),
             ],
+            keys: Vec::new(),
         };
         let text = chart("town", &timeline);
         let lines: Vec<&str> = text.lines().collect();

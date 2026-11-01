@@ -1,5 +1,7 @@
 use px_format::Marker;
 
+use crate::domain::timeline::frame_at;
+
 pub type Tag = (String, u32, u32);
 
 #[must_use]
@@ -11,7 +13,7 @@ pub fn frame_tags(markers: &[Marker], fps: u16, frame_count: u32) -> Vec<Tag> {
     sorted.sort_by(|a, b| a.at.total_cmp(&b.at));
     let starts: Vec<u32> = sorted
         .iter()
-        .map(|marker| frame_of(marker.at, fps, last))
+        .map(|marker| frame_at(marker.at, fps, frame_count))
         .collect();
     sorted
         .iter()
@@ -26,16 +28,4 @@ pub fn frame_tags(markers: &[Marker], fps: u16, frame_count: u32) -> Vec<Tag> {
             Some((marker.name.clone(), *from, to))
         })
         .collect()
-}
-
-fn frame_of(seconds: f64, fps: u16, last: u32) -> u32 {
-    let frame = px_core::floor(seconds * f64::from(fps) + 0.5);
-    let clamped = frame.clamp(0.0, f64::from(last));
-    #[expect(
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss,
-        reason = "clamped to 0..=last, which is a u32"
-    )]
-    let frame = clamped as u32;
-    frame
 }

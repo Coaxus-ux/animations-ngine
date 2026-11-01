@@ -28,6 +28,7 @@ pub(crate) struct Anim<'a> {
 pub(crate) struct Animated {
     pub(crate) track: Program,
     pub(crate) blend: Blend,
+    pub(crate) times: Vec<f64>,
 }
 
 fn choice<T: Copy>(
@@ -113,6 +114,7 @@ pub(crate) fn parse(
             );
         }
     }
+    let times = keys.iter().map(|key| key.time).collect();
     let track = Track::new(keys, looping);
     if track.is_none() && anim.multi.is_none() {
         diags.error(
@@ -123,6 +125,7 @@ pub(crate) fn parse(
     Some(Animated {
         track: Program::track(track?),
         blend,
+        times,
     })
 }
 
