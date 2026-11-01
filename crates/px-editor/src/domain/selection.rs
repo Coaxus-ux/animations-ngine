@@ -57,7 +57,6 @@ impl Selection {
         selection
     }
 
-    /// Exactly `points`.
     #[must_use]
     pub fn of_pixels(
         width: i32,
@@ -88,7 +87,6 @@ impl Selection {
         self.index(x, y).is_some_and(|index| self.mask[index])
     }
 
-    /// The box around the selected pixels.
     #[must_use]
     pub fn bounds(&self) -> Option<(i32, i32, i32, i32)> {
         let mut bounds: Option<(i32, i32, i32, i32)> = None;
@@ -112,7 +110,6 @@ impl Selection {
                 .any(|(dx, dy)| !self.contains(x + dx, y + dy))
     }
 
-    /// The same selection moved by `(dx, dy)`.
     #[must_use]
     pub fn moved(&self, dx: i32, dy: i32) -> Self {
         let mut moved = Self::none(self.width, self.height);

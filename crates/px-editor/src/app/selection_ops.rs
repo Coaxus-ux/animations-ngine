@@ -2,7 +2,6 @@ use super::{App, WindowId};
 use crate::domain::{Raster, Selection};
 use crate::ports::FileStore;
 
-/// What a selection operation does to the active cel.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum SelectionOp {
     Copy,

@@ -44,7 +44,6 @@ impl PixelArt {
 }
 
 impl Cel {
-    /// An empty cel of the given box.
     #[must_use]
     pub fn empty(frame: u32, x: i32, y: i32, width: u16, height: u16) -> Self {
         Self {

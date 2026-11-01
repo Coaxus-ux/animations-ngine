@@ -21,7 +21,6 @@ pub(crate) fn load_file(file: &Path, options: LoadOptions<'_>) -> (Result<Loaded
     }
 }
 
-/// Loads the input's scene or sequence.
 pub(crate) fn load_work(input: &Input) -> Result<Work> {
     load_work_file(&input.file, options(input))
 }

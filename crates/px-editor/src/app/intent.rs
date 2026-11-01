@@ -116,6 +116,5 @@ pub enum Intent {
     GlobalFill(bool),
     /// Gives the picked object the primary paint.
     RecolorPicked,
-    /// Opens the color picker on the primary paint.
     EditPrimaryColor,
 }

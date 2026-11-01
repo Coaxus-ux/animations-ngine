@@ -110,7 +110,6 @@ pub fn scene(kit: &Kit, size: (u16, u16), frames: u32, shapes: Vec<Shape>) -> Sc
     world(kit, size, frames, shapes, Environment::default())
 }
 
-/// Renders one frame and returns its cells.
 pub fn render(scene: &Scene, frame: u32) -> Vec<Paint> {
     let mut buffer = px_engine::FrameBuffer::new(scene);
     buffer

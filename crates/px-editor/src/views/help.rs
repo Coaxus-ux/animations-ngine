@@ -3,7 +3,6 @@ use px_ui::{Area, Id, Key, Ui, button, draw_text, panel, rect};
 use super::Context;
 use crate::app::Intent;
 
-/// Topics and lines of the help screen.
 const HELP: [(&str, &[&str]); 7] = [
     (
         "Painting",

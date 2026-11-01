@@ -30,7 +30,6 @@ impl PaintNames {
             .map(|(name, _)| name.as_str())
     }
 
-    /// The ramp called `name`.
     #[must_use]
     pub fn find(&self, name: &str) -> Option<RampId> {
         self.ramps

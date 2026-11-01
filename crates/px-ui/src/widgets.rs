@@ -21,7 +21,6 @@ pub fn label(ui: &mut Ui<'_>, area: Rect, text: &str, paint: Paint) {
     draw_text(ui.canvas, ui.font, area.x, y, &fitted, paint);
 }
 
-/// Text centered in `area`.
 pub fn centered_label(ui: &mut Ui<'_>, area: Rect, text: &str, paint: Paint) {
     let fitted = fit_text(ui.font, text, area.width);
     let width = text_width(ui.font, &fitted);

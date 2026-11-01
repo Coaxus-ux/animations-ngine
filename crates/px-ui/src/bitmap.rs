@@ -52,7 +52,6 @@ impl Bitmap {
     }
 }
 
-/// Icons by name.
 #[derive(Clone, Debug, Default)]
 pub struct Icons {
     icons: BTreeMap<String, Bitmap>,

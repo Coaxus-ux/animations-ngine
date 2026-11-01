@@ -37,7 +37,6 @@ struct RampSpan {
     len: u8,
 }
 
-/// A box of canvas cells.
 #[derive(Clone, Copy, Debug)]
 struct Rect {
     x: u16,

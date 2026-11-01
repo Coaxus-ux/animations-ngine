@@ -4,7 +4,6 @@ use std::time::UNIX_EPOCH;
 
 use px_editor::ports::FileStore;
 
-/// The editor's files on the real file system.
 pub(super) struct DiskFiles;
 
 impl FileStore for DiskFiles {

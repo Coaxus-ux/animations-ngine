@@ -69,7 +69,6 @@ pub struct Sequence {
     name: String,
     shots: Vec<Shot>,
     transitions: Vec<Transition>,
-    /// First sequence frame of each shot.
     starts: Vec<u32>,
     duration: FrameCount,
 }

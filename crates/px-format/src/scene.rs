@@ -239,7 +239,6 @@ fn params(node: &KdlNode, overrides: Overrides<'_>, diags: &mut Diagnostics) -> 
     params
 }
 
-/// Length of a scene in seconds.
 pub(crate) fn seconds(timing: Timing) -> f64 {
     timing
         .fps

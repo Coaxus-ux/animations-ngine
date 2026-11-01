@@ -30,7 +30,6 @@ pub struct Font {
 #[derive(Clone, Debug)]
 pub struct Glyph {
     pub(crate) width: u8,
-    /// Ink pixels as (x, y) from the glyph's top-left.
     pub(crate) ink: Vec<(u8, u8)>,
 }
 

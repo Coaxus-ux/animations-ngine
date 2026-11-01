@@ -56,7 +56,6 @@ impl PanelKind {
     }
 }
 
-/// What a window shows.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WindowKind {
     /// The main window: canvas plus every panel that isn't torn off.
@@ -147,7 +146,6 @@ pub struct Window {
     pub fields: BTreeMap<Id, String>,
     /// A layer being renamed, and the name so far.
     pub renaming: Option<usize>,
-    /// The help screen is showing.
     pub help: bool,
     /// The last widget clicked and when, to spot double-clicks.
     pub last_click: Option<(Id, u64)>,
