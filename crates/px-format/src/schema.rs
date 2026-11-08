@@ -262,6 +262,37 @@ impl Kind {
         }
     }
 
+    pub(crate) fn coordinates(self) -> impl Iterator<Item = &'static str> {
+        let count = match self {
+            Self::Rect
+            | Self::Ellipse
+            | Self::RoundedRect
+            | Self::Shade
+            | Self::Particles
+            | Self::Group
+            | Self::LightRect
+            | Self::Reflection
+            | Self::Line
+            | Self::Capsule
+            | Self::Rope => 4,
+            Self::Blob
+            | Self::Polygon
+            | Self::Text
+            | Self::UseScene
+            | Self::LightPoint
+            | Self::LightCone
+            | Self::Camera => 2,
+            Self::Pixels | Self::Layer | Self::Ambient => 0,
+        };
+        self.geometry().iter().take(count).map(|prop| prop.name)
+    }
+
+    pub(crate) fn leading_is_coordinate(self, text: &str) -> bool {
+        !matches!(self, Self::Text | Self::UseScene)
+            && self.coordinates().next().is_some()
+            && (text.starts_with('=') || text.starts_with('$'))
+    }
+
     pub(crate) const fn can_attach(self) -> bool {
         self.is_shape()
             || matches!(

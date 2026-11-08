@@ -9,31 +9,31 @@ palette "lake" {
     ramp "reed"  "#1a1c10" "#2e3418" "#4a5222" "#6c7430" "#949a46"
 }
 
-scene "misty-lake" palette="lake" width=160 height=90 fps=12 duration="4s" loop=#true seed=11 background="sky.lit" {
+scene "misty-lake" palette=lake width=160 height=90 fps=12 duration="4s" loop=#true seed=11 background=sky.lit {
     wind strength=1.5 gust=0.5 speed=10
     camera { k "0s" x=0; k "2s" x=16 interp="ease-in-out"; k "4s" x=0 interp="ease-in-out" }
 
     layer "sky" parallax=0 {
-        rect x=0 y=0 width="100%" height=60 paint="sky.base" gradient="down" gradient-steps=3
-        ellipse x=104 y=8 width=14 height=14 paint="sky.hi" emissive=#true
+        rect 0 0 "100%" 60 paint=sky.base gradient=down gradient-steps=3
+        ellipse 104 8 14 14 paint=sky.hi emissive=#true
     }
-    layer "far-hills" parallax=0.25 fog="60%" fog-paint="sky.lit" {
-        polygon x=-20 y=24 points="0,30 30,6 52,22 80,0 118,26 150,10 200,30" paint="hill.base" gradient="down"
+    layer "far-hills" parallax=0.25 fog="60%" fog-paint=sky.lit {
+        polygon -20 24 points="0,30 30,6 52,22 80,0 118,26 150,10 200,30" paint=hill.base gradient=down
     }
-    layer "near-hills" parallax=0.5 fog="15%" fog-paint="sky.lit" {
-        polygon x=-30 y=34 points="0,22 40,4 70,16 104,2 140,18 190,8 230,22" paint="hill.shade"
-        polygon x=20 y=30 points="0,26 6,0 12,26" paint="pine.base"
-        polygon x=31 y=34 points="0,22 5,0 10,22" paint="pine.shade"
-        polygon x=118 y=28 points="0,28 7,0 14,28" paint="pine.base"
+    layer "near-hills" parallax=0.5 fog="15%" fog-paint=sky.lit {
+        polygon -30 34 points="0,22 40,4 70,16 104,2 140,18 190,8 230,22" paint=hill.shade
+        polygon 20 30 points="0,26 6,0 12,26" paint=pine.base
+        polygon 31 34 points="0,22 5,0 10,22" paint=pine.shade
+        polygon 118 28 points="0,28 7,0 14,28" paint=pine.base
     }
     layer "shore" parallax=1 {
-        rect x=-20 y=56 width=220 height=34 paint="water.base" gradient="down" gradient-steps=-2
-        reflection x=-20 y=56 width=220 height=34 axis=56 ripple=1 speed=3 tone-shift=-1 on="water"
-        blob x=0 y=58 circles="0,0,10 14,2,8 26,0,6" smooth=4 paint="hill.deep"
-        rope x1=8 y1=60 x2="=10 + wind(10) * 4" y2=44 sag=0 width=1 paint="reed.lit"
-        rope x1=14 y1=60 x2="=15 + wind(15) * 5" y2=40 sag=0 width=1 paint="reed.base"
-        rope x1=20 y1=60 x2="=22 + wind(20) * 4" y2=46 sag=0 width=1 paint="reed.lit"
-        capsule x1="=60 + sin(t * tau / 4) * 2" y1=60 x2="=@self.x1 + 18" y2=60 radius=2 paint="hill.deep" shading="dome" outline="selective"
+        rect -20 56 220 34 paint=water.base gradient=down gradient-steps=-2
+        reflection -20 56 220 34 axis=56 speed=3 on=water
+        blob 0 58 circles="0,0,10 14,2,8 26,0,6" smooth=4 paint=hill.deep
+        rope 8 60 "=10 + wind(10) * 4" 44 paint=reed.lit
+        rope 14 60 "=15 + wind(15) * 5" 40 paint=reed.base
+        rope 20 60 "=22 + wind(20) * 4" 46 paint=reed.lit
+        capsule "=60 + sin(t * tau / 4) * 2" 60 "=@self.x1 + 18" 60 paint=hill.deep shading=dome outline=selective
     }
-    particles x=-20 y=-10 width=200 height=10 count=60 vx=-6 vy=60 life="0.5s" size=1 wind=2 paint="sky.hi" opacity=0.7
+    particles -20 -10 200 10 count=60 vx=-6 vy=60 life="0.5s" wind=2 paint=sky.hi opacity=0.7
 }

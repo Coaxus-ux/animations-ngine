@@ -83,6 +83,11 @@ pub enum Intent {
         at: (i32, i32),
     },
 
+    SetArgument {
+        path: NodePath,
+        index: usize,
+        text: String,
+    },
     SetProperty {
         path: NodePath,
         key: String,

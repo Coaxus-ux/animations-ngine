@@ -456,6 +456,8 @@ Sub-pixel values never accumulate between frames, because each frame is computed
 
 ## 10. Structure nodes: group, repeat, scatter, clone
 
+Draft. Today `repeat=`, `scatter` and `motif` ([SHORTHAND.md](SHORTHAND.md)) do this work.
+
 ### 10.1 `group`
 A container with its own transform, seed and visibility. It has no visuals of its own.
 ```kdl
@@ -511,6 +513,8 @@ clone "@hero" id="hero-2" x=120 seed=99 materials cloth-a="cloth-blue"
 ---
 
 ## 11. Prefabs, sockets and placement
+
+Draft. Today `motif` ([SHORTHAND.md](SHORTHAND.md)) reuses blocks of nodes.
 
 ### 11.1 Declaring a prefab
 ```kdl
@@ -763,7 +767,7 @@ scene "street" view="perspective" palette="neon-night" warmup="2s" loop-blend="6
 
 ## Appendix A. What the loader accepts today
 
-The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes. The editor writes only these nodes: its palette editor writes `ramp` lines and saves standalone palette files (a file holding one `palette` node, as in `examples/parts/pond/pond-palette.kdl`), and its per-element code editor replaces one node's text in place.
+The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes. Bare coordinates, `repeat=` and `motif` shorten all of this: see [SHORTHAND.md](SHORTHAND.md). The editor writes only these nodes: its palette editor writes `ramp` lines and saves standalone palette files (a file holding one `palette` node, as in `examples/parts/pond/pond-palette.kdl`), and its per-element code editor replaces one node's text in place.
 
 ### A.1 Scene children
 

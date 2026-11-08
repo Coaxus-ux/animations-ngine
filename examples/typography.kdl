@@ -10,17 +10,17 @@ palette "type" {
     ramp "rose"  "#420a24" "#80183e" "#c8346a" "#ff6a96" "#ffc2d6"
 }
 
-scene "typography" palette="type" width=240 height=135 fps=12 duration="4s" background="ink.shade" {
-    group "gather" x="=max(0, 1 - t * 1.5)"
-    group "type" x="=max(0, t - 0.6) * 30"
+scene "typography" palette=type width=240 height=135 fps=12 duration="4s" background=ink.shade {
+    group "gather" "=max(0, 1 - t * 1.5)"
+    group "type" "=max(0, t - 0.6) * 30"
 
-    rect x=0 y=0 width=240 height=44 paint="ink.deep"
-    text "[size=3][b]Pixel[/b] [i]type[/i][/size]" x=121 y=9 align="center" paint="rose.shade" scatter="=@gather.x * 70"
-    text "[size=3][b]Pixel[/b] [i]type[/i][/size]" x=120 y=8 align="center" paint="gold.lit" scatter="=@gather.x * 60"
-    rect x="=120 - 70 * min(1, t * 1.5)" y=38 width="=140 * min(1, t * 1.5)" height=1 paint="gold.base"
+    rect 0 0 240 44 paint=ink.deep
+    text "[size=3][b]Pixel[/b] [i]type[/i][/size]" 121 9 align=center paint=rose.shade scatter="=@gather.x * 70"
+    text "[size=3][b]Pixel[/b] [i]type[/i][/size]" 120 8 align=center paint=gold.lit scatter="=@gather.x * 60"
+    rect "=120 - 70 * min(1, t * 1.5)" 38 "=140 * min(1, t * 1.5)" 1 paint=gold.base
 
-    text "plain, [b]bold[/b], [i]italic[/i] and [b][i]both[/i][/b]" x=12 y=54 paint="paper.lit" reveal="=@type.x"
-    text "sizes [size=2]share[/size] [size=3]one[/size] bottom" x=12 y=70 paint="teal.lit" reveal="=@type.x - 34"
-    text "a whole line in bold" x=12 y=102 bold=#true paint="rose.lit" reveal="=@type.x - 50"
-    text "a whole line in italic" x=12 y=116 italic=#true paint="paper.base" reveal="=@type.x - 66"
+    text "plain, [b]bold[/b], [i]italic[/i] and [b][i]both[/i][/b]" 12 54 paint=paper.lit reveal="=@type.x"
+    text "sizes [size=2]share[/size] [size=3]one[/size] bottom" 12 70 paint=teal.lit reveal="=@type.x - 34"
+    text "a whole line in bold" 12 102 bold=#true paint=rose.lit reveal="=@type.x - 50"
+    text "a whole line in italic" 12 116 italic=#true paint=paper.base reveal="=@type.x - 66"
 }

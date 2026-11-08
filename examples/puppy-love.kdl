@@ -21,116 +21,94 @@ palette "puppy" {
     ramp "petal"   "#e8d070" "#fff0a0" "#ffffff"
 }
 
-scene "puppy-love" palette="puppy" width=160 height=128 fps=12 duration="2s" loop=#true seed=27 background="sky.lit" {
+motif flower x y tint {
+    blob $x $y circles="0,-2,1.5 2,0,1.5 0,2,1.5 -2,0,1.5" smooth=1 paint=$tint.hi
+    rect $x $y 1 1 paint=petal.base
+}
+motif spark x y w h phase { rect $x $y $w $h paint=cloud.hi emissive=#true visible="=square(t * 2 + $phase)" }
+motif puppy-body x coat collar {
+    blob $x 96 circles="0,0,14 0,-8,11 -9,7,7 9,7,7" smooth=4 paint=$coat.base shading=dome outline=full outline-paint=line contact-shadow=1
+    blob $x 88 circles="0,0,5 -3,4,4 3,4,4" smooth=2 paint=cream.lit shading=dome
+    capsule "=$x-5 + $k*10" 96 "=$x-5 + $k*10" 106 radius=3 paint=$coat.lit shading=dome outline=full outline-paint=line repeat=2
+    ellipse "=$x-9 + $k*10" 105 8 5 paint=cream.lit shading=dome outline=full outline-paint=line repeat=2
+    capsule "=$x-10" 81 "=$x+10" 81 paint=$collar.base shading=dome outline=full outline-paint=line
+    ellipse "=$x-2" 82 5 5 paint=tag.base shading=dome outline=full outline-paint=line
+}
+motif puppy-face x blink {
+    ellipse "=$x-10" 67 20 13 paint=cream.hi shading=dome
+    ellipse "=$x-15 + $k*25" 69 5 3 paint=pink.lit repeat=2
+    ellipse "=$x-11 + $k*16" 58 6 7 paint=eye.base visible="=1 - $blink" repeat=2
+    rect "=$x-10 + $k*16" 59 2 2 paint=cloud.hi emissive=#true visible="=1 - $blink" repeat=2
+    rect "=$x-7 + $k*16" 63 1 1 paint=cloud.hi visible="=1 - $blink" repeat=2
+    rect "=$x-11 + $k*16" 62 6 1 paint=line visible=$blink repeat=2
+    rounded-rect "=$x-4" 67 8 5 paint=eye.base shading=dome
+    rect "=$x-2" 68 2 1 paint=cloud.hi
+    line $x 72 "=$x-2 + $k*4" 74 paint=line repeat=2
+}
+
+scene "puppy-love" palette=puppy width=160 height=128 fps=12 duration="2s" loop=#true seed=27 background=sky.lit {
     ambient occlusion=1 key-light=225
 
     // Pastel sky, soft clouds and a grassy hill dotted with flowers
-    rect x=0 y=0 width="100%" height=100 paint="sky.shade" gradient="down" gradient-steps=3
-    blob x="=22 + osc(2s, -2, 2)" y=20 circles="0,0,6 9,-3,8 19,0,6 27,2,4" smooth=4 paint="cloud.base" shading="dome"
-    blob x="=118 + osc(2s, 2, -2)" y=14 circles="0,0,5 8,-2,6 16,1,5" smooth=3 paint="cloud.base" shading="dome"
-    blob x=-10 y=112 circles="0,0,30 46,-6,34 96,-2,32 146,-8,36 186,0,30" smooth=10 paint="grass.base" texture=0.25 texture-scale=3 shading="dome"
-    rect x=0 y=110 width="100%" height=18 paint="grass.base" texture=0.25 texture-scale=3
-    blob x=14 y=104 circles="0,-2,1.5 2,0,1.5 0,2,1.5 -2,0,1.5" smooth=1 paint="petal.hi"
-    rect x=14 y=104 width=1 height=1 paint="petal.base"
-    blob x=30 y=116 circles="0,-2,1.5 2,0,1.5 0,2,1.5 -2,0,1.5" smooth=1 paint="pink.hi"
-    rect x=30 y=116 width=1 height=1 paint="petal.base"
-    blob x=136 y=106 circles="0,-2,1.5 2,0,1.5 0,2,1.5 -2,0,1.5" smooth=1 paint="petal.hi"
-    rect x=136 y=106 width=1 height=1 paint="petal.base"
-    blob x=148 y=118 circles="0,-2,1.5 2,0,1.5 0,2,1.5 -2,0,1.5" smooth=1 paint="pink.hi"
-    rect x=148 y=118 width=1 height=1 paint="petal.base"
-    blob x=82 y=120 circles="0,-2,1.5 2,0,1.5 0,2,1.5 -2,0,1.5" smooth=1 paint="petal.hi"
-    rect x=82 y=120 width=1 height=1 paint="petal.base"
+    rect 0 0 "100%" 100 paint=sky.shade gradient=down gradient-steps=3
+    blob "=22 + osc(2s, -2, 2)" 20 circles="0,0,6 9,-3,8 19,0,6 27,2,4" smooth=4 paint=cloud.base shading=dome
+    blob "=118 + osc(2s, 2, -2)" 14 circles="0,0,5 8,-2,6 16,1,5" paint=cloud.base shading=dome
+    blob -10 112 circles="0,0,30 46,-6,34 96,-2,32 146,-8,36 186,0,30" smooth=10 paint=grass.base texture=0.25 texture-scale=3 shading=dome
+    rect 0 110 "100%" 18 paint=grass.base texture=0.25 texture-scale=3
+    flower 14 104 petal
+    flower 30 116 pink
+    flower 136 106 petal
+    flower 148 118 pink
+    flower 82 120 petal
 
     // The heart: each puppy's inner ear is one half, outlined fur around a pink inside
     // that brightens with every beat. Drawn first so the heads cover the ear roots.
-    polygon x=80 y=46 points="-0,-5.2 -0.2,-6.3 -1.4,-8.8 -4.1,-11.4 -8,-12.5 -12.3,-11.5 -15.6,-8.4 -16.8,-4.2 -15.6,0.3 -12.3,4.5 -8,8.3 -4.1,11.8 -1.4,14.9 -0.2,17.1 0,17.9" paint="gold.lit" shading="dome" outline="full" outline-paint="line"
-    polygon x=80 y=45 points="-0,-3.4 -0.1,-4.1 -0.9,-5.7 -2.6,-7.4 -5.2,-8.1 -8,-7.5 -10.1,-5.5 -10.9,-2.7 -10.1,0.2 -8,2.9 -5.2,5.4 -2.6,7.7 -0.9,9.7 -0.1,11.1 0,11.6" paint="pink.base" tone-shift="=round(pulse(1s, 0.15) * 2)"
-    polygon x=80 y=46 points="0,-5.2 0.2,-6.3 1.4,-8.8 4.1,-11.4 8,-12.5 12.3,-11.5 15.6,-8.4 16.8,-4.2 15.6,0.3 12.3,4.5 8,8.3 4.1,11.8 1.4,14.9 0.2,17.1 0,17.9" paint="brown.lit" shading="dome" outline="full" outline-paint="line"
-    polygon x=80 y=45 points="0,-3.4 0.1,-4.1 0.9,-5.7 2.6,-7.4 5.2,-8.1 8,-7.5 10.1,-5.5 10.9,-2.7 10.1,0.2 8,2.9 5.2,5.4 2.6,7.7 0.9,9.7 0.1,11.1 0,11.6" paint="pink.base" tone-shift="=round(pulse(1s, 0.15) * 2)"
-    rect x=72 y=38 width=2 height=1 paint="pink.hi" emissive=#true visible="=pulse(1s, 0.15)"
-    capsule x1=63 y1=56 x2=69 y2=49 radius=4 paint="gold.lit" shading="dome" outline="full" outline-paint="line"
-    capsule x1=97 y1=56 x2=91 y2=49 radius=4 paint="brown.lit" shading="dome" outline="full" outline-paint="line"
+    polygon 80 46 points="-0,-5.2 -0.2,-6.3 -1.4,-8.8 -4.1,-11.4 -8,-12.5 -12.3,-11.5 -15.6,-8.4 -16.8,-4.2 -15.6,0.3 -12.3,4.5 -8,8.3 -4.1,11.8 -1.4,14.9 -0.2,17.1 0,17.9" paint=gold.lit shading=dome outline=full outline-paint=line
+    polygon 80 45 points="-0,-3.4 -0.1,-4.1 -0.9,-5.7 -2.6,-7.4 -5.2,-8.1 -8,-7.5 -10.1,-5.5 -10.9,-2.7 -10.1,0.2 -8,2.9 -5.2,5.4 -2.6,7.7 -0.9,9.7 -0.1,11.1 0,11.6" paint=pink.base tone-shift="=round(pulse(1s, 0.15) * 2)"
+    polygon 80 46 points="0,-5.2 0.2,-6.3 1.4,-8.8 4.1,-11.4 8,-12.5 12.3,-11.5 15.6,-8.4 16.8,-4.2 15.6,0.3 12.3,4.5 8,8.3 4.1,11.8 1.4,14.9 0.2,17.1 0,17.9" paint=brown.lit shading=dome outline=full outline-paint=line
+    polygon 80 45 points="0,-3.4 0.1,-4.1 0.9,-5.7 2.6,-7.4 5.2,-8.1 8,-7.5 10.1,-5.5 10.9,-2.7 10.1,0.2 8,2.9 5.2,5.4 2.6,7.7 0.9,9.7 0.1,11.1 0,11.6" paint=pink.base tone-shift="=round(pulse(1s, 0.15) * 2)"
+    rect 72 38 2 1 paint=pink.hi emissive=#true visible="=pulse(1s, 0.15)"
+    capsule 63 56 69 49 radius=4 paint=gold.lit shading=dome outline=full outline-paint=line
+    capsule 97 56 91 49 radius=4 paint=brown.lit shading=dome outline=full outline-paint=line
 
     // Golden puppy (left): wagging tail, sitting body, chest fluff, collar with a tag
-    capsule x1=44 y1=102 x2="=32 + osc(0.25s, -3, 3)" y2="=90 + osc(0.25s, 0, 1)" radius=2.5 paint="gold.lit" shading="dome" outline="full" outline-paint="line"
-    blob x=56 y=96 circles="0,0,14 0,-8,11 -9,7,7 9,7,7" smooth=4 paint="gold.base" shading="dome" outline="full" outline-paint="line" contact-shadow=1
-    blob x=56 y=88 circles="0,0,5 -3,4,4 3,4,4" smooth=2 paint="cream.lit" shading="dome"
-    capsule x1=51 y1=96 x2=51 y2=106 radius=3 paint="gold.lit" shading="dome" outline="full" outline-paint="line"
-    capsule x1=61 y1=96 x2=61 y2=106 radius=3 paint="gold.lit" shading="dome" outline="full" outline-paint="line"
-    ellipse x=47 y=105 width=8 height=5 paint="cream.lit" shading="dome" outline="full" outline-paint="line"
-    ellipse x=57 y=105 width=8 height=5 paint="cream.lit" shading="dome" outline="full" outline-paint="line"
-    capsule x1=46 y1=81 x2=66 y2=81 radius=2 paint="red.base" shading="dome" outline="full" outline-paint="line"
-    ellipse x=54 y=82 width=5 height=5 paint="tag.base" shading="dome" outline="full" outline-paint="line"
+    capsule 44 102 "=32 + osc(0.25s, -3, 3)" "=90 + osc(0.25s, 0, 1)" radius=2.5 paint=gold.lit shading=dome outline=full outline-paint=line
+    puppy-body 56 gold red
 
     // Golden puppy's head: floppy outer ear, round face, cream blaze and muzzle
-    blob x=41 y=56 circles="0,0,6 -2,8,6 -3,15,5" smooth=3 paint="gold.shade" shading="dome" outline="full" outline-paint="line"
-    blob "head-a" x=56 y=66 circles="0,0,16 -8,6,9 8,6,9" smooth=4 paint="gold.base" shading="dome" outline="full" outline-paint="line"
-    capsule x1=56 y1=52 x2=56 y2=64 radius=2 paint="cream.base"
-    ellipse x=46 y=67 width=20 height=13 paint="cream.hi" shading="dome"
-    ellipse x=41 y=69 width=5 height=3 paint="pink.lit"
-    ellipse x=66 y=69 width=5 height=3 paint="pink.lit"
-    ellipse x=45 y=58 width=6 height=7 paint="eye.base" visible="=1 - pulse(2s, 0.06)"
-    ellipse x=61 y=58 width=6 height=7 paint="eye.base" visible="=1 - pulse(2s, 0.06)"
-    rect x=46 y=59 width=2 height=2 paint="cloud.hi" emissive=#true visible="=1 - pulse(2s, 0.06)"
-    rect x=62 y=59 width=2 height=2 paint="cloud.hi" emissive=#true visible="=1 - pulse(2s, 0.06)"
-    rect x=49 y=63 width=1 height=1 paint="cloud.hi" visible="=1 - pulse(2s, 0.06)"
-    rect x=65 y=63 width=1 height=1 paint="cloud.hi" visible="=1 - pulse(2s, 0.06)"
-    rect x=45 y=62 width=6 height=1 paint="line" visible="=pulse(2s, 0.06)"
-    rect x=61 y=62 width=6 height=1 paint="line" visible="=pulse(2s, 0.06)"
-    rounded-rect x=52 y=67 width=8 height=5 radius=2 paint="eye.base" shading="dome"
-    rect x=54 y=68 width=2 height=1 paint="cloud.hi"
-    line x1=56 y1=72 x2=54 y2=74 paint="line"
-    line x1=56 y1=72 x2=58 y2=74 paint="line"
-    capsule x1=56 y1=75 x2=56 y2="=76 + osc(0.5s, 0, 1.5)" radius=1.5 paint="pink.lit" outline="full" outline-paint="line"
+    blob 41 56 circles="0,0,6 -2,8,6 -3,15,5" paint=gold.shade shading=dome outline=full outline-paint=line
+    blob "head-a" 56 66 circles="0,0,16 -8,6,9 8,6,9" smooth=4 paint=gold.base shading=dome outline=full outline-paint=line
+    capsule 56 52 56 64 paint=cream.base
+    puppy-face 56 "=pulse(2s, 0.06)"
+    capsule 56 75 56 "=76 + osc(0.5s, 0, 1.5)" radius=1.5 paint=pink.lit outline=full outline-paint=line
 
     // Chocolate puppy (right): mirrored pose, white patch over one eye, blue collar
-    capsule x1=116 y1=102 x2="=128 + osc(0.25s, 3, -3)" y2="=90 + osc(0.25s, 1, 0)" radius=2.5 paint="brown.lit" shading="dome" outline="full" outline-paint="line"
-    blob x=104 y=96 circles="0,0,14 0,-8,11 -9,7,7 9,7,7" smooth=4 paint="brown.base" shading="dome" outline="full" outline-paint="line" contact-shadow=1
-    blob x=104 y=88 circles="0,0,5 -3,4,4 3,4,4" smooth=2 paint="cream.lit" shading="dome"
-    capsule x1=99 y1=96 x2=99 y2=106 radius=3 paint="brown.lit" shading="dome" outline="full" outline-paint="line"
-    capsule x1=109 y1=96 x2=109 y2=106 radius=3 paint="brown.lit" shading="dome" outline="full" outline-paint="line"
-    ellipse x=95 y=105 width=8 height=5 paint="cream.lit" shading="dome" outline="full" outline-paint="line"
-    ellipse x=105 y=105 width=8 height=5 paint="cream.lit" shading="dome" outline="full" outline-paint="line"
-    capsule x1=94 y1=81 x2=114 y2=81 radius=2 paint="blue.base" shading="dome" outline="full" outline-paint="line"
-    ellipse x=102 y=82 width=5 height=5 paint="tag.base" shading="dome" outline="full" outline-paint="line"
+    capsule 116 102 "=128 + osc(0.25s, 3, -3)" "=90 + osc(0.25s, 1, 0)" radius=2.5 paint=brown.lit shading=dome outline=full outline-paint=line
+    puppy-body 104 brown blue
 
     // Chocolate puppy's head; it blinks a moment after its friend
-    blob x=119 y=56 circles="0,0,6 2,8,6 3,15,5" smooth=3 paint="brown.shade" shading="dome" outline="full" outline-paint="line"
-    blob "head-b" x=104 y=66 circles="0,0,16 -8,6,9 8,6,9" smooth=4 paint="brown.base" shading="dome" outline="full" outline-paint="line"
-    ellipse x=105 y=54 width=12 height=13 paint="cream.lit" shading="dome"
-    ellipse x=94 y=67 width=20 height=13 paint="cream.hi" shading="dome"
-    ellipse x=89 y=69 width=5 height=3 paint="pink.lit"
-    ellipse x=114 y=69 width=5 height=3 paint="pink.lit"
-    ellipse x=93 y=58 width=6 height=7 paint="eye.base" visible="=1 - delay(pulse(2s, 0.06), 0.9s)"
-    ellipse x=109 y=58 width=6 height=7 paint="eye.base" visible="=1 - delay(pulse(2s, 0.06), 0.9s)"
-    rect x=94 y=59 width=2 height=2 paint="cloud.hi" emissive=#true visible="=1 - delay(pulse(2s, 0.06), 0.9s)"
-    rect x=110 y=59 width=2 height=2 paint="cloud.hi" emissive=#true visible="=1 - delay(pulse(2s, 0.06), 0.9s)"
-    rect x=97 y=63 width=1 height=1 paint="cloud.hi" visible="=1 - delay(pulse(2s, 0.06), 0.9s)"
-    rect x=113 y=63 width=1 height=1 paint="cloud.hi" visible="=1 - delay(pulse(2s, 0.06), 0.9s)"
-    rect x=93 y=62 width=6 height=1 paint="line" visible="=delay(pulse(2s, 0.06), 0.9s)"
-    rect x=109 y=62 width=6 height=1 paint="line" visible="=delay(pulse(2s, 0.06), 0.9s)"
-    rounded-rect x=100 y=67 width=8 height=5 radius=2 paint="eye.base" shading="dome"
-    rect x=102 y=68 width=2 height=1 paint="cloud.hi"
-    line x1=104 y1=72 x2=102 y2=74 paint="line"
-    line x1=104 y1=72 x2=106 y2=74 paint="line"
-    capsule x1=104 y1=75 x2=104 y2="=76 + osc(0.5s, 1.5, 0)" radius=1.5 paint="pink.lit" outline="full" outline-paint="line"
+    blob 119 56 circles="0,0,6 2,8,6 3,15,5" paint=brown.shade shading=dome outline=full outline-paint=line
+    blob "head-b" 104 66 circles="0,0,16 -8,6,9 8,6,9" smooth=4 paint=brown.base shading=dome outline=full outline-paint=line
+    ellipse 105 54 12 13 paint=cream.lit shading=dome
+    puppy-face 104 "=delay(pulse(2s, 0.06), 0.9s)"
+    capsule 104 75 104 "=76 + osc(0.5s, 1.5, 0)" radius=1.5 paint=pink.lit outline=full outline-paint=line
 
     // Little hearts float up from the big one, and sparkles twinkle around it
     group "hearts" {
-        blob "float-a" x=76 y="=30 - fract(t / 2) * 20" circles="0,0,1.5 3,0,1.5" smooth=1 paint="heart.lit" visible="=fract(t / 2) < 0.8"
-        polygon x="=@float-a.x - 1.5" y="=@float-a.y" points="0,0 6,0 3,3.5" paint="heart.lit" visible="=fract(t / 2) < 0.8"
-        blob "float-b" x=92 y="=34 - fract(t / 2 + 0.5) * 22" circles="0,0,1.2 2.4,0,1.2" smooth=1 paint="heart.hi" visible="=fract(t / 2 + 0.5) < 0.8"
-        polygon x="=@float-b.x - 1.2" y="=@float-b.y" points="0,0 4.8,0 2.4,2.8" paint="heart.hi" visible="=fract(t / 2 + 0.5) < 0.8"
-        blob "float-c" x=64 y="=38 - fract(t / 2 + 0.25) * 18" circles="0,0,1 2,0,1" smooth=1 paint="heart.base" visible="=fract(t / 2 + 0.25) < 0.8"
-        polygon x="=@float-c.x - 1" y="=@float-c.y" points="0,0 4,0 2,2.5" paint="heart.base" visible="=fract(t / 2 + 0.25) < 0.8"
+        blob "float-a" 76 "=30 - fract(t / 2) * 20" circles="0,0,1.5 3,0,1.5" smooth=1 paint=heart.lit visible="=fract(t / 2) < 0.8"
+        polygon "=@float-a.x - 1.5" "=@float-a.y" points="0,0 6,0 3,3.5" paint=heart.lit visible="=fract(t / 2) < 0.8"
+        blob "float-b" 92 "=34 - fract(t / 2 + 0.5) * 22" circles="0,0,1.2 2.4,0,1.2" smooth=1 paint=heart.hi visible="=fract(t / 2 + 0.5) < 0.8"
+        polygon "=@float-b.x - 1.2" "=@float-b.y" points="0,0 4.8,0 2.4,2.8" paint=heart.hi visible="=fract(t / 2 + 0.5) < 0.8"
+        blob "float-c" 64 "=38 - fract(t / 2 + 0.25) * 18" circles="0,0,1 2,0,1" smooth=1 paint=heart.base visible="=fract(t / 2 + 0.25) < 0.8"
+        polygon "=@float-c.x - 1" "=@float-c.y" points="0,0 4,0 2,2.5" paint=heart.base visible="=fract(t / 2 + 0.25) < 0.8"
     }
     group "sparkles" {
-        rect x=58 y=24 width=3 height=1 paint="cloud.hi" emissive=#true visible="=square(t * 2)"
-        rect x=59 y=23 width=1 height=3 paint="cloud.hi" emissive=#true visible="=square(t * 2)"
-        rect x=100 y=18 width=3 height=1 paint="cloud.hi" emissive=#true visible="=square(t * 2 + 0.5)"
-        rect x=101 y=17 width=1 height=3 paint="cloud.hi" emissive=#true visible="=square(t * 2 + 0.5)"
-        rect x=104 y=40 width=1 height=1 paint="cloud.hi" emissive=#true visible="=square(t * 2 + 0.25)"
-        rect x=54 y=42 width=1 height=1 paint="cloud.hi" emissive=#true visible="=square(t * 2 + 0.75)"
-        rect x=84 y=12 width=1 height=1 paint="cloud.hi" emissive=#true visible="=square(t * 2 + 0.25)"
+        spark 58 24 3 1 0
+        spark 59 23 1 3 0
+        spark 100 18 3 1 0.5
+        spark 101 17 1 3 0.5
+        spark 104 40 1 1 0.25
+        spark 54 42 1 1 0.75
+        spark 84 12 1 1 0.25
     }
 }

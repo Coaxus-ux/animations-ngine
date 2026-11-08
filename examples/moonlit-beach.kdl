@@ -47,119 +47,124 @@ palette "moonlit" {
     twin "blanket" warm="blanket-warm"
 }
 
-scene "moonlit-beach" palette="moonlit" width=192 height=128 fps=12 duration="4s" loop=#true seed=14 background="sky.base" {
+motif star x y tone odds salt { rect $x $y 1 1 paint=moon.$tone emissive=#true visible="=chance($odds, mod(floor(t * 3), 12) + $salt)" }
+motif glint x y w tone salt { rect $x $y $w 1 paint=foam.$tone emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + $salt)" }
+motif moon-dash x period swing y w tone { rect "=$x + osc($period, $swing, -$swing)" $y $w 1 paint=moon.$tone emissive=#true }
+motif splash name x from until left right {
+    ellipse "splash-$name" "=$x - @self.width / 2" 64 "=4 + (t - $from) * 40" 3 paint=foam.lit visible="=between($from, $until)"
+    rect "=$x-4" "=62 - sin(pi * (t - $from) / 0.4) * $left" 1 1 paint=foam.hi visible="=between($from, $until)"
+    rect "=$x+4" "=62 - sin(pi * (t - $from) / 0.4) * $right" 1 1 paint=foam.hi visible="=between($from, $until)"
+}
+
+scene "moonlit-beach" palette=moonlit width=192 height=128 fps=12 duration="4s" loop=#true seed=14 background=sky.base {
     ambient darkness=1 occlusion=1 key-light=300
     wind strength=1 gust=0.5 speed=4
 
     // Sky: a deep gradient, a glowing full moon, thin clouds and twinkling stars
     layer "sky" parallax=0 {
-        rect x=0 y=0 width="100%" height=60 paint="sky.deep" gradient="down" gradient-steps=3
-        ellipse x=125 y=27 width=24 height=24 paint="sky.lit" emissive=#true
-        ellipse "moon" x=128 y=30 width=18 height=18 paint="moon.lit" emissive=#true
-        ellipse x=131 y=33 width=4 height=3 paint="moon.base" emissive=#true
-        ellipse x=138 y=39 width=3 height=3 paint="moon.base" emissive=#true
-        rect x=136 y=33 width=1 height=1 paint="moon.base" emissive=#true
-        rect x=131 y=40 width=2 height=1 paint="moon.base" emissive=#true
-        blob x="=40 + osc(4s, -3, 3)" y=22 circles="0,0,3 8,-1,4 18,0,3 26,1,2" smooth=4 paint="sky.lit" shading="dome"
-        blob x="=160 + osc(4s, 2, -2)" y=14 circles="0,0,2 6,-1,3 13,0,2" smooth=3 paint="sky.lit" shading="dome"
-        rect x=14 y=8 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.85, mod(floor(t * 3), 12))"
-        rect x=36 y=36 width=1 height=1 paint="moon.base" emissive=#true visible="=chance(0.8, mod(floor(t * 3), 12) + 1)"
-        rect x=66 y=12 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.9, mod(floor(t * 3), 12) + 2)"
-        rect x=88 y=30 width=1 height=1 paint="moon.base" emissive=#true visible="=chance(0.8, mod(floor(t * 3), 12) + 3)"
-        rect x=100 y=6 width=1 height=1 paint="moon.hi" emissive=#true
-        rect x=172 y=34 width=1 height=1 paint="moon.base" emissive=#true visible="=chance(0.85, mod(floor(t * 3), 12) + 4)"
-        rect x=184 y=10 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.8, mod(floor(t * 3), 12) + 5)"
-        rect x=6 y=44 width=1 height=1 paint="moon.base" emissive=#true
+        rect 0 0 "100%" 60 paint=sky.deep gradient=down gradient-steps=3
+        ellipse 125 27 24 24 paint=sky.lit emissive=#true
+        ellipse "moon" 128 30 18 18 paint=moon.lit emissive=#true
+        ellipse 131 33 4 3 paint=moon.base emissive=#true
+        ellipse 138 39 3 3 paint=moon.base emissive=#true
+        rect 136 33 1 1 paint=moon.base emissive=#true
+        rect 131 40 2 1 paint=moon.base emissive=#true
+        blob "=40 + osc(4s, -3, 3)" 22 circles="0,0,3 8,-1,4 18,0,3 26,1,2" smooth=4 paint=sky.lit shading=dome
+        blob "=160 + osc(4s, 2, -2)" 14 circles="0,0,2 6,-1,3 13,0,2" paint=sky.lit shading=dome
+        star 14 8 hi 0.85 0
+        star 36 36 base 0.8 1
+        star 66 12 hi 0.9 2
+        star 88 30 base 0.8 3
+        rect 100 6 1 1 paint=moon.hi emissive=#true
+        star 172 34 base 0.85 4
+        star 184 10 hi 0.8 5
+        rect 6 44 1 1 paint=moon.base emissive=#true
     }
-    light-rect x=0 y=0 width=192 height=128 reach=1 intensity=1.2 color="moon"
+    light-rect 0 0 192 128 reach=1 intensity=1.2 color=moon
 
     // The sea, with a path of glints under the moon and its reflection
-    rect "sea" x=0 y=60 width="100%" height=40 paint="sea.lit" gradient="down" gradient-steps=-2
-    rect x=0 y=59 width="100%" height=1 paint="sky.hi" emissive=#true
-    rect x=0 y=60 width="100%" height=1 paint="sea.deep"
-    rect x=126 y=64 width=6 height=1 paint="foam.hi" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24))"
-    rect x=138 y=66 width=5 height=1 paint="foam.hi" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + 1)"
-    rect x=130 y=70 width=7 height=1 paint="foam.lit" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + 2)"
-    rect x=142 y=74 width=6 height=1 paint="foam.hi" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + 3)"
-    rect x=124 y=78 width=8 height=1 paint="foam.lit" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + 4)"
-    rect x=136 y=82 width=9 height=1 paint="foam.hi" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + 5)"
-    rect x=122 y=86 width=7 height=1 paint="foam.lit" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + 6)"
-    rect x=146 y=88 width=8 height=1 paint="foam.lit" emissive=#true visible="=chance(0.6, mod(floor(t * 6), 24) + 7)"
-    rect x="=40 + osc(4s, -4, 4)" y=68 width=14 height=1 paint="sea.lit"
-    rect x="=80 + osc(2s, 3, -3)" y=76 width=18 height=1 paint="sea.lit"
-    rect x="=20 + osc(4s, 3, -3)" y=84 width=22 height=1 paint="sea.lit"
-    rect x="=170 + osc(2s, -3, 3)" y=80 width=16 height=1 paint="sea.lit"
+    rect "sea" 0 60 "100%" 40 paint=sea.lit gradient=down gradient-steps=-2
+    rect 0 59 "100%" 1 paint=sky.hi emissive=#true
+    rect 0 60 "100%" 1 paint=sea.deep
+    glint 126 64 6 hi 0
+    glint 138 66 5 hi 1
+    glint 130 70 7 lit 2
+    glint 142 74 6 hi 3
+    glint 124 78 8 lit 4
+    glint 136 82 9 hi 5
+    glint 122 86 7 lit 6
+    glint 146 88 8 lit 7
+    rect "=40 + osc(4s, -4, 4)" 68 14 1 paint=sea.lit
+    rect "=80 + osc(2s, 3, -3)" 76 18 1 paint=sea.lit
+    rect "=20 + osc(4s, 3, -3)" 84 22 1 paint=sea.lit
+    rect "=170 + osc(2s, -3, 3)" 80 16 1 paint=sea.lit
 
     // A dolphin leaps across the moon once per loop. `jump` holds the arc's progress (x)
     // and the angle of its tangent (y); the body is drawn along that angle.
-    rect "jump" x="=clamp((t - 0.8) / 1.6, 0, 1)" y="=atan2(-30 * pi * cos(pi * @self.x), 60)" width=1 height=1 paint="sea.base" visible=0
-    rect "arc" x="=108 + 60 * @jump.x" y="=66 - 30 * sin(pi * @jump.x)" width=1 height=1 paint="sea.base" visible=0
+    rect "jump" "=clamp((t - 0.8) / 1.6, 0, 1)" "=atan2(-30 * pi * cos(pi * @self.x), 60)" 1 1 paint=sea.base visible=0
+    rect "arc" "=108 + 60 * @jump.x" "=66 - 30 * sin(pi * @jump.x)" 1 1 paint=sea.base visible=0
     group "dolphin" {
-        capsule x1="=@arc.x" y1="=@arc.y" x2="=@arc.x + cos(@jump.y) * 6" y2="=@arc.y + sin(@jump.y) * 6" radius=4 paint="dolphin.shade" shading="dome" outline="selective" visible="=between(0.8s, 2.4s)"
-        capsule x1="=@arc.x" y1="=@arc.y" x2="=@arc.x - cos(@jump.y) * 10" y2="=@arc.y - sin(@jump.y) * 10" radius=2.5 paint="dolphin.shade" shading="dome" outline="selective" visible="=between(0.8s, 2.4s)"
-        capsule x1="=@arc.x + cos(@jump.y) * 6" y1="=@arc.y + sin(@jump.y) * 6" x2="=@arc.x + cos(@jump.y) * 12" y2="=@arc.y + sin(@jump.y) * 12" radius=1.5 paint="dolphin.base" visible="=between(0.8s, 2.4s)"
-        polygon x="=@arc.x + sin(@jump.y) * 3" y="=@arc.y - cos(@jump.y) * 3" points="-3,0 1,-7 4,0" paint="dolphin.deep" visible="=between(0.8s, 2.4s)"
-        blob x="=@arc.x - cos(@jump.y) * 13" y="=@arc.y - sin(@jump.y) * 13" circles="0,-3,2 0,3,2" smooth=1.5 paint="dolphin.deep" visible="=between(0.8s, 2.4s)"
+        capsule "=@arc.x" "=@arc.y" "=@arc.x + cos(@jump.y) * 6" "=@arc.y + sin(@jump.y) * 6" radius=4 paint=dolphin.shade shading=dome outline=selective visible="=between(0.8s, 2.4s)"
+        capsule "=@arc.x" "=@arc.y" "=@arc.x - cos(@jump.y) * 10" "=@arc.y - sin(@jump.y) * 10" radius=2.5 paint=dolphin.shade shading=dome outline=selective visible="=between(0.8s, 2.4s)"
+        capsule "=@arc.x + cos(@jump.y) * 6" "=@arc.y + sin(@jump.y) * 6" "=@arc.x + cos(@jump.y) * 12" "=@arc.y + sin(@jump.y) * 12" radius=1.5 paint=dolphin.base visible="=between(0.8s, 2.4s)"
+        polygon "=@arc.x + sin(@jump.y) * 3" "=@arc.y - cos(@jump.y) * 3" points="-3,0 1,-7 4,0" paint=dolphin.deep visible="=between(0.8s, 2.4s)"
+        blob "=@arc.x - cos(@jump.y) * 13" "=@arc.y - sin(@jump.y) * 13" circles="0,-3,2 0,3,2" smooth=1.5 paint=dolphin.deep visible="=between(0.8s, 2.4s)"
     }
-    ellipse "splash-in" x="=108 - @self.width / 2" y=64 width="=4 + (t - 0.7) * 40" height=3 paint="foam.lit" visible="=between(0.7s, 1.1s)"
-    rect x=104 y="=62 - sin(pi * (t - 0.7) / 0.4) * 6" width=1 height=1 paint="foam.hi" visible="=between(0.7s, 1.1s)"
-    rect x=112 y="=62 - sin(pi * (t - 0.7) / 0.4) * 8" width=1 height=1 paint="foam.hi" visible="=between(0.7s, 1.1s)"
-    ellipse "splash-out" x="=168 - @self.width / 2" y=64 width="=4 + (t - 2.3) * 40" height=3 paint="foam.lit" visible="=between(2.3s, 2.7s)"
-    rect x=164 y="=62 - sin(pi * (t - 2.3) / 0.4) * 7" width=1 height=1 paint="foam.hi" visible="=between(2.3s, 2.7s)"
-    rect x=172 y="=62 - sin(pi * (t - 2.3) / 0.4) * 5" width=1 height=1 paint="foam.hi" visible="=between(2.3s, 2.7s)"
+    splash in 108 "0.7s" "1.1s" 6 8
+    splash out 168 "2.3s" "2.7s" 7 5
 
     // The moon's path on the water: rippling silver dashes, wider near the shore
-    rect x="=131 + osc(2s, -1, 1)" y=62 width=12 height=1 paint="moon.lit" emissive=#true
-    rect x="=129 + osc(2s, 1, -1)" y=64 width=16 height=1 paint="moon.base" emissive=#true
-    rect x="=133 + osc(1s, -1, 1)" y=66 width=9 height=1 paint="moon.lit" emissive=#true
-    rect x="=128 + osc(2s, -2, 2)" y=69 width=18 height=1 paint="moon.base" emissive=#true
-    rect x="=132 + osc(1s, 1, -1)" y=72 width=11 height=1 paint="moon.lit" emissive=#true
-    rect x="=126 + osc(2s, 2, -2)" y=75 width=22 height=1 paint="moon.base" emissive=#true
-    rect x="=131 + osc(1s, -2, 2)" y=79 width=13 height=1 paint="moon.lit" emissive=#true
-    rect x="=124 + osc(2s, -2, 2)" y=83 width=26 height=1 paint="moon.base" emissive=#true
-    rect x="=130 + osc(1s, 2, -2)" y=87 width=15 height=1 paint="moon.base" emissive=#true
+    moon-dash 131 "2s" -1 62 12 lit
+    moon-dash 129 "2s" 1 64 16 base
+    moon-dash 133 "1s" -1 66 9 lit
+    moon-dash 128 "2s" -2 69 18 base
+    moon-dash 132 "1s" 1 72 11 lit
+    moon-dash 126 "2s" 2 75 22 base
+    moon-dash 131 "1s" -2 79 13 lit
+    moon-dash 124 "2s" -2 83 26 base
+    moon-dash 130 "1s" 2 87 15 base
 
     // The shore: lapping foam over wet sand, then the dry beach
-    rect x=0 y=92 width="100%" height=36 paint="sand.base" texture=0.2 texture-scale=3 gradient="down" gradient-steps=-1
-    rect x=0 y=92 width="100%" height=4 paint="sand.shade"
-    rect "wave" x=0 y="=91 + osc(4s, -1.5, 1.5)" width="100%" height=1 paint="foam.lit"
-    rect x=20 y="=@wave.y + 1" width=40 height=1 paint="foam.base" visible="=osc(4s) > 0"
-    rect x=120 y="=@wave.y + 1" width=56 height=1 paint="foam.base" visible="=osc(4s) > 0"
-    blob x=0 y=118 circles="0,0,14 20,4,12 40,2,10" smooth=6 paint="sand.lit" texture=0.25 texture-scale=3
+    rect 0 92 "100%" 36 paint=sand.base texture=0.2 texture-scale=3 gradient=down gradient-steps=-1
+    rect 0 92 "100%" 4 paint=sand.shade
+    rect "wave" 0 "=91 + osc(4s, -1.5, 1.5)" "100%" 1 paint=foam.lit
+    rect 20 "=@wave.y + 1" 40 1 paint=foam.base visible="=osc(4s) > 0"
+    rect 120 "=@wave.y + 1" 56 1 paint=foam.base visible="=osc(4s) > 0"
+    blob 0 118 circles="0,0,14 20,4,12 40,2,10" smooth=6 paint=sand.lit texture=0.25 texture-scale=3
 
     // A palm leaning over the beach, fronds stirring in the breeze
-    rope "trunk" x1=184 y1=118 x2=164 y2=50 sag=-6 width=4 paint="palm.shade" casts-shadow=#true
-    polygon x="=@trunk.x2 + osc(4s, -1, 1)" y=48 points="0,0 -14,4 -26,12 -12,6" paint="palm.base" shading="dome" casts-shadow=#true
-    polygon x="=@trunk.x2 + osc(4s, 1, -1)" y=48 points="0,0 12,2 24,10 10,6" paint="palm.base" shading="dome" casts-shadow=#true
-    polygon x=164 y="=46 + osc(2s, -1, 1)" points="0,0 -8,-8 -18,-10 -6,-4" paint="palm.lit" shading="dome"
-    polygon x=164 y="=46 + osc(2s, 1, -1)" points="0,0 8,-8 18,-8 6,-3" paint="palm.lit" shading="dome"
+    rope "trunk" 184 118 164 50 sag=-6 width=4 paint=palm.shade casts-shadow=#true
+    polygon "=@trunk.x2 + osc(4s, -1, 1)" 48 points="0,0 -14,4 -26,12 -12,6" paint=palm.base shading=dome casts-shadow=#true
+    polygon "=@trunk.x2 + osc(4s, 1, -1)" 48 points="0,0 12,2 24,10 10,6" paint=palm.base shading=dome casts-shadow=#true
+    polygon 164 "=46 + osc(2s, -1, 1)" points="0,0 -8,-8 -18,-10 -6,-4" paint=palm.lit shading=dome
+    polygon 164 "=46 + osc(2s, 1, -1)" points="0,0 8,-8 18,-8 6,-3" paint=palm.lit shading=dome
 
     // The campfire in front of the couple
-    blob x=108 y=106 circles="0,0,3 6,1,3 12,0,3 18,1,3" smooth=2 paint="sand.deep" shading="dome" outline="selective" contact-shadow=1
-    capsule x1=110 y1=104 x2=124 y2=100 radius=1.5 paint="wood.base" shading="dome"
-    capsule x1=110 y1=100 x2=124 y2=104 radius=1.5 paint="wood.lit" shading="dome"
-    blob "flame" x="=117 + wiggle(1, 3)" y=99 circles="0,0,4 -2,-4,3 1,-7,2" smooth=2 paint="fire.lit" emissive=#true
-    blob x="=117 + wiggle(1, 4)" y=100 circles="0,0,2.5 0,-4,1.5" smooth=1 paint="fire.hi" emissive=#true tone-shift="=round(wiggle(0.6, 5))"
-    light-point x=117 y=96 reach=80 intensity="=3 + wiggle(0.4, 4)" color="warm" shadows=#true
-    particles x=113 y=86 width=8 height=6 count=8 vy=-16 life="1s" size=1 wind=2 streak="0.05s" paint="fire.hi" emissive=#true fade=#true
+    blob 108 106 circles="0,0,3 6,1,3 12,0,3 18,1,3" smooth=2 paint=sand.deep shading=dome outline=selective contact-shadow=1
+    capsule 110 104 124 100 radius=1.5 paint=wood.base shading=dome
+    capsule 110 100 124 104 radius=1.5 paint=wood.lit shading=dome
+    blob "flame" "=117 + wiggle(1, 3)" 99 circles="0,0,4 -2,-4,3 1,-7,2" smooth=2 paint=fire.lit emissive=#true
+    blob "=117 + wiggle(1, 4)" 100 circles="0,0,2.5 0,-4,1.5" smooth=1 paint=fire.hi emissive=#true tone-shift="=round(wiggle(0.6, 5))"
+    light-point 117 96 reach=80 intensity="=3 + wiggle(0.4, 4)" color=warm shadows=#true
+    particles 113 86 8 6 count=8 vy=-16 life="1s" wind=2 streak="0.05s" paint=fire.hi emissive=#true fade=#true
 
     // The lovers, seen from behind, sitting close on a blanket
-    polygon x=50 y=108 points="0,6 52,0 58,13 4,18" paint="blanket.base" texture=0.25 texture-scale=2 shading="dome" outline="selective"
-    rounded-rect "his-back" x=58 y=92 width=17 height=20 radius=6 paint="shirt.base" shading="dome" outline="selective" casts-shadow=#true
-    rect x=64 y=89 width=5 height=4 paint="skin.shade"
-    ellipse "his-head" x=60 y=79 width=12 height=13 paint="hair.base" shading="dome" outline="selective" casts-shadow=#true
-    rounded-rect "her-back" x=77 y=97 width=13 height=16 radius=5 paint="dress.base" shading="dome" outline="selective" casts-shadow=#true
-    blob "her-hair" x=82 y=94 circles="0,0,5 1,6,5 0,11,4" smooth=3 paint="brunette.base" shading="dome" outline="selective" casts-shadow=#true
-    rope x1=84 y1=96 x2="=86 + wind(86) * 2" y2=108 sag=0 sway="=osc(4s, -1, 1)" width=1 paint="brunette.lit"
-    rope x1=80 y1=96 x2="=81 + wind(81) * 2" y2=107 sag=0 sway="=osc(4s, 1, -1)" width=1 paint="brunette.shade"
-    ellipse "her-head" x=72 y=85 width=10 height=11 paint="brunette.base" shading="dome" outline="selective" casts-shadow=#true
-    blob x=79 y=87 circles="0,0,1.5 2,1,1.5 0,2,1.5" smooth=1 paint="rose.base"
-    capsule x1=72 y1=96 x2=89 y2=99 radius=2 paint="shirt.lit" shading="dome" outline="selective"
-    ellipse x=87 y=97 width=4 height=4 paint="skin.base" shading="dome"
+    polygon 50 108 points="0,6 52,0 58,13 4,18" paint=blanket.base texture=0.25 texture-scale=2 shading=dome outline=selective
+    rounded-rect "his-back" 58 92 17 20 radius=6 paint=shirt.base shading=dome outline=selective casts-shadow=#true
+    rect 64 89 5 4 paint=skin.shade
+    ellipse "his-head" 60 79 12 13 paint=hair.base shading=dome outline=selective casts-shadow=#true
+    rounded-rect "her-back" 77 97 13 16 radius=5 paint=dress.base shading=dome outline=selective casts-shadow=#true
+    blob "her-hair" 82 94 circles="0,0,5 1,6,5 0,11,4" paint=brunette.base shading=dome outline=selective casts-shadow=#true
+    rope 84 96 "=86 + wind(86) * 2" 108 sway="=osc(4s, -1, 1)" paint=brunette.lit
+    rope 80 96 "=81 + wind(81) * 2" 107 sway="=osc(4s, 1, -1)" paint=brunette.shade
+    ellipse "her-head" 72 85 10 11 paint=brunette.base shading=dome outline=selective casts-shadow=#true
+    blob 79 87 circles="0,0,1.5 2,1,1.5 0,2,1.5" smooth=1 paint=rose.base
+    capsule 72 96 89 99 paint=shirt.lit shading=dome outline=selective
+    ellipse 87 97 4 4 paint=skin.base shading=dome
 
     // One small heart drifting up from them
     group "heart" {
-        blob "heart-top" x=73 y="=78 - fract(t / 4) * 22" circles="0,0,1.6 3,0,1.6" smooth=1 paint="rose.lit" emissive=#true visible="=fract(t / 4) < 0.8"
-        polygon x="=@heart-top.x - 1.6" y="=@heart-top.y" points="0,0 6.2,0 3.1,3.5" paint="rose.lit" emissive=#true visible="=fract(t / 4) < 0.8"
+        blob "heart-top" 73 "=78 - fract(t / 4) * 22" circles="0,0,1.6 3,0,1.6" smooth=1 paint=rose.lit emissive=#true visible="=fract(t / 4) < 0.8"
+        polygon "=@heart-top.x - 1.6" "=@heart-top.y" points="0,0 6.2,0 3.1,3.5" paint=rose.lit emissive=#true visible="=fract(t / 4) < 0.8"
     }
 }

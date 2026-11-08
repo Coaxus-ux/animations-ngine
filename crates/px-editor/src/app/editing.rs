@@ -16,6 +16,7 @@ pub struct Editing {
     pub selection: Selection,
     pub clipboard: Option<Raster>,
     pub picked: Option<usize>,
+    pub shape_count: Option<usize>,
     pub locked: BTreeSet<String>,
     pub playing: bool,
     pub played_at: u64,

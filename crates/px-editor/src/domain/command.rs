@@ -30,6 +30,11 @@ pub enum Command {
         art: Option<NodePath>,
         name: String,
     },
+    SetArgument {
+        path: NodePath,
+        index: usize,
+        value: KdlValue,
+    },
     SetProperty {
         path: NodePath,
         key: String,
@@ -78,6 +83,7 @@ impl Command {
             Self::Remove { .. } => "delete",
             Self::MoveChild { .. } => "move layer",
             Self::Rename { .. } => "rename",
+            Self::SetArgument { .. } => "set value",
             Self::SetProperty { .. } => "set property",
             Self::SetProperties { .. } => "set properties",
             Self::SetColor { .. } => "change color",
@@ -111,6 +117,9 @@ impl Command {
                 source
                     .set_argument(path, 0, &KdlValue::String(name.clone()))
                     .map_err(fail)
+            }
+            Self::SetArgument { path, index, value } => {
+                source.set_argument(path, *index, value).map_err(fail)
             }
             Self::SetProperty { path, key, value } => {
                 source.set_property(path, key, value).map_err(fail)

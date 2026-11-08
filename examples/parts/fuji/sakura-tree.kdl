@@ -6,388 +6,271 @@
 // the wind; the trunk stays still.
 
 use "fuji-palette.kdl"
+use "clump.kdl"
 
-scene "sakura-tree" palette="fuji" width=260 height=190 fps=12 duration="16s" background="sky-day.5" {
-    camera x=-40 y=-180
+scene "sakura-tree" palette=fuji width=260 height=190 fps=12 duration="16s" background=sky-day.5 {
+    camera -40 -180
 
-    group "sway" x="=round(wind(0) * 1.5)"
-    blob x="=45 + @sway.x" y=-167 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=43 + @sway.x" y=-173 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=42 + @sway.x" y=-176 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=45 + @sway.x" y=-172 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=57 + @sway.x" y=-159 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=68 + @sway.x" y=-166 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=64 + @sway.x" y=-164 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=63 + @sway.x" y=-177 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=69 + @sway.x" y=-170 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=91 + @sway.x" y=-152 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=82 + @sway.x" y=-164 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=79 + @sway.x" y=-135 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=85 + @sway.x" y=-133 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=84 + @sway.x" y=-137 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=102 + @sway.x" y=-134 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=115 + @sway.x" y=-138 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=100 + @sway.x" y=-132 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=102 + @sway.x" y=-135 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=108 + @sway.x" y=-135 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=107 + @sway.x" y=-139 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=92 + @sway.x" y=-125 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=94 + @sway.x" y=-134 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=103 + @sway.x" y=-130 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=100 + @sway.x" y=-147 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=108 + @sway.x" y=-125 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=102 + @sway.x" y=-123 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=113 + @sway.x" y=-121 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=121 + @sway.x" y=-125 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=125 + @sway.x" y=-128 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=95 + @sway.x" y=-101 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=102 + @sway.x" y=-104 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=112 + @sway.x" y=-102 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=135 + @sway.x" y=-113 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=129 + @sway.x" y=-107 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=128 + @sway.x" y=-112 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=132 + @sway.x" y=-115 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=109 + @sway.x" y=-95 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=111 + @sway.x" y=-93 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=113 + @sway.x" y=-97 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=120 + @sway.x" y=-95 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=140 + @sway.x" y=-89 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=133 + @sway.x" y=-84 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=137 + @sway.x" y=-79 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=127 + @sway.x" y=-88 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=130 + @sway.x" y=-92 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=20 + @sway.x" y=-76 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=16 + @sway.x" y=-88 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=10 + @sway.x" y=-92 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=-6 + @sway.x" y=-109 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=-10 + @sway.x" y=-105 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=-19 + @sway.x" y=-110 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=-13 + @sway.x" y=-113 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=-4 + @sway.x" y=-111 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=-5 + @sway.x" y=-115 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=0 + @sway.x" y=-120 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=-12 + @sway.x" y=-120 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=0 + @sway.x" y=-117 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=-14 + @sway.x" y=-122 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=75 + @sway.x" y=-78 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=71 + @sway.x" y=-107 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=82 + @sway.x" y=-103 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=78 + @sway.x" y=-102 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=80 + @sway.x" y=-84 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=90 + @sway.x" y=-88 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=94 + @sway.x" y=-91 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=96 + @sway.x" y=-89 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=78 + @sway.x" y=-64 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=79 + @sway.x" y=-60 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=87 + @sway.x" y=-64 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=90 + @sway.x" y=-55 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="forest.4" shading="dome"
-    blob x="=78 + @sway.x" y=-60 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.3" shading="dome"
-    blob x="=85 + @sway.x" y=-54 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.3" shading="dome"
-    capsule x1="=0" y1=6 x2="=4" y2=-30 radius=11.0 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=4" y1=-30 x2="=16" y2=-60 radius=9.0 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=16" y1=-60 x2="=30" y2=-84 radius=6.5 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=30" y1=-84 x2="=50" y2=-119 radius=4.6 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=50 + @sway.x" y1=-119 x2="=56 + @sway.x" y2=-147 radius=2.9 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=56 + @sway.x" y1=-147 x2="=51 + @sway.x" y2=-166 radius=1.8 paint="bark.1"
-    capsule x1="=51 + @sway.x" y1=-166 x2="=43 + @sway.x" y2=-179 radius=1.1 paint="bark.1"
-    capsule x1="=51 + @sway.x" y1=-166 x2="=55 + @sway.x" y2=-179 radius=1.1 paint="bark.1"
-    capsule x1="=51 + @sway.x" y1=-166 x2="=43 + @sway.x" y2=-176 radius=1.1 paint="bark.1"
-    capsule x1="=56 + @sway.x" y1=-147 x2="=65 + @sway.x" y2=-164 radius=1.8 paint="bark.1"
-    capsule x1="=65 + @sway.x" y1=-164 x2="=65 + @sway.x" y2=-176 radius=1.1 paint="bark.1"
-    capsule x1="=65 + @sway.x" y1=-164 x2="=75 + @sway.x" y2=-171 radius=1.1 paint="bark.1"
-    capsule x1="=65 + @sway.x" y1=-164 x2="=66 + @sway.x" y2=-176 radius=1.1 paint="bark.1"
-    capsule x1="=50 + @sway.x" y1=-119 x2="=76 + @sway.x" y2=-131 radius=2.9 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=76 + @sway.x" y1=-131 x2="=87 + @sway.x" y2=-149 radius=1.8 paint="bark.1"
-    capsule x1="=87 + @sway.x" y1=-149 x2="=92 + @sway.x" y2=-162 radius=1.1 paint="bark.1"
-    capsule x1="=87 + @sway.x" y1=-149 x2="=98 + @sway.x" y2=-156 radius=1.1 paint="bark.1"
-    capsule x1="=87 + @sway.x" y1=-149 x2="=87 + @sway.x" y2=-163 radius=1.1 paint="bark.1"
-    capsule x1="=76 + @sway.x" y1=-131 x2="=98 + @sway.x" y2=-135 radius=1.8 paint="bark.1"
-    capsule x1="=98 + @sway.x" y1=-135 x2="=113 + @sway.x" y2=-142 radius=1.1 paint="bark.1"
-    capsule x1="=98 + @sway.x" y1=-135 x2="=113 + @sway.x" y2=-131 radius=1.1 paint="bark.1"
-    capsule x1="=98 + @sway.x" y1=-135 x2="=111 + @sway.x" y2=-142 radius=1.1 paint="bark.1"
-    capsule x1="=30" y1=-84 x2="=73" y2=-100 radius=4.2 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=73 + @sway.x" y1=-100 x2="=95 + @sway.x" y2=-117 radius=2.6 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=95 + @sway.x" y1=-117 x2="=101 + @sway.x" y2=-134 radius=1.6 paint="bark.1"
-    capsule x1="=101 + @sway.x" y1=-134 x2="=99 + @sway.x" y2=-145 radius=1.0 paint="bark.1"
-    capsule x1="=101 + @sway.x" y1=-134 x2="=112 + @sway.x" y2=-142 radius=1.0 paint="bark.1"
-    capsule x1="=101 + @sway.x" y1=-134 x2="=99 + @sway.x" y2=-147 radius=1.0 paint="bark.1"
-    capsule x1="=95 + @sway.x" y1=-117 x2="=115 + @sway.x" y2=-121 radius=1.6 paint="bark.1"
-    capsule x1="=115 + @sway.x" y1=-121 x2="=127 + @sway.x" y2=-128 radius=1.0 paint="bark.1"
-    capsule x1="=115 + @sway.x" y1=-121 x2="=127 + @sway.x" y2=-117 radius=1.0 paint="bark.1"
-    capsule x1="=115 + @sway.x" y1=-121 x2="=126 + @sway.x" y2=-132 radius=1.0 paint="bark.1"
-    capsule x1="=73 + @sway.x" y1=-100 x2="=104 + @sway.x" y2=-98 radius=2.6 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=104 + @sway.x" y1=-98 x2="=123 + @sway.x" y2=-106 radius=1.6 paint="bark.1"
-    capsule x1="=123 + @sway.x" y1=-106 x2="=131 + @sway.x" y2=-117 radius=1.0 paint="bark.1"
-    capsule x1="=123 + @sway.x" y1=-106 x2="=136 + @sway.x" y2=-107 radius=1.0 paint="bark.1"
-    capsule x1="=123 + @sway.x" y1=-106 x2="=133 + @sway.x" y2=-118 radius=1.0 paint="bark.1"
-    capsule x1="=104 + @sway.x" y1=-98 x2="=123 + @sway.x" y2=-89 radius=1.6 paint="bark.1"
-    capsule x1="=123 + @sway.x" y1=-89 x2="=138 + @sway.x" y2=-89 radius=1.0 paint="bark.1"
-    capsule x1="=123 + @sway.x" y1=-89 x2="=133 + @sway.x" y2=-78 radius=1.0 paint="bark.1"
-    capsule x1="=123 + @sway.x" y1=-89 x2="=138 + @sway.x" y2=-89 radius=1.0 paint="bark.1"
-    capsule x1="=22 + @sway.x" y1=-70 x2="=4 + @sway.x" y2=-94 radius=2.4 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=4 + @sway.x" y1=-94 x2="=-11 + @sway.x" y2=-105 radius=1.5 paint="bark.1"
-    capsule x1="=-11 + @sway.x" y1=-105 x2="=-25 + @sway.x" y2=-109 radius=0.9 paint="bark.1"
-    capsule x1="=-11 + @sway.x" y1=-105 x2="=-18 + @sway.x" y2=-117 radius=0.9 paint="bark.1"
-    capsule x1="=-11 + @sway.x" y1=-105 x2="=-22 + @sway.x" y2=-109 radius=0.9 paint="bark.1"
-    capsule x1="=4 + @sway.x" y1=-94 x2="=-3 + @sway.x" y2=-115 radius=1.5 paint="bark.1"
-    capsule x1="=-3 + @sway.x" y1=-115 x2="=-15 + @sway.x" y2=-125 radius=0.9 paint="bark.1"
-    capsule x1="=-3 + @sway.x" y1=-115 x2="=-1 + @sway.x" y2=-131 radius=0.9 paint="bark.1"
-    capsule x1="=-3 + @sway.x" y1=-115 x2="=-17 + @sway.x" y2=-126 radius=0.9 paint="bark.1"
-    capsule x1="=12" y1=-52 x2="=47" y2=-61 radius=3.4 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=47 + @sway.x" y1=-61 x2="=69 + @sway.x" y2=-78 radius=2.1 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=69 + @sway.x" y1=-78 x2="=76 + @sway.x" y2=-96 radius=1.3 paint="bark.1"
-    capsule x1="=76 + @sway.x" y1=-96 x2="=73 + @sway.x" y2=-110 radius=0.8 paint="bark.1"
-    capsule x1="=76 + @sway.x" y1=-96 x2="=84 + @sway.x" y2=-106 radius=0.8 paint="bark.1"
-    capsule x1="=76 + @sway.x" y1=-96 x2="=73 + @sway.x" y2=-108 radius=0.8 paint="bark.1"
-    capsule x1="=69 + @sway.x" y1=-78 x2="=89 + @sway.x" y2=-85 radius=1.3 paint="bark.1"
-    capsule x1="=89 + @sway.x" y1=-85 x2="=98 + @sway.x" y2=-96 radius=0.8 paint="bark.1"
-    capsule x1="=89 + @sway.x" y1=-85 x2="=101 + @sway.x" y2=-83 radius=0.8 paint="bark.1"
-    capsule x1="=89 + @sway.x" y1=-85 x2="=99 + @sway.x" y2=-94 radius=0.8 paint="bark.1"
-    capsule x1="=47 + @sway.x" y1=-61 x2="=69 + @sway.x" y2=-58 radius=2.1 paint="bark.1" shading="soft" texture=0.4 texture-scale=1
-    capsule x1="=69 + @sway.x" y1=-58 x2="=84 + @sway.x" y2=-59 radius=1.3 paint="bark.1"
-    capsule x1="=84 + @sway.x" y1=-59 x2="=93 + @sway.x" y2=-67 radius=0.8 paint="bark.1"
-    capsule x1="=84 + @sway.x" y1=-59 x2="=94 + @sway.x" y2=-56 radius=0.8 paint="bark.1"
-    capsule x1="=84 + @sway.x" y1=-59 x2="=95 + @sway.x" y2=-65 radius=0.8 paint="bark.1"
-    capsule x1="=69 + @sway.x" y1=-58 x2="=83 + @sway.x" y2=-48 radius=1.3 paint="bark.1"
-    capsule x1="=83 + @sway.x" y1=-48 x2="=93 + @sway.x" y2=-45 radius=0.8 paint="bark.1"
-    capsule x1="=83 + @sway.x" y1=-48 x2="=89 + @sway.x" y2=-37 radius=0.8 paint="bark.1"
-    capsule x1="=83 + @sway.x" y1=-48 x2="=95 + @sway.x" y2=-48 radius=0.8 paint="bark.1"
-    blob x="=45 + @sway.x" y=-183 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=42.5 + @sway.x" y=-188 width=5 height=2 paint="sakura.7" opacity=0.65
-    blob x="=52 + @sway.x" y=-177 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=50.5 + @sway.x" y=-180 width=3 height=2 paint="sakura.7" opacity=0.65
-    blob x="=70 + @sway.x" y=-177 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=68.5 + @sway.x" y=-180 width=3 height=2 paint="sakura.7" opacity=0.65
-    blob x="=39 + @sway.x" y=-176 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=37.5 + @sway.x" y=-179 width=3 height=2 paint="sakura.7" opacity=0.65
-    blob x="=65 + @sway.x" y=-174 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=63.5 + @sway.x" y=-177 width=3 height=2 paint="sakura.7" opacity=0.65
-    blob x="=53 + @sway.x" y=-170 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=50.25 + @sway.x" y=-175.5 width=6 height=2 paint="sakura.7" opacity=0.65
-    blob x="=57 + @sway.x" y=-168 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=54.25 + @sway.x" y=-173.5 width=6 height=2 paint="sakura.7" opacity=0.65
-    blob x="=50 + @sway.x" y=-168 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=47.5 + @sway.x" y=-173 width=5 height=2 paint="sakura.7" opacity=0.65
-    blob x="=79 + @sway.x" y=-168 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=76.5 + @sway.x" y=-173 width=5 height=2 paint="sakura.7" opacity=0.65
-    blob x="=66 + @sway.x" y=-167 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=63.5 + @sway.x" y=-172 width=5 height=2 paint="sakura.7" opacity=0.65
-    blob x="=94 + @sway.x" y=-161 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome" opacity=0.65
-    ellipse x="=91.75 + @sway.x" y=-165.5 width=4 height=2 paint="sakura.7" opacity=0.65
-    blob x="=93 + @sway.x" y=-159 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=90.75 + @sway.x" y=-163.5 width=4 height=2 paint="sakura.7"
-    blob x="=93 + @sway.x" y=-157 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=90 + @sway.x" y=-163 width=6 height=2 paint="sakura.7"
-    blob x="=59 + @sway.x" y=-156 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=56.5 + @sway.x" y=-161 width=5 height=2 paint="sakura.7"
-    blob x="=86 + @sway.x" y=-155 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=84 + @sway.x" y=-159 width=4 height=2 paint="sakura.7"
-    blob x="=50 + @sway.x" y=-152 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=47.75 + @sway.x" y=-156.5 width=4 height=2 paint="sakura.7"
-    blob x="=93 + @sway.x" y=-151 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=90.25 + @sway.x" y=-156.5 width=6 height=2 paint="sakura.7"
-    blob x="=62 + @sway.x" y=-150 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=59 + @sway.x" y=-156 width=6 height=2 paint="sakura.7"
-    blob x="=84 + @sway.x" y=-147 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=82.25 + @sway.x" y=-150.5 width=4 height=2 paint="sakura.7"
-    blob x="=105 + @sway.x" y=-147 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=103 + @sway.x" y=-151 width=4 height=2 paint="sakura.7"
-    blob x="=105 + @sway.x" y=-142 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=103 + @sway.x" y=-146 width=4 height=2 paint="sakura.7"
-    blob x="=104 + @sway.x" y=-141 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=101.25 + @sway.x" y=-146.5 width=6 height=2 paint="sakura.7"
-    blob x="=98 + @sway.x" y=-139 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=96.5 + @sway.x" y=-142 width=3 height=2 paint="sakura.7"
-    blob x="=109 + @sway.x" y=-139 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=106.5 + @sway.x" y=-144 width=5 height=2 paint="sakura.7"
-    blob x="=98 + @sway.x" y=-139 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=95.5 + @sway.x" y=-144 width=5 height=2 paint="sakura.7"
-    blob x="=81 + @sway.x" y=-136 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=79 + @sway.x" y=-140 width=4 height=2 paint="sakura.7"
-    blob x="=99 + @sway.x" y=-136 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=96.75 + @sway.x" y=-140.5 width=4 height=2 paint="sakura.7"
-    blob x="=105 + @sway.x" y=-135 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=103 + @sway.x" y=-139 width=4 height=2 paint="sakura.7"
-    blob x="=98 + @sway.x" y=-135 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=95.5 + @sway.x" y=-140 width=5 height=2 paint="sakura.7"
-    blob x="=95 + @sway.x" y=-134 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=92.25 + @sway.x" y=-139.5 width=6 height=2 paint="sakura.7"
-    blob x="=96 + @sway.x" y=-133 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=94.5 + @sway.x" y=-136 width=3 height=2 paint="sakura.7"
-    blob x="=80 + @sway.x" y=-132 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=77.25 + @sway.x" y=-137.5 width=6 height=2 paint="sakura.7"
-    blob x="=101 + @sway.x" y=-132 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=98.75 + @sway.x" y=-136.5 width=4 height=2 paint="sakura.7"
-    blob x="=107 + @sway.x" y=-131 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=104.5 + @sway.x" y=-136 width=5 height=2 paint="sakura.7"
-    blob x="=84 + @sway.x" y=-130 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=82.25 + @sway.x" y=-133.5 width=4 height=2 paint="sakura.7"
-    blob x="=123 + @sway.x" y=-128 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=120.75 + @sway.x" y=-132.5 width=4 height=2 paint="sakura.7"
-    blob x="=128 + @sway.x" y=-127 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=125.25 + @sway.x" y=-132.5 width=6 height=2 paint="sakura.7"
-    blob x="=133 + @sway.x" y=-126 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=131.25 + @sway.x" y=-129.5 width=4 height=2 paint="sakura.7"
-    blob x="=123 + @sway.x" y=-126 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=121.25 + @sway.x" y=-129.5 width=4 height=2 paint="sakura.7"
-    blob x="=-10 + @sway.x" y=-125 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-11.5 + @sway.x" y=-128 width=3 height=2 paint="sakura.7"
-    blob x="=2 + @sway.x" y=-124 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=0.25 + @sway.x" y=-127.5 width=4 height=2 paint="sakura.7"
-    blob x="=-5 + @sway.x" y=-124 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-7.5 + @sway.x" y=-129 width=5 height=2 paint="sakura.7"
-    blob x="=110 + @sway.x" y=-122 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=107.75 + @sway.x" y=-126.5 width=4 height=2 paint="sakura.7"
-    blob x="=-7 + @sway.x" y=-122 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-9.25 + @sway.x" y=-126.5 width=4 height=2 paint="sakura.7"
-    blob x="=-15 + @sway.x" y=-122 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-16.75 + @sway.x" y=-125.5 width=4 height=2 paint="sakura.7"
-    blob x="=-6 + @sway.x" y=-121 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-7.5 + @sway.x" y=-124 width=3 height=2 paint="sakura.7"
-    blob x="=0 + @sway.x" y=-121 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-3 + @sway.x" y=-127 width=6 height=2 paint="sakura.7"
-    blob x="=-12 + @sway.x" y=-120 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-14.5 + @sway.x" y=-125 width=5 height=2 paint="sakura.7"
-    blob x="=118 + @sway.x" y=-119 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=116 + @sway.x" y=-123 width=4 height=2 paint="sakura.7"
-    blob x="=98 + @sway.x" y=-118 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=96.5 + @sway.x" y=-121 width=3 height=2 paint="sakura.7"
-    blob x="=123 + @sway.x" y=-118 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=120.5 + @sway.x" y=-123 width=5 height=2 paint="sakura.7"
-    blob x="=-15 + @sway.x" y=-118 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-17 + @sway.x" y=-122 width=4 height=2 paint="sakura.7"
-    blob x="=130 + @sway.x" y=-117 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=127.25 + @sway.x" y=-122.5 width=6 height=2 paint="sakura.7"
-    blob x="=129 + @sway.x" y=-116 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=126.25 + @sway.x" y=-121.5 width=6 height=2 paint="sakura.7"
-    blob x="=130 + @sway.x" y=-114 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=128.25 + @sway.x" y=-117.5 width=4 height=2 paint="sakura.7"
-    blob x="=-12 + @sway.x" y=-114 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-13.75 + @sway.x" y=-117.5 width=4 height=2 paint="sakura.7"
-    blob x="=72 + @sway.x" y=-113 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=70 + @sway.x" y=-117 width=4 height=2 paint="sakura.7"
-    blob x="=129 + @sway.x" y=-112 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=126.5 + @sway.x" y=-117 width=5 height=2 paint="sakura.7"
-    blob x="=-22 + @sway.x" y=-110 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-23.75 + @sway.x" y=-113.5 width=4 height=2 paint="sakura.7"
-    blob x="=-16 + @sway.x" y=-109 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-17.75 + @sway.x" y=-112.5 width=4 height=2 paint="sakura.7"
-    blob x="=-4 + @sway.x" y=-109 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-6 + @sway.x" y=-113 width=4 height=2 paint="sakura.7"
-    blob x="=-20 + @sway.x" y=-108 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-22.75 + @sway.x" y=-113.5 width=6 height=2 paint="sakura.7"
-    blob x="=75 + @sway.x" y=-106 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=72 + @sway.x" y=-112 width=6 height=2 paint="sakura.7"
-    blob x="=82 + @sway.x" y=-106 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=79.25 + @sway.x" y=-111.5 width=6 height=2 paint="sakura.7"
-    blob x="=0 + @sway.x" y=-106 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-2.25 + @sway.x" y=-110.5 width=4 height=2 paint="sakura.7"
-    blob x="=75 + @sway.x" y=-106 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=72.5 + @sway.x" y=-111 width=5 height=2 paint="sakura.7"
-    blob x="=74 + @sway.x" y=-105 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=72.25 + @sway.x" y=-108.5 width=4 height=2 paint="sakura.7"
-    blob x="=79 + @sway.x" y=-104 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=77.25 + @sway.x" y=-107.5 width=4 height=2 paint="sakura.7"
-    blob x="=101 + @sway.x" y=-104 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=99 + @sway.x" y=-108 width=4 height=2 paint="sakura.7"
-    blob x="=121 + @sway.x" y=-103 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=119.25 + @sway.x" y=-106.5 width=4 height=2 paint="sakura.7"
-    blob x="=-10 + @sway.x" y=-103 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-11.75 + @sway.x" y=-106.5 width=4 height=2 paint="sakura.7"
-    blob x="=-12 + @sway.x" y=-102 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-13.75 + @sway.x" y=-105.5 width=4 height=2 paint="sakura.7"
-    blob x="=1 + @sway.x" y=-102 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-1.75 + @sway.x" y=-107.5 width=6 height=2 paint="sakura.7"
-    blob x="=95 + @sway.x" y=-99 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=92.5 + @sway.x" y=-104 width=5 height=2 paint="sakura.7"
-    blob x="=69 + @sway.x" y=-98 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=66.5 + @sway.x" y=-103 width=5 height=2 paint="sakura.7"
-    blob x="=94 + @sway.x" y=-98 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=91.75 + @sway.x" y=-102.5 width=4 height=2 paint="sakura.7"
-    blob x="=108 + @sway.x" y=-98 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=106.25 + @sway.x" y=-101.5 width=4 height=2 paint="sakura.7"
-    blob x="=104 + @sway.x" y=-96 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=102.5 + @sway.x" y=-99 width=3 height=2 paint="sakura.7"
-    blob x="=-2 + @sway.x" y=-96 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-4.75 + @sway.x" y=-101.5 width=6 height=2 paint="sakura.7"
-    blob x="=77 + @sway.x" y=-96 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=75 + @sway.x" y=-100 width=4 height=2 paint="sakura.7"
-    blob x="=112 + @sway.x" y=-95 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=109 + @sway.x" y=-101 width=6 height=2 paint="sakura.7"
-    blob x="=-1 + @sway.x" y=-95 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=-4 + @sway.x" y=-101 width=6 height=2 paint="sakura.7"
-    blob x="=112 + @sway.x" y=-93 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=110.25 + @sway.x" y=-96.5 width=4 height=2 paint="sakura.7"
-    blob x="=130 + @sway.x" y=-93 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=127.5 + @sway.x" y=-98 width=5 height=2 paint="sakura.7"
-    blob x="=126 + @sway.x" y=-92 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=123.75 + @sway.x" y=-96.5 width=4 height=2 paint="sakura.7"
-    blob x="=95 + @sway.x" y=-92 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=92.5 + @sway.x" y=-97 width=5 height=2 paint="sakura.7"
-    blob x="=90 + @sway.x" y=-92 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=87.25 + @sway.x" y=-97.5 width=6 height=2 paint="sakura.7"
-    blob x="=9 + @sway.x" y=-89 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=7.25 + @sway.x" y=-92.5 width=4 height=2 paint="sakura.7"
-    blob x="=80 + @sway.x" y=-89 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=77 + @sway.x" y=-95 width=6 height=2 paint="sakura.7"
-    blob x="=122 + @sway.x" y=-88 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=120.25 + @sway.x" y=-91.5 width=4 height=2 paint="sakura.7"
-    blob x="=123 + @sway.x" y=-88 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=121.5 + @sway.x" y=-91 width=3 height=2 paint="sakura.7"
-    blob x="=7 + @sway.x" y=-88 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=4 + @sway.x" y=-94 width=6 height=2 paint="sakura.7"
-    blob x="=134 + @sway.x" y=-87 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=132.25 + @sway.x" y=-90.5 width=4 height=2 paint="sakura.7"
-    blob x="=89 + @sway.x" y=-87 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=86.25 + @sway.x" y=-92.5 width=6 height=2 paint="sakura.7"
-    blob x="=12 + @sway.x" y=-86 circles="0,0,3 -2.4,1.4,2.0 2.4,1.0,2.0 0.3,1.8,1.8" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=10.5 + @sway.x" y=-89 width=3 height=2 paint="sakura.7"
-    blob x="=122 + @sway.x" y=-85 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=120 + @sway.x" y=-89 width=4 height=2 paint="sakura.7"
-    blob x="=88 + @sway.x" y=-85 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=85.5 + @sway.x" y=-90 width=5 height=2 paint="sakura.7"
-    blob x="=87 + @sway.x" y=-85 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=84.25 + @sway.x" y=-90.5 width=6 height=2 paint="sakura.7"
-    blob x="=95 + @sway.x" y=-85 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=92.5 + @sway.x" y=-90 width=5 height=2 paint="sakura.7"
-    blob x="=93 + @sway.x" y=-84 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=90.25 + @sway.x" y=-89.5 width=6 height=2 paint="sakura.7"
-    blob x="=6 + @sway.x" y=-83 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=3 + @sway.x" y=-89 width=6 height=2 paint="sakura.7"
-    blob x="=75 + @sway.x" y=-82 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=73.25 + @sway.x" y=-85.5 width=4 height=2 paint="sakura.7"
-    blob x="=66 + @sway.x" y=-81 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=63.25 + @sway.x" y=-86.5 width=6 height=2 paint="sakura.7"
-    blob x="=13 + @sway.x" y=-75 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=10 + @sway.x" y=-81 width=6 height=2 paint="sakura.7"
-    blob x="=99 + @sway.x" y=-68 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=96.25 + @sway.x" y=-73.5 width=6 height=2 paint="sakura.7"
-    blob x="=80 + @sway.x" y=-67 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=77.25 + @sway.x" y=-72.5 width=6 height=2 paint="sakura.7"
-    blob x="=92 + @sway.x" y=-65 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=90.25 + @sway.x" y=-68.5 width=4 height=2 paint="sakura.7"
-    blob x="=94 + @sway.x" y=-61 circles="0,0,4.5 -3.6,2.0,2.9 3.6,1.6,2.9 0.5,2.7,2.7" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=91.75 + @sway.x" y=-65.5 width=4 height=2 paint="sakura.7"
-    blob x="=87 + @sway.x" y=-60 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=84.25 + @sway.x" y=-65.5 width=6 height=2 paint="sakura.7"
-    blob x="=84 + @sway.x" y=-57 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=82.25 + @sway.x" y=-60.5 width=4 height=2 paint="sakura.7"
-    blob x="=82 + @sway.x" y=-55 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=79.25 + @sway.x" y=-60.5 width=6 height=2 paint="sakura.7"
-    blob x="=79 + @sway.x" y=-54 circles="0,0,4 -3.2,1.8,2.6 3.2,1.4,2.6 0.4,2.4,2.4" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=77 + @sway.x" y=-58 width=4 height=2 paint="sakura.7"
-    blob x="=86 + @sway.x" y=-51 circles="0,0,3.5 -2.8,1.6,2.3 2.8,1.2,2.3 0.4,2.1,2.1" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=84.25 + @sway.x" y=-54.5 width=4 height=2 paint="sakura.7"
-    blob x="=76 + @sway.x" y=-49 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=73.5 + @sway.x" y=-54 width=5 height=2 paint="sakura.7"
-    blob x="=83 + @sway.x" y=-49 circles="0,0,5 -4.0,2.2,3.2 4.0,1.8,3.2 0.5,3.0,3.0" smooth=1.5 paint="sakura.5" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=80.5 + @sway.x" y=-54 width=5 height=2 paint="sakura.7"
-    blob x="=83 + @sway.x" y=-48 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=80 + @sway.x" y=-54 width=6 height=2 paint="sakura.7"
-    blob x="=89 + @sway.x" y=-46 circles="0,0,6 -4.8,2.7,3.9 4.8,2.1,3.9 0.6,3.6,3.6" smooth=1.5 paint="sakura.4" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=86 + @sway.x" y=-52 width=6 height=2 paint="sakura.7"
-    blob x="=79 + @sway.x" y=-44 circles="0,0,5.5 -4.4,2.5,3.6 4.4,1.9,3.6 0.6,3.3,3.3" smooth=1.5 paint="sakura.6" texture=0.4 texture-scale=1 shading="dome"
-    ellipse x="=76.25 + @sway.x" y=-49.5 width=6 height=2 paint="sakura.7"
-    particles x=0 y=-150 width=200 height=80 count=16 vx=-10 vy=8 life="5s" size=0.5 wind=5 paint="sakura.6" fade=#true
+    group "sway" "=round(wind(0) * 1.5)"
+    fuji-back55 45 -167
+    fuji-back60 43 -173
+    fuji-back50 42 -176
+    fuji-back35 45 -172
+    fuji-back45 57 -159
+    fuji-back50 68 -166
+    fuji-back50 64 -164
+    fuji-back30 63 -177
+    fuji-back30 69 -170
+    fuji-back45 91 -152 paint=forest.4
+    fuji-back50 82 -164
+    fuji-back55 79 -135
+    fuji-back40 85 -133 paint=forest.4
+    fuji-back55 84 -137 paint=forest.4
+    fuji-back40 102 -134
+    fuji-back35 115 -138
+    fuji-back40 100 -132
+    fuji-back50 102 -135
+    fuji-back55 108 -135
+    fuji-back35 107 -139
+    fuji-back60 92 -125
+    fuji-back45 94 -134 paint=forest.4
+    fuji-back30 103 -130
+    fuji-back55 100 -147 paint=forest.4
+    fuji-back40 108 -125
+    fuji-back55 102 -123 paint=forest.4
+    fuji-back45 113 -121
+    fuji-back50 121 -125
+    fuji-back40 125 -128
+    fuji-back45 95 -101
+    fuji-back55 102 -104
+    fuji-back40 112 -102 paint=forest.4
+    fuji-back60 135 -113
+    fuji-back45 129 -107
+    fuji-back55 128 -112 paint=forest.4
+    fuji-back40 132 -115
+    fuji-back35 109 -95
+    fuji-back40 111 -93
+    fuji-back50 113 -97
+    fuji-back60 120 -95 paint=forest.4
+    fuji-back60 140 -89
+    fuji-back55 133 -84
+    fuji-back55 137 -79
+    fuji-back30 127 -88 paint=forest.4
+    fuji-back30 130 -92
+    fuji-back45 20 -76
+    fuji-back55 16 -88
+    fuji-back45 10 -92
+    fuji-back40 -6 -109
+    fuji-back60 -10 -105 paint=forest.4
+    fuji-back60 -19 -110 paint=forest.4
+    fuji-back55 -13 -113
+    fuji-back50 -4 -111
+    fuji-back60 -5 -115
+    fuji-back40 0 -120
+    fuji-back50 -12 -120
+    fuji-back35 0 -117
+    fuji-back45 -14 -122 paint=forest.4
+    fuji-back45 75 -78
+    fuji-back35 71 -107
+    fuji-back50 82 -103
+    fuji-back40 78 -102
+    fuji-back55 80 -84
+    fuji-back55 90 -88 paint=forest.4
+    fuji-back55 94 -91
+    fuji-back35 96 -89
+    fuji-back40 78 -64
+    fuji-back50 79 -60 paint=forest.4
+    fuji-back35 87 -64
+    fuji-back35 90 -55 paint=forest.4
+    fuji-back40 78 -60
+    fuji-back60 85 -54
+    fuji-limb 0 6 4 -30 11.0
+    fuji-limb 4 -30 16 -60 9.0
+    fuji-limb 16 -60 30 -84 6.5
+    fuji-limb 30 -84 50 -119 4.6
+    fuji-branch 50 -119 56 -147 2.9
+    fuji-twig 56 -147 51 -166 1.8
+    fuji-twig 51 -166 43 -179 1.1
+    fuji-twig 51 -166 55 -179 1.1
+    fuji-twig 51 -166 43 -176 1.1
+    fuji-twig 56 -147 65 -164 1.8
+    fuji-twig 65 -164 65 -176 1.1
+    fuji-twig 65 -164 75 -171 1.1
+    fuji-twig 65 -164 66 -176 1.1
+    fuji-branch 50 -119 76 -131 2.9
+    fuji-twig 76 -131 87 -149 1.8
+    fuji-twig 87 -149 92 -162 1.1
+    fuji-twig 87 -149 98 -156 1.1
+    fuji-twig 87 -149 87 -163 1.1
+    fuji-twig 76 -131 98 -135 1.8
+    fuji-twig 98 -135 113 -142 1.1
+    fuji-twig 98 -135 113 -131 1.1
+    fuji-twig 98 -135 111 -142 1.1
+    fuji-limb 30 -84 73 -100 4.2
+    fuji-branch 73 -100 95 -117 2.6
+    fuji-twig 95 -117 101 -134 1.6
+    fuji-twig 101 -134 99 -145 1.0
+    fuji-twig 101 -134 112 -142 1.0
+    fuji-twig 101 -134 99 -147 1.0
+    fuji-twig 95 -117 115 -121 1.6
+    fuji-twig 115 -121 127 -128 1.0
+    fuji-twig 115 -121 127 -117 1.0
+    fuji-twig 115 -121 126 -132 1.0
+    fuji-branch 73 -100 104 -98 2.6
+    fuji-twig 104 -98 123 -106 1.6
+    fuji-twig 123 -106 131 -117 1.0
+    fuji-twig 123 -106 136 -107 1.0
+    fuji-twig 123 -106 133 -118 1.0
+    fuji-twig 104 -98 123 -89 1.6
+    fuji-twig 123 -89 138 -89 1.0
+    fuji-twig 123 -89 133 -78 1.0
+    fuji-twig 123 -89 138 -89 1.0
+    fuji-branch 22 -70 4 -94 2.4
+    fuji-twig 4 -94 -11 -105 1.5
+    fuji-twig -11 -105 -25 -109 0.9
+    fuji-twig -11 -105 -18 -117 0.9
+    fuji-twig -11 -105 -22 -109 0.9
+    fuji-twig 4 -94 -3 -115 1.5
+    fuji-twig -3 -115 -15 -125 0.9
+    fuji-twig -3 -115 -1 -131 0.9
+    fuji-twig -3 -115 -17 -126 0.9
+    fuji-limb 12 -52 47 -61 3.4
+    fuji-branch 47 -61 69 -78 2.1
+    fuji-twig 69 -78 76 -96 1.3
+    fuji-twig 76 -96 73 -110 0.8
+    fuji-twig 76 -96 84 -106 0.8
+    fuji-twig 76 -96 73 -108 0.8
+    fuji-twig 69 -78 89 -85 1.3
+    fuji-twig 89 -85 98 -96 0.8
+    fuji-twig 89 -85 101 -83 0.8
+    fuji-twig 89 -85 99 -94 0.8
+    fuji-branch 47 -61 69 -58 2.1
+    fuji-twig 69 -58 84 -59 1.3
+    fuji-twig 84 -59 93 -67 0.8
+    fuji-twig 84 -59 94 -56 0.8
+    fuji-twig 84 -59 95 -65 0.8
+    fuji-twig 69 -58 83 -48 1.3
+    fuji-twig 83 -48 93 -45 0.8
+    fuji-twig 83 -48 89 -37 0.8
+    fuji-twig 83 -48 95 -48 0.8
+    fuji-clump50 45 -183 6 opacity=0.65
+    fuji-clump30 52 -177 4 opacity=0.65
+    fuji-clump30 70 -177 6 opacity=0.65
+    fuji-clump30 39 -176 5 opacity=0.65
+    fuji-clump30 65 -174 4 opacity=0.65
+    fuji-clump55 53 -170 5 opacity=0.65
+    fuji-clump55 57 -168 4 opacity=0.65
+    fuji-clump50 50 -168 4 opacity=0.65
+    fuji-clump50 79 -168 4 opacity=0.65
+    fuji-clump50 66 -167 5 opacity=0.65
+    fuji-clump45 94 -161 5 opacity=0.65
+    fuji-clump45 93 -159 5
+    fuji-clump60 93 -157 5
+    fuji-clump50 59 -156 5
+    fuji-clump40 86 -155 4
+    fuji-clump45 50 -152 5
+    fuji-clump55 93 -151 6
+    fuji-clump60 62 -150 5
+    fuji-clump35 84 -147 5
+    fuji-clump40 105 -147 5
+    fuji-clump40 105 -142 4
+    fuji-clump55 104 -141 6
+    fuji-clump30 98 -139 5
+    fuji-clump50 109 -139 4
+    fuji-clump50 98 -139 6
+    fuji-clump40 81 -136 6
+    fuji-clump45 99 -136 6
+    fuji-clump40 105 -135 4
+    fuji-clump50 98 -135 5
+    fuji-clump55 95 -134 6
+    fuji-clump30 96 -133 4
+    fuji-clump55 80 -132 5
+    fuji-clump45 101 -132 4
+    fuji-clump50 107 -131 5
+    fuji-clump35 84 -130 5
+    fuji-clump45 123 -128 5
+    fuji-clump55 128 -127 6
+    fuji-clump35 133 -126 6
+    fuji-clump35 123 -126 5
+    fuji-clump30 -10 -125 5
+    fuji-clump35 2 -124 5
+    fuji-clump50 -5 -124 6
+    fuji-clump45 110 -122 4
+    fuji-clump45 -7 -122 5
+    fuji-clump35 -15 -122 5
+    fuji-clump30 -6 -121 5
+    fuji-clump60 0 -121 4
+    fuji-clump50 -12 -120 5
+    fuji-clump40 118 -119 5
+    fuji-clump30 98 -118 5
+    fuji-clump50 123 -118 6
+    fuji-clump40 -15 -118 5
+    fuji-clump55 130 -117 5
+    fuji-clump55 129 -116 4
+    fuji-clump35 130 -114 6
+    fuji-clump35 -12 -114 4
+    fuji-clump40 72 -113 5
+    fuji-clump50 129 -112 5
+    fuji-clump35 -22 -110 5
+    fuji-clump35 -16 -109 4
+    fuji-clump40 -4 -109 4
+    fuji-clump55 -20 -108 6
+    fuji-clump60 75 -106 4
+    fuji-clump55 82 -106 4
+    fuji-clump45 0 -106 4
+    fuji-clump50 75 -106 6
+    fuji-clump35 74 -105 4
+    fuji-clump35 79 -104 5
+    fuji-clump40 101 -104 5
+    fuji-clump35 121 -103 4
+    fuji-clump35 -10 -103 5
+    fuji-clump35 -12 -102 4
+    fuji-clump55 1 -102 5
+    fuji-clump50 95 -99 4
+    fuji-clump50 69 -98 6
+    fuji-clump45 94 -98 5
+    fuji-clump35 108 -98 4
+    fuji-clump30 104 -96 4
+    fuji-clump55 -2 -96 5
+    fuji-clump40 77 -96 5
+    fuji-clump60 112 -95 5
+    fuji-clump60 -1 -95 5
+    fuji-clump35 112 -93 6
+    fuji-clump50 130 -93 5
+    fuji-clump45 126 -92 6
+    fuji-clump50 95 -92 6
+    fuji-clump55 90 -92 6
+    fuji-clump35 9 -89 5
+    fuji-clump60 80 -89 6
+    fuji-clump35 122 -88 6
+    fuji-clump30 123 -88 5
+    fuji-clump60 7 -88 5
+    fuji-clump35 134 -87 5
+    fuji-clump55 89 -87 4
+    fuji-clump30 12 -86 6
+    fuji-clump40 122 -85 5
+    fuji-clump50 88 -85 6
+    fuji-clump55 87 -85 4
+    fuji-clump50 95 -85 4
+    fuji-clump55 93 -84 6
+    fuji-clump60 6 -83 5
+    fuji-clump35 75 -82 4
+    fuji-clump55 66 -81 5
+    fuji-clump60 13 -75 4
+    fuji-clump55 99 -68 5
+    fuji-clump55 80 -67 4
+    fuji-clump35 92 -65 6
+    fuji-clump45 94 -61 5
+    fuji-clump55 87 -60 5
+    fuji-clump35 84 -57 4
+    fuji-clump55 82 -55 4
+    fuji-clump40 79 -54 6
+    fuji-clump35 86 -51 4
+    fuji-clump50 76 -49 6
+    fuji-clump50 83 -49 5
+    fuji-clump60 83 -48 6
+    fuji-clump60 89 -46 4
+    fuji-clump55 79 -44 6
+    particles 0 -150 200 80 count=16 vx=-10 vy=8 life="5s" size=0.5 wind=5 paint=sakura.6 fade=#true
 }
 

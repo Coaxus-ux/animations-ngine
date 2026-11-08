@@ -3,31 +3,26 @@
 
 use "festival-palette.kdl"
 
-scene "firework" palette="festival" width=96 height=96 fps=12 duration="1.5s" background="sky.base" {
-    camera x=-48 y=-48
+motif fest-spark dx dy tone {
+    line "=@burst.x * $dx * 0.7" "=@burst.x * $dy * 0.7 + @burst.y" "=@burst.x * $dx" "=@burst.x * $dy + @burst.y" paint=$tone.lit emissive=#true visible="=t < 1.1"
+    rect "=@burst.x * $dx - 1" "=@burst.x * $dy + @burst.y - 1" 2 2 paint=$tone.hi emissive=#true visible="=t < 1.35"
+}
+
+scene "firework" palette=festival width=96 height=96 fps=12 duration="1.5s" background=sky.base {
+    camera -48 -48
 
     // How far the sparks have flown (eased out) and how far they have fallen
-    group "burst" x="=40 * (1 - (1 - t / 1.5) ** 2)" y="=10 * t * t"
-    ellipse x=-4 y=-4 width=9 height=9 paint="flame.hi" emissive=#true visible="=t < 0.25"
-    line x1="=@burst.x * 1.0 * 0.7" y1="=@burst.x * 0.0 * 0.7 + @burst.y" x2="=@burst.x * 1.0" y2="=@burst.x * 0.0 + @burst.y" paint="lantern-gold.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * 1.0 - 1" y="=@burst.x * 0.0 + @burst.y - 1" width=2 height=2 paint="lantern-gold.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * 0.809 * 0.7" y1="=@burst.x * 0.5878 * 0.7 + @burst.y" x2="=@burst.x * 0.809" y2="=@burst.x * 0.5878 + @burst.y" paint="lantern.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * 0.809 - 1" y="=@burst.x * 0.5878 + @burst.y - 1" width=2 height=2 paint="lantern.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * 0.309 * 0.7" y1="=@burst.x * 0.9511 * 0.7 + @burst.y" x2="=@burst.x * 0.309" y2="=@burst.x * 0.9511 + @burst.y" paint="lantern-gold.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * 0.309 - 1" y="=@burst.x * 0.9511 + @burst.y - 1" width=2 height=2 paint="lantern-gold.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * -0.309 * 0.7" y1="=@burst.x * 0.9511 * 0.7 + @burst.y" x2="=@burst.x * -0.309" y2="=@burst.x * 0.9511 + @burst.y" paint="lantern.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * -0.309 - 1" y="=@burst.x * 0.9511 + @burst.y - 1" width=2 height=2 paint="lantern.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * -0.809 * 0.7" y1="=@burst.x * 0.5878 * 0.7 + @burst.y" x2="=@burst.x * -0.809" y2="=@burst.x * 0.5878 + @burst.y" paint="lantern-gold.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * -0.809 - 1" y="=@burst.x * 0.5878 + @burst.y - 1" width=2 height=2 paint="lantern-gold.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * -1.0 * 0.7" y1="=@burst.x * 0.0 * 0.7 + @burst.y" x2="=@burst.x * -1.0" y2="=@burst.x * 0.0 + @burst.y" paint="lantern.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * -1.0 - 1" y="=@burst.x * 0.0 + @burst.y - 1" width=2 height=2 paint="lantern.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * -0.809 * 0.7" y1="=@burst.x * -0.5878 * 0.7 + @burst.y" x2="=@burst.x * -0.809" y2="=@burst.x * -0.5878 + @burst.y" paint="lantern-gold.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * -0.809 - 1" y="=@burst.x * -0.5878 + @burst.y - 1" width=2 height=2 paint="lantern-gold.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * -0.309 * 0.7" y1="=@burst.x * -0.9511 * 0.7 + @burst.y" x2="=@burst.x * -0.309" y2="=@burst.x * -0.9511 + @burst.y" paint="lantern.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * -0.309 - 1" y="=@burst.x * -0.9511 + @burst.y - 1" width=2 height=2 paint="lantern.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * 0.309 * 0.7" y1="=@burst.x * -0.9511 * 0.7 + @burst.y" x2="=@burst.x * 0.309" y2="=@burst.x * -0.9511 + @burst.y" paint="lantern-gold.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * 0.309 - 1" y="=@burst.x * -0.9511 + @burst.y - 1" width=2 height=2 paint="lantern-gold.hi" emissive=#true visible="=t < 1.35"
-    line x1="=@burst.x * 0.809 * 0.7" y1="=@burst.x * -0.5878 * 0.7 + @burst.y" x2="=@burst.x * 0.809" y2="=@burst.x * -0.5878 + @burst.y" paint="lantern.lit" emissive=#true visible="=t < 1.1"
-    rect x="=@burst.x * 0.809 - 1" y="=@burst.x * -0.5878 + @burst.y - 1" width=2 height=2 paint="lantern.hi" emissive=#true visible="=t < 1.35"
-    light-point x=0 y=0 reach=46 intensity="=2 * (1 - t / 1.5)" color="warm"
+    group "burst" "=40 * (1 - (1 - t / 1.5) ** 2)" "=10 * t * t"
+    ellipse -4 -4 9 9 paint=flame.hi emissive=#true visible="=t < 0.25"
+    fest-spark 1.0 0.0 lantern-gold
+    fest-spark 0.809 0.5878 lantern
+    fest-spark 0.309 0.9511 lantern-gold
+    fest-spark -0.309 0.9511 lantern
+    fest-spark -0.809 0.5878 lantern-gold
+    fest-spark -1.0 0.0 lantern
+    fest-spark -0.809 -0.5878 lantern-gold
+    fest-spark -0.309 -0.9511 lantern
+    fest-spark 0.309 -0.9511 lantern-gold
+    fest-spark 0.809 -0.5878 lantern
+    light-point 0 0 reach=46 intensity="=2 * (1 - t / 1.5)" color=warm
 }

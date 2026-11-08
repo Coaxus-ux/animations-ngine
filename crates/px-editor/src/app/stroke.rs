@@ -6,7 +6,7 @@ use px_ui::Input;
 use super::intent::Button;
 use super::{App, WindowId};
 use crate::app::Status;
-use crate::domain::{Command, Raster};
+use crate::domain::{Command, Document, Raster};
 use crate::ports::FileStore;
 use crate::tools::{Effect, Tool, ToolKind, Work};
 
@@ -228,7 +228,13 @@ impl App {
                 .caches
                 .get(&window)
                 .and_then(|cache| cache.shape_at(x, y));
+            let copies = self.editing.picked.map_or(1, |shape| self.copies_of(shape));
             self.editing.status = Status::info(match self.editing.picked {
+                Some(shape) if copies > 1 => {
+                    format!(
+                        "Picked shape #{shape}: click a swatch to recolor it; changes {copies} copies"
+                    )
+                }
                 Some(shape) => format!("Picked shape #{shape}: click a swatch to recolor it"),
                 None => "Nothing there to pick".to_owned(),
             });
@@ -266,5 +272,20 @@ fn work<'w>(
         filled: editing.filled,
         constrain: input.modifiers.shift,
         global: editing.global_fill || input.modifiers.shift,
+    }
+}
+
+impl App {
+    fn copies_of(&self, shape: usize) -> usize {
+        let Some(loaded) = self.document().and_then(Document::loaded) else {
+            return 1;
+        };
+        loaded.origins.get(shape).map_or(1, |origin| {
+            loaded
+                .origins
+                .iter()
+                .filter(|other| other.file == origin.file && other.offset == origin.offset)
+                .count()
+        })
     }
 }

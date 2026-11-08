@@ -4,63 +4,40 @@
 
 use "editor-palette.kdl"
 
-scene "swatches-1" palette="editor" width=10 height=9 fps=12 duration="1s" loop=#true background="ui-panel" {
+motif ed-ramp x y tones ramp { use-scene "swatches-$tones" $x $y ramp=$ramp }
+
+scene "swatches-1" palette=editor width=10 height=9 fps=12 duration="1s" loop=#true background=ui-panel {
     param ramp "ui-sample"
 
-    rect x=0 y=0 width=9 height=9 paint="$ramp.0" emissive=#true
+    rect 0 0 9 9 paint=$ramp.0 emissive=#true
 }
 
-scene "swatches-4" palette="editor" width=40 height=9 fps=12 duration="1s" loop=#true background="ui-panel" {
+scene "swatches-4" palette=editor width=40 height=9 fps=12 duration="1s" loop=#true background=ui-panel {
     param ramp "ui-sample"
 
-    rect x=0 y=0 width=9 height=9 paint="$ramp.0" emissive=#true
-    rect x=10 y=0 width=9 height=9 paint="$ramp.1" emissive=#true
-    rect x=20 y=0 width=9 height=9 paint="$ramp.2" emissive=#true
-    rect x=30 y=0 width=9 height=9 paint="$ramp.3" emissive=#true
+    rect "=$k*10" 0 9 9 paint=$ramp.$k emissive=#true repeat=4
 }
 
-scene "swatches-5" palette="editor" width=50 height=9 fps=12 duration="1s" loop=#true background="ui-panel" {
+scene "swatches-5" palette=editor width=50 height=9 fps=12 duration="1s" loop=#true background=ui-panel {
     param ramp "ui-sample"
 
-    rect x=0 y=0 width=9 height=9 paint="$ramp.0" emissive=#true
-    rect x=10 y=0 width=9 height=9 paint="$ramp.1" emissive=#true
-    rect x=20 y=0 width=9 height=9 paint="$ramp.2" emissive=#true
-    rect x=30 y=0 width=9 height=9 paint="$ramp.3" emissive=#true
-    rect x=40 y=0 width=9 height=9 paint="$ramp.4" emissive=#true
+    rect "=$k*10" 0 9 9 paint=$ramp.$k emissive=#true repeat=5
 }
 
-scene "swatches-6" palette="editor" width=60 height=9 fps=12 duration="1s" loop=#true background="ui-panel" {
+scene "swatches-6" palette=editor width=60 height=9 fps=12 duration="1s" loop=#true background=ui-panel {
     param ramp "ui-sample"
 
-    rect x=0 y=0 width=9 height=9 paint="$ramp.0" emissive=#true
-    rect x=10 y=0 width=9 height=9 paint="$ramp.1" emissive=#true
-    rect x=20 y=0 width=9 height=9 paint="$ramp.2" emissive=#true
-    rect x=30 y=0 width=9 height=9 paint="$ramp.3" emissive=#true
-    rect x=40 y=0 width=9 height=9 paint="$ramp.4" emissive=#true
-    rect x=50 y=0 width=9 height=9 paint="$ramp.5" emissive=#true
+    rect "=$k*10" 0 9 9 paint=$ramp.$k emissive=#true repeat=6
 }
 
-scene "swatches-7" palette="editor" width=70 height=9 fps=12 duration="1s" loop=#true background="ui-panel" {
+scene "swatches-7" palette=editor width=70 height=9 fps=12 duration="1s" loop=#true background=ui-panel {
     param ramp "ui-sample"
 
-    rect x=0 y=0 width=9 height=9 paint="$ramp.0" emissive=#true
-    rect x=10 y=0 width=9 height=9 paint="$ramp.1" emissive=#true
-    rect x=20 y=0 width=9 height=9 paint="$ramp.2" emissive=#true
-    rect x=30 y=0 width=9 height=9 paint="$ramp.3" emissive=#true
-    rect x=40 y=0 width=9 height=9 paint="$ramp.4" emissive=#true
-    rect x=50 y=0 width=9 height=9 paint="$ramp.5" emissive=#true
-    rect x=60 y=0 width=9 height=9 paint="$ramp.6" emissive=#true
+    rect "=$k*10" 0 9 9 paint=$ramp.$k emissive=#true repeat=7
 }
 
-scene "swatches-8" palette="editor" width=80 height=9 fps=12 duration="1s" loop=#true background="ui-panel" {
+scene "swatches-8" palette=editor width=80 height=9 fps=12 duration="1s" loop=#true background=ui-panel {
     param ramp "ui-sample"
 
-    rect x=0 y=0 width=9 height=9 paint="$ramp.0" emissive=#true
-    rect x=10 y=0 width=9 height=9 paint="$ramp.1" emissive=#true
-    rect x=20 y=0 width=9 height=9 paint="$ramp.2" emissive=#true
-    rect x=30 y=0 width=9 height=9 paint="$ramp.3" emissive=#true
-    rect x=40 y=0 width=9 height=9 paint="$ramp.4" emissive=#true
-    rect x=50 y=0 width=9 height=9 paint="$ramp.5" emissive=#true
-    rect x=60 y=0 width=9 height=9 paint="$ramp.6" emissive=#true
-    rect x=70 y=0 width=9 height=9 paint="$ramp.7" emissive=#true
+    rect "=$k*10" 0 9 9 paint=$ramp.$k emissive=#true repeat=8
 }

@@ -248,6 +248,16 @@ impl Program {
     }
 
     #[must_use]
+    pub fn arithmetic_value(&self) -> Option<f64> {
+        self.ops
+            .iter()
+            .all(|op| matches!(op, Op::Const(_) | Op::Unary(_) | Op::Binary(_)))
+            .then(|| self.eval(&Env::default()).ok())
+            .flatten()
+            .filter(|value| value.is_finite())
+    }
+
+    #[must_use]
     pub fn uses(&self, var: Var) -> bool {
         self.ops.contains(&Op::Var(var))
     }

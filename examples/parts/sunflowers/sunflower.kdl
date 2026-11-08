@@ -7,63 +7,70 @@
 
 use "sunflower-palette.kdl"
 
-scene "sunflower" palette="sunflower" width=48 height=48 fps=12 duration="4s" loop=#true background="leaf.1" {
+motif sun-petal ax ay bx by radius tone {
+    capsule "=@head.x + $ax * $sx" "=@head.y + $ay * $sy" "=@head.x + $bx * $sx" "=@head.y + $by * $sy" radius=$radius paint=petal.$tone texture=0.4 texture-scale=1
+}
+motif sun-leaf x y tone shape {
+    polygon $x $y points=$shape paint=leaf.$tone shading=dome outline=selective texture=0.3 texture-scale=1
+}
+
+scene "sunflower" palette=sunflower width=48 height=48 fps=12 duration="4s" loop=#true background=leaf.1 {
     param tall 24
     param sx 1
     param sy 0.9
-    camera x=-24 y=-40
+    camera -24 -40
 
-    group "head" x="=1.6 * sin(tau * t / 4)" y="=-$tall + 0.5 * sin(tau * t / 4 + 1.2)"
-    rope x1=0 y1=0 x2="=@head.x" y2="=@head.y + 4" sway="=-0.3 * @head.x" width=2 paint="leaf.4"
-    polygon x="=@head.x * 0.4" y="=-$tall * 0.42" points="0,0 2,-4 6,-6.5 11,-6 15,-2 11,2 5,2.5" paint="leaf.5" shading="dome" outline="selective" texture=0.3 texture-scale=1
-    polygon x="=@head.x * 0.25" y="=-$tall * 0.22" points="0,0 -2,-4 -6,-6 -11,-5.5 -15,-1 -10,2.5 -4,2.5" paint="leaf.4" shading="dome" outline="selective" texture=0.3 texture-scale=1
-    capsule x1="=@head.x + 2.90 * $sx" y1="=@head.y + 0.78 * $sy" x2="=@head.x + 8.31 * $sx" y2="=@head.y + 2.23 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 2.12 * $sx" y1="=@head.y + 2.12 * $sy" x2="=@head.x + 6.08 * $sx" y2="=@head.y + 6.08 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 0.78 * $sx" y1="=@head.y + 2.90 * $sy" x2="=@head.x + 2.23 * $sx" y2="=@head.y + 8.31 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -0.78 * $sx" y1="=@head.y + 2.90 * $sy" x2="=@head.x + -2.23 * $sx" y2="=@head.y + 8.31 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -2.12 * $sx" y1="=@head.y + 2.12 * $sy" x2="=@head.x + -6.08 * $sx" y2="=@head.y + 6.08 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -2.90 * $sx" y1="=@head.y + 0.78 * $sy" x2="=@head.x + -8.31 * $sx" y2="=@head.y + 2.23 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -2.90 * $sx" y1="=@head.y + -0.78 * $sy" x2="=@head.x + -8.31 * $sx" y2="=@head.y + -2.23 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -2.12 * $sx" y1="=@head.y + -2.12 * $sy" x2="=@head.x + -6.08 * $sx" y2="=@head.y + -6.08 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -0.78 * $sx" y1="=@head.y + -2.90 * $sy" x2="=@head.x + -2.23 * $sx" y2="=@head.y + -8.31 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 0.78 * $sx" y1="=@head.y + -2.90 * $sy" x2="=@head.x + 2.23 * $sx" y2="=@head.y + -8.31 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 2.12 * $sx" y1="=@head.y + -2.12 * $sy" x2="=@head.x + 6.08 * $sx" y2="=@head.y + -6.08 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 2.90 * $sx" y1="=@head.y + -0.78 * $sy" x2="=@head.x + 8.31 * $sx" y2="=@head.y + -2.23 * $sy" radius=1.4 paint="petal.2" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 3.00 * $sx" y1="=@head.y + 0.00 * $sy" x2="=@head.x + 7.40 * $sx" y2="=@head.y + 0.00 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 2.60 * $sx" y1="=@head.y + 1.50 * $sy" x2="=@head.x + 6.41 * $sx" y2="=@head.y + 3.70 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 1.50 * $sx" y1="=@head.y + 2.60 * $sy" x2="=@head.x + 3.70 * $sx" y2="=@head.y + 6.41 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 0.00 * $sx" y1="=@head.y + 3.00 * $sy" x2="=@head.x + 0.00 * $sx" y2="=@head.y + 7.40 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -1.50 * $sx" y1="=@head.y + 2.60 * $sy" x2="=@head.x + -3.70 * $sx" y2="=@head.y + 6.41 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -2.60 * $sx" y1="=@head.y + 1.50 * $sy" x2="=@head.x + -6.41 * $sx" y2="=@head.y + 3.70 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -3.00 * $sx" y1="=@head.y + 0.00 * $sy" x2="=@head.x + -7.40 * $sx" y2="=@head.y + 0.00 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -2.60 * $sx" y1="=@head.y + -1.50 * $sy" x2="=@head.x + -6.41 * $sx" y2="=@head.y + -3.70 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -1.50 * $sx" y1="=@head.y + -2.60 * $sy" x2="=@head.x + -3.70 * $sx" y2="=@head.y + -6.41 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -0.00 * $sx" y1="=@head.y + -3.00 * $sy" x2="=@head.x + -0.00 * $sx" y2="=@head.y + -7.40 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 1.50 * $sx" y1="=@head.y + -2.60 * $sy" x2="=@head.x + 3.70 * $sx" y2="=@head.y + -6.41 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 2.60 * $sx" y1="=@head.y + -1.50 * $sy" x2="=@head.x + 6.41 * $sx" y2="=@head.y + -3.70 * $sy" radius=1.2 paint="petal.4" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 3.25 * $sx" y1="=@head.y + 1.00 * $sy" x2="=@head.x + 5.35 * $sx" y2="=@head.y + 1.65 * $sy" radius=0.9 paint="petal.5" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 0.75 * $sx" y1="=@head.y + 3.32 * $sy" x2="=@head.x + 1.24 * $sx" y2="=@head.y + 5.46 * $sy" radius=0.9 paint="petal.5" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -2.49 * $sx" y1="=@head.y + 2.31 * $sy" x2="=@head.x + -4.11 * $sx" y2="=@head.y + 3.81 * $sy" radius=0.9 paint="petal.5" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -3.25 * $sx" y1="=@head.y + -1.00 * $sy" x2="=@head.x + -5.35 * $sx" y2="=@head.y + -1.65 * $sy" radius=0.9 paint="petal.5" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + -0.75 * $sx" y1="=@head.y + -3.32 * $sy" x2="=@head.x + -1.24 * $sx" y2="=@head.y + -5.46 * $sy" radius=0.9 paint="petal.5" texture=0.4 texture-scale=1
-    capsule x1="=@head.x + 2.49 * $sx" y1="=@head.y + -2.31 * $sy" x2="=@head.x + 4.11 * $sx" y2="=@head.y + -3.81 * $sy" radius=0.9 paint="petal.5" texture=0.4 texture-scale=1
-    ellipse x="=@head.x - 4.2 * $sx" y="=@head.y - 4.2 * $sy" width="=8.4 * $sx" height="=8.4 * $sy" paint="seed.2" shading="dome" outline="selective" texture=0.6 texture-scale=1
-    ellipse x="=@head.x - 2.2 * $sx" y="=@head.y - 2.2 * $sy" width="=4.4 * $sx" height="=4.4 * $sy" paint="seed.1" texture=0.5 texture-scale=1
+    group "head" "=1.6 * sin(tau * t / 4)" "=-$tall + 0.5 * sin(tau * t / 4 + 1.2)"
+    rope 0 0 "=@head.x" "=@head.y + 4" sway="=-0.3 * @head.x" width=2 paint=leaf.4
+    sun-leaf "=@head.x * 0.4" "=-$tall * 0.42" 5 "0,0 2,-4 6,-6.5 11,-6 15,-2 11,2 5,2.5"
+    sun-leaf "=@head.x * 0.25" "=-$tall * 0.22" 4 "0,0 -2,-4 -6,-6 -11,-5.5 -15,-1 -10,2.5 -4,2.5"
+    sun-petal 2.90 0.78 8.31 2.23 1.4 2
+    sun-petal 2.12 2.12 6.08 6.08 1.4 2
+    sun-petal 0.78 2.90 2.23 8.31 1.4 2
+    sun-petal -0.78 2.90 -2.23 8.31 1.4 2
+    sun-petal -2.12 2.12 -6.08 6.08 1.4 2
+    sun-petal -2.90 0.78 -8.31 2.23 1.4 2
+    sun-petal -2.90 -0.78 -8.31 -2.23 1.4 2
+    sun-petal -2.12 -2.12 -6.08 -6.08 1.4 2
+    sun-petal -0.78 -2.90 -2.23 -8.31 1.4 2
+    sun-petal 0.78 -2.90 2.23 -8.31 1.4 2
+    sun-petal 2.12 -2.12 6.08 -6.08 1.4 2
+    sun-petal 2.90 -0.78 8.31 -2.23 1.4 2
+    sun-petal 3.00 0.00 7.40 0.00 1.2 4
+    sun-petal 2.60 1.50 6.41 3.70 1.2 4
+    sun-petal 1.50 2.60 3.70 6.41 1.2 4
+    sun-petal 0.00 3.00 0.00 7.40 1.2 4
+    sun-petal -1.50 2.60 -3.70 6.41 1.2 4
+    sun-petal -2.60 1.50 -6.41 3.70 1.2 4
+    sun-petal -3.00 0.00 -7.40 0.00 1.2 4
+    sun-petal -2.60 -1.50 -6.41 -3.70 1.2 4
+    sun-petal -1.50 -2.60 -3.70 -6.41 1.2 4
+    sun-petal -0.00 -3.00 -0.00 -7.40 1.2 4
+    sun-petal 1.50 -2.60 3.70 -6.41 1.2 4
+    sun-petal 2.60 -1.50 6.41 -3.70 1.2 4
+    sun-petal 3.25 1.00 5.35 1.65 0.9 5
+    sun-petal 0.75 3.32 1.24 5.46 0.9 5
+    sun-petal -2.49 2.31 -4.11 3.81 0.9 5
+    sun-petal -3.25 -1.00 -5.35 -1.65 0.9 5
+    sun-petal -0.75 -3.32 -1.24 -5.46 0.9 5
+    sun-petal 2.49 -2.31 4.11 -3.81 0.9 5
+    ellipse "=@head.x - 4.2 * $sx" "=@head.y - 4.2 * $sy" "=8.4 * $sx" "=8.4 * $sy" paint=seed.2 shading=dome outline=selective texture=0.6 texture-scale=1
+    ellipse "=@head.x - 2.2 * $sx" "=@head.y - 2.2 * $sy" "=4.4 * $sx" "=4.4 * $sy" paint=seed.1 texture=0.5 texture-scale=1
 }
 
-scene "far-sunflower" palette="sunflower" width=12 height=12 fps=12 duration="4s" loop=#true background="leaf.1" {
-    camera x=-6 y=-9
-    group "head" x="=0.7 * sin(tau * t / 4)" y=-3
-    line x1=0 y1=0 x2="=@head.x" y2=-3 paint="leaf.3"
-    ellipse x="=@head.x - 3" y="=@head.y - 2.2" width=6 height=4.4 paint="petal.3" texture=0.6 texture-scale=1
-    ellipse x="=@head.x - 1.2" y="=@head.y - 1" width=2.4 height=2 paint="seed.1"
+scene "far-sunflower" palette=sunflower width=12 height=12 fps=12 duration="4s" loop=#true background=leaf.1 {
+    camera -6 -9
+    group "head" "=0.7 * sin(tau * t / 4)" -3
+    line 0 0 "=@head.x" -3 paint=leaf.3
+    ellipse "=@head.x - 3" "=@head.y - 2.2" 6 4.4 paint=petal.3 texture=0.6 texture-scale=1
+    ellipse "=@head.x - 1.2" "=@head.y - 1" 2.4 2 paint=seed.1
 }
 
-scene "leaf-clump" palette="sunflower" width=44 height=24 fps=12 duration="4s" loop=#true background="leaf.1" {
-    camera x=-22 y=-18
-    group "sway" x="=0.8 * sin(tau * t / 4)"
-    polygon x="=@sway.x * 0.5" y=-2 points="0,0 -3,-5 -9,-8 -16,-7 -20,-3 -13,1 -5,1" paint="leaf.3" shading="dome" outline="selective" texture=0.3 texture-scale=1
-    polygon x="=@sway.x * 0.5" y=-3 points="0,0 3,-5 9,-8 16,-7 20,-2 13,1 5,1" paint="leaf.4" shading="dome" outline="selective" texture=0.3 texture-scale=1
-    polygon x="=@sway.x" y=-6 points="0,0 -4,-4 -6,-9 -4,-13 1,-14 4,-10 3,-4" paint="leaf.5" shading="dome" outline="selective" texture=0.3 texture-scale=1
-    polygon x="=@sway.x * 0.8" y=-1 points="0,0 5,-3 11,-3 15,0 11,3 5,3" paint="leaf.6" shading="dome" outline="selective" texture=0.3 texture-scale=1
+scene "leaf-clump" palette=sunflower width=44 height=24 fps=12 duration="4s" loop=#true background=leaf.1 {
+    camera -22 -18
+    group "sway" "=0.8 * sin(tau * t / 4)"
+    sun-leaf "=@sway.x * 0.5" -2 3 "0,0 -3,-5 -9,-8 -16,-7 -20,-3 -13,1 -5,1"
+    sun-leaf "=@sway.x * 0.5" -3 4 "0,0 3,-5 9,-8 16,-7 20,-2 13,1 5,1"
+    sun-leaf "=@sway.x" -6 5 "0,0 -4,-4 -6,-9 -4,-13 1,-14 4,-10 3,-4"
+    sun-leaf "=@sway.x * 0.8" -1 6 "0,0 5,-3 11,-3 15,0 11,3 5,3"
 }

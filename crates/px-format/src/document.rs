@@ -7,6 +7,7 @@ use px_director::Sequence;
 use px_engine::{Detail, Scene};
 
 use crate::diagnostic::{Diagnostic, Diagnostics, LoadError, Severity};
+use crate::expand::MotifSignature;
 use crate::font::{self, DEFAULT_FONT, Fonts};
 use crate::library::Library;
 use crate::palette::NamedPalette;
@@ -26,6 +27,7 @@ pub struct Loaded {
     pub timeline: Timeline,
     pub origins: Vec<Origin>,
     pub paint_names: PaintNames,
+    pub motifs: Vec<MotifSignature>,
 }
 
 #[derive(Debug)]
@@ -92,7 +94,7 @@ pub fn load_work(
     let built = catalog
         .select(options.scene, &mut diags)
         .and_then(|target| build(target, &catalog, options, &mut diags));
-    let files = library.files;
+    let Library { files, motifs, .. } = library;
     match (diags.finish(), built) {
         (Ok(warnings), Some(Built::Scene(built))) => Ok(Work::Scene(Box::new(Loaded {
             scene: built.scene,
@@ -101,6 +103,7 @@ pub fn load_work(
             timeline: built.timeline,
             origins: built.origins,
             paint_names: built.paint_names,
+            motifs,
         }))),
         (Ok(warnings), Some(Built::Sequence(parsed))) => Ok(Work::Sequence(LoadedSequence {
             sequence: parsed.sequence,
@@ -222,8 +225,8 @@ impl<'l> Catalog<'l> {
             other => diags.error(
                 offset,
                 format!(
-                    "unknown top-level node `{other}` (expected `use`, `palette`, `font`, `scene` or `sequence`).{}",
-                    suggest::did_you_mean(other, ["use", "palette", "font", "scene", "sequence"])
+                    "unknown top-level node `{other}` (expected `use`, `palette`, `font`, `motif`, `scene` or `sequence`).{}",
+                    suggest::did_you_mean(other, ["use", "palette", "font", "motif", "scene", "sequence"])
                 ),
             ),
         }

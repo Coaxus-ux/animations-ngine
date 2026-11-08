@@ -9,45 +9,42 @@ palette "sunset" {
     ramp "ink"  "#07040c"
 }
 
-scene "sunset-walk" palette="sunset" width=128 height=72 fps=12 duration="2s" loop=#true seed=3 background="sky.hi" {
+scene "sunset-walk" palette=sunset width=128 height=72 fps=12 duration="2s" loop=#true seed=3 background=sky.hi {
     param stride 4 min=1 max=6
 
     // Sky bands, darkest at the top
-    rect x=0 y=0  width="100%" height=10 paint="sky.deep"
-    rect x=0 y=10 width="100%" height=9  paint="sky.shade"
-    rect x=0 y=19 width="100%" height=10 paint="sky.base"
-    rect x=0 y=29 width="100%" height=9  paint="sky.lit"
+    rect 0 0 "100%" 10 paint=sky.deep
+    rect 0 10 "100%" 9 paint=sky.shade
+    rect 0 19 "100%" 10 paint=sky.base
+    rect 0 29 "100%" 9 paint=sky.lit
 
     // Sun with a soft glow, sinking behind the hills
-    ellipse "glow" x=82 y=24 width=34 height=34 paint="sun.base"
-    ellipse "sun" x="=@glow.x + 7" y="=@glow.y + 7" width=20 height=20 paint="sun.hi"
+    ellipse "glow" 82 24 34 34 paint=sun.base
+    ellipse "sun" "=@glow.x + 7" "=@glow.y + 7" 20 20 paint=sun.hi
 
     // Two birds gliding
-    line "bird" x1="=24 + wiggle(4, 0.5)" y1="=14 + wiggle(2, 0.5)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + square(t * 2)" paint="land.shade"
-    line x1="=@bird.x2" y1="=@bird.y2" x2="=@bird.x1 + 4" y2="=@bird.y1" paint="land.shade"
-    line "bird2" x1="=52 + wiggle(3, 0.4)" y1="=9 + wiggle(2, 0.6)" x2="=@self.x1 + 2" y2="=@self.y1 + 1 + square(t * 2 + 0.5)" paint="land.shade"
-    line x1="=@bird2.x2" y1="=@bird2.y2" x2="=@bird2.x1 + 4" y2="=@bird2.y1" paint="land.shade"
+    line "bird" "=24 + wiggle(4, 0.5)" "=14 + wiggle(2, 0.5)" "=@self.x1 + 2" "=@self.y1 + 1 + square(t * 2)" paint=land.shade
+    line "=@bird.x2" "=@bird.y2" "=@bird.x1 + 4" "=@bird.y1" paint=land.shade
+    line "bird2" "=52 + wiggle(3, 0.4)" "=9 + wiggle(2, 0.6)" "=@self.x1 + 2" "=@self.y1 + 1 + square(t * 2 + 0.5)" paint=land.shade
+    line "=@bird2.x2" "=@bird2.y2" "=@bird2.x1 + 4" "=@bird2.y1" paint=land.shade
 
     // Hills on both sides, leaving open sky behind the walker
-    ellipse x=-34 y=42 width=56 height=20 paint="land.shade"
-    ellipse x=60  y=44 width=96 height=18 paint="land.base"
-    rect x=0 y=52 width="100%" height=20 paint="land.deep"
-    rect "road" x=0 y=56 width="100%" height=10 paint="road.base"
+    ellipse -34 42 56 20 paint=land.shade
+    ellipse 60 44 96 18 paint=land.base
+    rect 0 52 "100%" 20 paint=land.deep
+    rect "road" 0 56 "100%" 10 paint=road.base
 
     // Road dashes scroll left, so the walker moves toward the sun
-    rect x="=mod(0 - t * 32, 128) - 8"  y=61 width=10 height=1 paint="road.hi"
-    rect x="=mod(32 - t * 32, 128) - 8" y=61 width=10 height=1 paint="road.hi"
-    rect x="=mod(64 - t * 32, 128) - 8" y=61 width=10 height=1 paint="road.hi"
-    rect x="=mod(96 - t * 32, 128) - 8" y=61 width=10 height=1 paint="road.hi"
+    rect "=mod($k * 32 - t * 32, 128) - 8" 61 10 1 paint=road.hi repeat=4
 
     // The walker: one step every half second, body bobbing up as the legs pass
-    ellipse x=33 y=62 width=16 height=3 paint="road.deep"
-    line "back-arm" x1=40 y1="=@torso.y + 1" x2="=40 + 3 * sin(tau * t)" y2="=@torso.y + 7" paint="ink"
-    line "back-leg" x1=40 y1="=@torso.y + 10" x2="=40 - $stride * sin(tau * t)" y2="=63 - 2 * max(0, -cos(tau * t))" paint="ink"
-    line x1="=@back-leg.x1 + 1" y1="=@back-leg.y1" x2="=@back-leg.x2 + 1" y2="=@back-leg.y2" paint="ink"
-    rect "torso" x=38 y="=43 - abs(cos(tau * t))" width=4 height=10 paint="ink"
-    ellipse x=37 y="=@torso.y - 6" width=6 height=6 paint="ink"
-    line "front-leg" x1=40 y1="=@torso.y + 10" x2="=40 + $stride * sin(tau * t)" y2="=63 - 2 * max(0, cos(tau * t))" paint="ink"
-    line x1="=@front-leg.x1 + 1" y1="=@front-leg.y1" x2="=@front-leg.x2 + 1" y2="=@front-leg.y2" paint="ink"
-    line x1=41 y1="=@torso.y + 1" x2="=41 - 3 * sin(tau * t)" y2="=@torso.y + 7" paint="ink"
+    ellipse 33 62 16 3 paint=road.deep
+    line "back-arm" 40 "=@torso.y + 1" "=40 + 3 * sin(tau * t)" "=@torso.y + 7" paint=ink
+    line "back-leg" 40 "=@torso.y + 10" "=40 - $stride * sin(tau * t)" "=63 - 2 * max(0, -cos(tau * t))" paint=ink
+    line "=@back-leg.x1 + 1" "=@back-leg.y1" "=@back-leg.x2 + 1" "=@back-leg.y2" paint=ink
+    rect "torso" 38 "=43 - abs(cos(tau * t))" 4 10 paint=ink
+    ellipse 37 "=@torso.y - 6" 6 6 paint=ink
+    line "front-leg" 40 "=@torso.y + 10" "=40 + $stride * sin(tau * t)" "=63 - 2 * max(0, cos(tau * t))" paint=ink
+    line "=@front-leg.x1 + 1" "=@front-leg.y1" "=@front-leg.x2 + 1" "=@front-leg.y2" paint=ink
+    line 41 "=@torso.y + 1" "=41 - 3 * sin(tau * t)" "=@torso.y + 7" paint=ink
 }

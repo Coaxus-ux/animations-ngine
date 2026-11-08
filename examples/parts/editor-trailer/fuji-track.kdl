@@ -4,32 +4,26 @@
 
 use "panel-parts.kdl"
 
-scene "fuji-track" palette="editor" width=768 height=60 fps=12 duration="1s" loop=#true background="ui-panel" {
-    rect x=225 y=290 width=1 height=9 paint="ui-accent-hi"
-    text "afternoon" x=227 y=290 paint="ui-ink-hi"
-    rect x=417 y=290 width=1 height=9 paint="ui-accent-hi"
-    text "golden" x=419 y=290 paint="ui-ink-hi"
-    rect x=561 y=290 width=1 height=9 paint="ui-accent-hi"
-    text "sunset" x=563 y=290 paint="ui-ink-hi"
-    rect x=681 y=290 width=1 height=9 paint="ui-accent-hi"
-    text "dusk" x=683 y=290 paint="ui-ink-hi"
-    rect x=801 y=290 width=1 height=9 paint="ui-accent-hi"
-    text "night" x=803 y=290 paint="ui-ink-hi"
-    rect x=849 y=290 width=1 height=9 paint="ui-accent-hi"
-    text "wish" x=851 y=290 paint="ui-ink-hi"
-    use-scene "key" x=227 y=302
-    use-scene "key" x=419 y=302
-    use-scene "key" x=563 y=312
-    use-scene "key" x=683 y=312
-    use-scene "key" x=683 y=322
-    use-scene "key" x=803 y=322
-    use-scene "key" x=227 y=332
-    use-scene "key" x=323 y=332
-    use-scene "key" x=419 y=332
-    use-scene "key" x=563 y=332
-    use-scene "key" x=640 y=332
-    use-scene "key" x=683 y=332
-    use-scene "key" x=731 y=332
-    use-scene "key" x=179 y=342
-    use-scene "key" x=683 y=342
+motif ed-marker x name { rect $x 290 1 9 paint=ui-accent-hi; ed-text $name "=$x+2" 290 }
+
+scene "fuji-track" palette=editor width=768 height=60 fps=12 duration="1s" loop=#true background=ui-panel {
+    ed-marker 225 afternoon
+    ed-marker 417 golden
+    ed-marker 561 sunset
+    ed-marker 681 dusk
+    ed-marker 801 night
+    ed-marker 849 wish
+    use-scene "key" 227 302
+    use-scene "key" 419 302
+    use-scene "key" 563 312
+    use-scene "key" 683 312
+    use-scene "key" 683 322
+    use-scene "key" 803 322
+    use-scene "key" "=227 + $k*96" 332 repeat=3
+    use-scene "key" 563 332
+    use-scene "key" 640 332
+    use-scene "key" 683 332
+    use-scene "key" 731 332
+    use-scene "key" 179 342
+    use-scene "key" 683 342
 }

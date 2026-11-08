@@ -4,17 +4,17 @@
 use "../trailer/logo.kdl"
 use "../trailer/card.kdl"
 
-scene "logo-wide" palette="studio" width=640 height=360 fps=12 duration="4s" seed=3 background="ink.deep" {
+scene "logo-wide" palette=studio width=640 height=360 fps=12 duration="4s" seed=3 background=ink.deep {
     param tagline "pixel art, written as code"
     param note ""
 
-    use-scene "logo" scale=2 tagline="$tagline" note="$note"
+    use-scene "logo" scale=2 tagline=$tagline note=$note
 }
 
-scene "card-wide" palette="studio" width=640 height=360 fps=12 duration="2s" seed=8 background="ink.deep" {
+scene "card-wide" palette=studio width=640 height=360 fps=12 duration="2s" seed=8 background=ink.deep {
     param title "TITLE"
     param kicker "KICKER"
     param accent "teal"
 
-    use-scene "card" scale=2 title="$title" kicker="$kicker" accent="$accent"
+    use-scene "card" scale=2 title=$title kicker=$kicker accent=$accent
 }

@@ -8,12 +8,20 @@ use "../../sunflower-field.kdl"
 use "chrome.kdl"
 use "swatches.kdl"
 
+// A code row under the new line: it drops one row when Enter lands at 1.3 s.
+motif ed-code-below y x words paint=ui-ink-hi { text $words $x "=$y + 11 * step(1.3, t)" paint=$paint }
+motif ed-use-row y name at tail {
+    ed-code-below $y 347 "use-scene "
+    ed-code-below $y 404 "\"$name\"" paint=ui-accent-hi
+    ed-code-below $y $at $tail
+}
+
 palette "sunflowers-in-editor" {
     include "sunflower"
     include "editor"
 }
 
-scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360 fps=12 duration="10s" seed=11 background="ui-bar" {
+scene "in-editor-sunflowers" palette=sunflowers-in-editor width=640 height=360 fps=12 duration="10s" seed=11 background=ui-bar {
     timeline {
         marker "click" at="1s"
         marker "enter" at="1.3s"
@@ -26,15 +34,15 @@ scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360
     group "mouse" {
         anim x {
             k "0s" 230
-            k "click" 337 interp="ease-in-out"
+            k "click" 337 interp=ease-in-out
             k "2.6s" 337
-            k "3.6s" 236 interp="ease-in-out"
+            k "3.6s" 236 interp=ease-in-out
         }
         anim y {
             k "0s" 210
-            k "click" 127 interp="ease-in-out"
+            k "click" 127 interp=ease-in-out
             k "2.6s" 127
-            k "3.6s" 168 interp="ease-in-out"
+            k "3.6s" 168 interp=ease-in-out
         }
     }
     group "caret" {
@@ -72,12 +80,7 @@ scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360
             k "1.3s" 133
         }
     }
-    group "dive" {
-        anim x {
-            k "dive" 0
-            k "full" 1 interp="ease-in-out"
-        }
-    }
+    ed-dive
     ambient {
         anim darkness {
             k "0s" 0
@@ -86,123 +89,86 @@ scene "in-editor-sunflowers" palette="sunflowers-in-editor" width=640 height=360
         }
     }
 
-    use-scene "editor-chrome" file="sunflower-field.kdl" tab=118 status="160x224 | zoom 100% | color sky.7" help=226
+    use-scene "editor-chrome" file=sunflower-field.kdl tab=118 status="160x224 | zoom 100% | color sky.7" help=226
 
-    text "sky\ndawn\ncloud\ntree\nleaf\npetal\nseed\nink" x=2 y=72 paint="ui-ink"
-    use-scene "swatches-8" x=36 y=72 ramp="sky"
-    use-scene "swatches-6" x=36 y=83 ramp="dawn"
-    use-scene "swatches-8" x=36 y=94 ramp="cloud"
-    use-scene "swatches-4" x=36 y=105 ramp="tree"
-    use-scene "swatches-8" x=36 y=116 ramp="leaf"
-    use-scene "swatches-7" x=36 y=127 ramp="petal"
-    use-scene "swatches-5" x=36 y=138 ramp="seed"
-    use-scene "swatches-1" x=36 y=149 ramp="ink"
-    rect x=105 y=71 width=11 height=11 paint="ui-accent-hi"
-    rect x=106 y=72 width=9 height=9 paint="sky.7" emissive=#true
-    rect x=4 y=311 width=16 height=16 paint="ui-ink-hi"
-    rect x=5 y=312 width=14 height=14 paint="sky.7" emissive=#true
-    rect x=9 y=327 width=16 height=16 paint="ui-ink-hi"
-    rect x=10 y=328 width=14 height=14 paint="ui-grid"
+    text "sky\ndawn\ncloud\ntree\nleaf\npetal\nseed\nink" 2 72 paint=ui-ink
+    ed-ramp 36 72 8 sky
+    ed-ramp 36 83 6 dawn
+    ed-ramp 36 94 8 cloud
+    ed-ramp 36 105 4 tree
+    ed-ramp 36 116 8 leaf
+    ed-ramp 36 127 7 petal
+    ed-ramp 36 138 5 seed
+    ed-ramp 36 149 1 ink
+    rect 105 71 11 11 paint=ui-accent-hi
+    rect 106 72 9 9 paint=sky.7 emissive=#true
+    ed-colors paint=sky.7
 
-    group x=131 y=45 width=160 height=207 clip=#true {
-        use-scene "sunflower-field" x=131 y=37
+    group 131 45 160 207 clip=#true {
+        use-scene "sunflower-field" 131 37
     }
-    rect x=291 y=45 width=2 height=207 paint="ui-bar"
-    rect x=293 y=45 width=20 height=207 paint="ui-bar"
-    rect x=313 y=45 width=170 height=207 paint="ui-field"
-    group x=293 y=45 width=190 height=207 clip=#true {
-        text "15" x=294 y=46 paint="ui-ink"
-        text "16" x=294 y=57 paint="ui-ink"
-        text "17" x=294 y=68 paint="ui-ink"
-        text "18" x=294 y=79 paint="ui-ink"
-        text "19" x=294 y=90 paint="ui-ink"
-        text "20" x=294 y=101 paint="ui-ink"
-        text "21" x=294 y=112 paint="ui-ink"
-        text "22" x=294 y=123 paint="ui-ink"
-        text "23" x=294 y=134 paint="ui-ink"
-        text "24" x=294 y=145 paint="ui-ink"
-        text "25" x=294 y=156 paint="ui-ink"
-        text "26" x=294 y=167 paint="ui-ink"
-        text "27" x=294 y=178 paint="ui-ink"
-        text "28" x=294 y=189 paint="ui-ink"
-        text "29" x=294 y=200 paint="ui-ink"
-        text "30" x=294 y=211 paint="ui-ink"
-        text "31" x=294 y=222 paint="ui-ink"
-        text "32" x=294 y=233 paint="ui-ink"
-        text "scene " x=315 y=46 paint="ui-ink-hi"
-        text "\"sunflower-field\"" x=349 y=46 paint="ui-accent-hi"
-        text " palette=" x=434 y=46 paint="ui-ink-hi"
-        text "\"sunflower\"" x=481 y=46 paint="ui-accent-hi"
-        text "layer " x=331 y=57 paint="ui-ink-hi"
-        text "\"sky\"" x=362 y=57 paint="ui-accent-hi"
-        text " {" x=387 y=57 paint="ui-ink-hi"
-        text "use-scene " x=347 y=68 paint="ui-ink-hi"
-        text "\"dusk-band\"" x=404 y=68 paint="ui-accent-hi"
-        text " count=29 x=-8 y=" x=464 y=68 paint="ui-ink-hi"
-        text "ellipse x=-50 y=118 width=260 height=48 paint=" x=347 y=79 paint="ui-ink-hi"
-        text "ellipse x=-30 y=130 width=220 height=30 paint=" x=347 y=90 paint="ui-ink-hi"
-        text "ellipse x=-10 y=139 width=180 height=16 paint=" x=347 y=101 paint="ui-ink-hi"
-        text "rect x=0 y=145 width=160 height=4 paint=" x=347 y=112 paint="ui-ink-hi"
-        text "}" x=331 y=123 paint="ui-ink-hi"
-        text "layer " x=331 y="=134 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"clouds\"" x=362 y="=134 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " {" x=403 y="=134 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "use-scene " x=347 y="=145 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-bank\"" x=404 y="=145 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " x=" x=467 y="=145 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"=-24 + osc(16s, -3, 3)\"" x=483 y="=145 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text "use-scene " x=347 y="=156 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-heap\"" x=404 y="=156 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " flip=#true x=" x=468 y="=156 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "use-scene " x=347 y="=167 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-wisp\"" x=404 y="=167 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " x=" x=464 y="=167 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"=56 + osc(16s, -2, 2)\"" x=480 y="=167 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text "use-scene " x=347 y="=178 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-bank\"" x=404 y="=178 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " flip=#true x=" x=467 y="=178 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "use-scene " x=347 y="=189 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-wisp\"" x=404 y="=189 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " x=" x=464 y="=189 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"=-6 + osc(16s, 2, -2)\"" x=480 y="=189 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text "use-scene " x=347 y="=200 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-streak\"" x=404 y="=200 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " x=" x=478 y="=200 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "use-scene " x=347 y="=211 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-streak\"" x=404 y="=211 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " x=" x=478 y="=211 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "use-scene " x=347 y="=222 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"cloud-heap\"" x=404 y="=222 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text " x=" x=468 y="=222 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "\"=92 + osc(16s, -2, 2)\"" x=484 y="=222 + 11 * step(1.3, t)" paint="ui-accent-hi"
-        text "}" x=331 y="=233 + 11 * step(1.3, t)" paint="ui-ink-hi"
-        text "ambient darkness=2" x=331 y=134 paint="ui-ink-hi" reveal="=(t - 1.45) * 18 - 4"
-        rect x="=@caret.x" y="=@caret.y" width=1 height=11 paint="ui-accent-hi" visible="=t >= 1 && t < 6.6 && (t < 2.9 || mod(floor(t * 2), 2) < 1)"
+    rect 291 45 2 207 paint=ui-bar
+    rect 293 45 20 207 paint=ui-bar
+    rect 313 45 170 207 paint=ui-field
+    group 293 45 190 207 clip=#true {
+        text "15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32" 294 46 paint=ui-ink
+        ed-text "scene " 315 46
+        text "\"sunflower-field\"" 349 46 paint=ui-accent-hi
+        ed-text " palette=" 434 46
+        text "\"sunflower\"" 481 46 paint=ui-accent-hi
+        ed-text "layer " 331 57
+        text "\"sky\"" 362 57 paint=ui-accent-hi
+        ed-text " {" 387 57
+        ed-text "use-scene " 347 68
+        text "\"dusk-band\"" 404 68 paint=ui-accent-hi
+        ed-text " count=29 x=-8 y=" 464 68
+        ed-text "ellipse x=-50 y=118 width=260 height=48 paint=" 347 79
+        ed-text "ellipse x=-30 y=130 width=220 height=30 paint=" 347 90
+        ed-text "ellipse x=-10 y=139 width=180 height=16 paint=" 347 101
+        ed-text "rect x=0 y=145 width=160 height=4 paint=" 347 112
+        ed-text "}" 331 123
+        ed-code-below 134 331 "layer "
+        ed-code-below 134 362 "\"clouds\"" paint=ui-accent-hi
+        ed-code-below 134 403 " {"
+        ed-use-row 145 cloud-bank 467 " x="
+        ed-code-below 145 483 "\"=-24 + osc(16s, -3, 3)\"" paint=ui-accent-hi
+        ed-use-row 156 cloud-heap 468 " flip=#true x="
+        ed-use-row 167 cloud-wisp 464 " x="
+        ed-code-below 167 480 "\"=56 + osc(16s, -2, 2)\"" paint=ui-accent-hi
+        ed-use-row 178 cloud-bank 467 " flip=#true x="
+        ed-use-row 189 cloud-wisp 464 " x="
+        ed-code-below 189 480 "\"=-6 + osc(16s, 2, -2)\"" paint=ui-accent-hi
+        ed-use-row 200 cloud-streak 478 " x="
+        ed-use-row 211 cloud-streak 478 " x="
+        ed-use-row 222 cloud-heap 468 " x="
+        ed-code-below 222 484 "\"=92 + osc(16s, -2, 2)\"" paint=ui-accent-hi
+        ed-code-below 233 331 "}"
+        text "ambient darkness=2" 331 134 paint=ui-ink-hi reveal="=(t - 1.45) * 18 - 4"
+        rect "=@caret.x" "=@caret.y" 1 11 paint=ui-accent-hi visible="=t >= 1 && t < 6.6 && (t < 2.9 || mod(floor(t * 2), 2) < 1)"
     }
 
-    group x=487 y=45 width=121 height=300 clip=#true {
-        use-scene "eye" count=5 x=489 y="=58 + 11 * i"
-        text "air (shapes)\nnear-field (shapes)\nfar-field (shapes)\nhorizon (shapes)\nclouds (shapes)" x=514 y=58 paint="ui-ink"
-        rect x=488 y=158 width=118 height=11 paint="ui-accent"
-        use-scene "file-icon" x=489 y=159
-        text "scene \"sunflower-field\"" x=502 y=159 paint="ui-ink-hi"
-        use-scene "eye" x=495 y=170
-        text "layer \"sky\"" x=508 y=170 paint="ui-ink-hi"
-        use-scene "file-icon" x=501 y=181
-        text "use-scene \"dusk-band\"" x=514 y=181 paint="ui-ink-hi"
-        text "* ellipse\n* ellipse\n* ellipse\n* rect" x=503 y=192 paint="ui-ink-hi"
-        text "scene \"sunflower-field\"" x=492 y=261 paint="ui-ink-hi"
-        use-scene "inspector-field" count=6 x=546 y="=272 + 12 * i"
-        text "palette\nwidth\nheight\nfps\nduration\nloop" x=492 y=273 paint="ui-ink"
-        text "sunflower\n160\n224\n12\n16s\nyes" x=549 y=273 paint="ui-ink-hi"
+    group 487 45 121 300 clip=#true {
+        use-scene "eye" 489 "=58 + 11 * i" count=5
+        text "air (shapes)\nnear-field (shapes)\nfar-field (shapes)\nhorizon (shapes)\nclouds (shapes)" 514 58 paint=ui-ink
+        rect 488 158 118 11 paint=ui-accent
+        use-scene "file-icon" 489 159
+        ed-text "scene \"sunflower-field\"" 502 159
+        use-scene "eye" 495 170
+        ed-text "layer \"sky\"" 508 170
+        use-scene "file-icon" 501 181
+        ed-text "use-scene \"dusk-band\"" 514 181
+        ed-text "* ellipse\n* ellipse\n* ellipse\n* rect" 503 192
+        ed-text "scene \"sunflower-field\"" 492 261
+        use-scene "inspector-field" 546 "=272 + 12 * i" count=6
+        ed-fields "palette\nwidth\nheight\nfps\nduration\nloop" "sunflower\n160\n224\n12\n16s\nyes"
     }
 
-    use-scene "ruler" x=132 y=278
-    rect x="=177 + 4 * floor(mod(t * 12, 72))" y=288 width=4 height=58 paint="ui-raised"
-    rect x="=177 + 4 * floor(mod(t * 12, 72))" y=278 width=1 height=10 paint="ui-accent"
+    use-scene "ruler" 132 278
+    rect "=177 + 4 * floor(mod(t * 12, 72))" 288 4 58 paint=ui-raised
+    rect "=177 + 4 * floor(mod(t * 12, 72))" 278 1 10 paint=ui-accent
 
-    use-scene "click" x=337 y=127 start="click" end="1.25s"
-    use-scene "pointer" x="=@mouse.x" y="=@mouse.y" end="dive"
+    use-scene "click" 337 127 start=click end="1.25s"
+    use-scene "pointer" "=@mouse.x" "=@mouse.y" end=dive
 
-    camera x="=(211 - 320) * @dive.x" y="=(148.5 - 180) * @dive.x" zoom="=1 + 0.74 * @dive.x"
+    camera "=(211 - 320) * @dive.x" "=(148.5 - 180) * @dive.x" zoom="=1 + 0.74 * @dive.x"
 }

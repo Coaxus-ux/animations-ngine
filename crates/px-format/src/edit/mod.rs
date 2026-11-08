@@ -5,7 +5,7 @@ use std::fmt;
 
 use kdl::{KdlDocument, KdlError, KdlNode, KdlValue};
 
-pub use path::{NodePath, Step, children_of, id_of};
+pub use path::{NodePath, Step, children_of, coordinates_of, id_of};
 
 use text::{Lines, Span};
 

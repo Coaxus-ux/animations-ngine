@@ -2,6 +2,7 @@ use px_ui::{Input, Ui, present, present_top};
 
 use super::window::WindowKind;
 use super::{App, WindowId, shortcuts};
+use crate::domain::Document;
 use crate::ports::FileStore;
 use crate::views::{self, Context};
 
@@ -25,6 +26,7 @@ impl App {
         let tabs = (self.documents.active_index(), self.documents.len());
         shortcuts::collect(input, (typing, navigating), modal, tabs, &mut intents);
         self.tick(input.time_ms);
+        self.forget_stale_pick();
         if kind == WindowKind::Main
             && input.time_ms % DISK_CHECK_MS < 20
             && let Some(document) = self.document_mut()
@@ -237,5 +239,20 @@ fn to_ui(input: &Input, scale: i32) -> Input {
             input.pointer_anywhere.1.div_euclid(scale),
         ),
         ..input.clone()
+    }
+}
+
+impl App {
+    fn forget_stale_pick(&mut self) {
+        let count = self
+            .document()
+            .and_then(Document::loaded)
+            .map(|loaded| loaded.origins.len());
+        if count.is_some() && count != self.editing.shape_count {
+            if self.editing.shape_count.is_some() {
+                self.editing.picked = None;
+            }
+            self.editing.shape_count = count;
+        }
     }
 }

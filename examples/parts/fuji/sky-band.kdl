@@ -6,14 +6,14 @@
 
 use "fuji-palette.kdl"
 
-scene "sky-band" palette="fuji" width=488 height=5 fps=12 duration="16s" background="sky-day.0" {
+scene "sky-band" palette=fuji width=488 height=5 fps=12 duration="16s" background=sky-day.0 {
     param ramp "sky-day"
     param from -2
     param to -1
     param until 99
     param rows 5
 
-    group "fade" x="=smoothstep($from, $to, t)"
-    rect x=0 y=0 width=488 height="=$rows" paint="$ramp.0" tone-shift="=floor(i / 4)" emissive=#true opacity="=@fade.x" visible="=@fade.x > 0.001 && t < $until"
-    rect x=0 y=0 width=488 height="=$rows" paint="$ramp.0" tone-shift="=min(7, floor(i / 4) + 1)" emissive=#true opacity="=@fade.x * (i % 4) / 4" visible="=@fade.x > 0.001 && t < $until && i % 4 > 0"
+    group "fade" "=smoothstep($from, $to, t)"
+    rect 0 0 488 "=$rows" paint=$ramp.0 tone-shift="=floor(i / 4)" emissive=#true opacity="=@fade.x" visible="=@fade.x > 0.001 && t < $until"
+    rect 0 0 488 "=$rows" paint=$ramp.0 tone-shift="=min(7, floor(i / 4) + 1)" emissive=#true opacity="=@fade.x * (i % 4) / 4" visible="=@fade.x > 0.001 && t < $until && i % 4 > 0"
 }

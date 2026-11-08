@@ -3,24 +3,24 @@
 
 use "fuji-palette.kdl"
 
-scene "far-ridges" palette="fuji" width=480 height=180 fps=12 duration="1s" loop=#true background="sky-day.5" {
-    polygon x=0 y=0 points="-80,128 -80,92 -50,86 -20,90 10,82 40,88 66,84 96,94 130,100 160,108 196,116 230,124 250,128" paint="ridge.4" texture=0.2 texture-scale=3
-    polygon x=0 y=0 points="-80,92 -50,86 -20,90 10,82 40,88 66,84 96,94 130,100 160,108 196,116 230,124 150,118 90,104 50,96 10,92 -40,96" paint="ridge.5" texture=0.15 texture-scale=3
-    polygon x=0 y=0 points="10,82 40,88 66,84 96,94 130,100 108,100 80,94 54,92 30,90" paint="ridge.6"
-    polygon x=0 y=0 points="560,128 560,100 530,96 500,100 470,94 440,98 410,104 384,108 356,114 330,120 300,128" paint="ridge.3" texture=0.2 texture-scale=3
-    polygon x=0 y=0 points="470,94 440,98 410,104 384,108 356,114 330,120 368,116 400,110 430,104 456,100" paint="ridge.5"
-    polygon x=0 y=0 points="560,100 530,96 500,100 470,94 490,102 520,102" paint="ridge.4"
+scene "far-ridges" palette=fuji width=480 height=180 fps=12 duration="1s" loop=#true background=sky-day.5 {
+    polygon points="-80,128 -80,92 -50,86 -20,90 10,82 40,88 66,84 96,94 130,100 160,108 196,116 230,124 250,128" paint=ridge.4 texture=0.2 texture-scale=3
+    polygon points="-80,92 -50,86 -20,90 10,82 40,88 66,84 96,94 130,100 160,108 196,116 230,124 150,118 90,104 50,96 10,92 -40,96" paint=ridge.5 texture=0.15 texture-scale=3
+    polygon points="10,82 40,88 66,84 96,94 130,100 108,100 80,94 54,92 30,90" paint=ridge.6
+    polygon points="560,128 560,100 530,96 500,100 470,94 440,98 410,104 384,108 356,114 330,120 300,128" paint=ridge.3 texture=0.2 texture-scale=3
+    polygon points="470,94 440,98 410,104 384,108 356,114 330,120 368,116 400,110 430,104 456,100" paint=ridge.5
+    polygon points="560,100 530,96 500,100 470,94 490,102 520,102" paint=ridge.4
 }
 
-scene "wooded-hills" palette="fuji" width=480 height=180 fps=12 duration="1s" loop=#true background="sky-day.5" {
-    polygon x=0 y=0 points="-80,132 -80,100 -60,98 -40,102 -20,100 0,104 20,106 44,110 70,114 96,118 120,121 150,124 180,127 200,130 -80,132" paint="forest.2" texture=0.45 texture-scale=2
-    blob x=-60 y=100 circles="0,0,5 10,-2,6 22,0,5 34,1,6 46,2,5 58,4,6 70,6,5 84,9,6 98,12,5 112,14,5 126,17,4 140,19,4 154,21,4 168,24,3 182,25,3 196,27,2" smooth=2 paint="forest.3" texture=0.5 texture-scale=2 shading="dome" outline="selective"
-    blob x=-60 y=108 circles="0,0,6 14,1,6 28,0,7 42,3,6 56,4,6 70,6,6 84,8,5 98,10,5 112,12,5 126,14,4 140,16,4" smooth=3 paint="forest.2" texture=0.5 texture-scale=2 shading="dome"
+scene "wooded-hills" palette=fuji width=480 height=180 fps=12 duration="1s" loop=#true background=sky-day.5 {
+    polygon points="-80,132 -80,100 -60,98 -40,102 -20,100 0,104 20,106 44,110 70,114 96,118 120,121 150,124 180,127 200,130 -80,132" paint=forest.2 texture=0.45 texture-scale=2
+    blob -60 100 circles="0,0,5 10,-2,6 22,0,5 34,1,6 46,2,5 58,4,6 70,6,5 84,9,6 98,12,5 112,14,5 126,17,4 140,19,4 154,21,4 168,24,3 182,25,3 196,27,2" smooth=2 paint=forest.3 texture=0.5 texture-scale=2 shading=dome outline=selective
+    blob -60 108 circles="0,0,6 14,1,6 28,0,7 42,3,6 56,4,6 70,6,6 84,8,5 98,10,5 112,12,5 126,14,4 140,16,4" paint=forest.2 texture=0.5 texture-scale=2 shading=dome
 
-    polygon x=0 y=0 points="560,132 560,96 540,94 520,98 500,96 480,100 460,104 440,108 420,112 400,116 380,120 360,123 340,126 320,129 560,132" paint="forest.2" texture=0.45 texture-scale=2
-    blob x=560 y=96 circles="0,0,5 -12,-1,6 -24,1,5 -36,3,6 -48,5,5 -60,7,6 -72,9,5 -84,12,5 -96,15,5 -108,18,4 -120,21,4 -132,23,4 -144,25,3 -156,27,3 -168,29,2 -180,31,2" smooth=2 paint="forest.3" texture=0.5 texture-scale=2 shading="dome" outline="selective"
-    blob x=560 y=104 circles="0,0,6 -14,2,6 -28,3,6 -42,5,6 -56,7,5 -70,9,5 -84,12,5 -98,15,4 -112,18,4" smooth=3 paint="forest.2" texture=0.5 texture-scale=2 shading="dome"
+    polygon points="560,132 560,96 540,94 520,98 500,96 480,100 460,104 440,108 420,112 400,116 380,120 360,123 340,126 320,129 560,132" paint=forest.2 texture=0.45 texture-scale=2
+    blob 560 96 circles="0,0,5 -12,-1,6 -24,1,5 -36,3,6 -48,5,5 -60,7,6 -72,9,5 -84,12,5 -96,15,5 -108,18,4 -120,21,4 -132,23,4 -144,25,3 -156,27,3 -168,29,2 -180,31,2" smooth=2 paint=forest.3 texture=0.5 texture-scale=2 shading=dome outline=selective
+    blob 560 104 circles="0,0,6 -14,2,6 -28,3,6 -42,5,6 -56,7,5 -70,9,5 -84,12,5 -98,15,4 -112,18,4" paint=forest.2 texture=0.5 texture-scale=2 shading=dome
 
-    polygon x=0 y=0 points="-80,129 -80,125 -69,127 -58,127 -47,125 -36,125 -25,127 -14,126 -3,127 8,124 19,127 30,124 41,126 52,125 63,127 74,125 85,125 96,126 107,127 118,127 129,126 140,126 151,125 162,125 173,125 184,127 195,126 206,124 217,124 228,125 239,127 239,129" paint="forest.1" texture=0.4 texture-scale=1.5
-    polygon x=0 y=0 points="240,129 240,124 251,125 262,124 273,125 284,126 295,127 306,126 317,126 328,126 339,127 350,126 361,125 372,125 383,124 394,124 405,125 416,126 427,125 438,125 449,126 460,125 471,126 482,127 493,126 504,127 515,125 526,127 537,127 548,126 559,127 559,129" paint="forest.1" texture=0.4 texture-scale=1.5
+    polygon points="-80,129 -80,125 -69,127 -58,127 -47,125 -36,125 -25,127 -14,126 -3,127 8,124 19,127 30,124 41,126 52,125 63,127 74,125 85,125 96,126 107,127 118,127 129,126 140,126 151,125 162,125 173,125 184,127 195,126 206,124 217,124 228,125 239,127 239,129" paint=forest.1 texture=0.4 texture-scale=1.5
+    polygon points="240,129 240,124 251,125 262,124 273,125 284,126 295,127 306,126 317,126 328,126 339,127 350,126 361,125 372,125 383,124 394,124 405,125 416,126 427,125 438,125 449,126 460,125 471,126 482,127 493,126 504,127 515,125 526,127 537,127 548,126 559,127 559,129" paint=forest.1 texture=0.4 texture-scale=1.5
 }
