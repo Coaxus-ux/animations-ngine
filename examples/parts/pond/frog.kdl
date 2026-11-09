@@ -1,9 +1,8 @@
-// A small frog seen from above, sitting at (0, 0) and facing up. It breathes, blinks and
-// now and then its throat puffs out. Every 3 s.
+// A small frog seen from above, sitting at (0, 0) and facing up.
 
 use "pond-palette.kdl"
 
-scene "frog" palette=pond width=20 height=20 fps=12 duration="3s" loop=#true background=pad.base {
+scene frog palette=pond width=20 height=20 fps=12 duration="3s" loop=#true background=pad.base {
     camera -10 -10
 
     ellipse -6 1 4 6 paint=frog.shade outline=selective

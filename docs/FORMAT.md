@@ -821,14 +821,14 @@ Every shape takes `paint` (`"ramp"` or `"ramp.tone"`), except `shade`, and the s
 ### A.4 Palette twins
 
 ```kdl
-palette "night" {
-    ramp "wall"      "#0d0b16" "#1b1828" "#2c2840"
-    ramp "wall-warm" "#160c0d" "#2e1814" "#4f2c1e"
-    twin "wall" warm="wall-warm"   // declares the light color `warm`
+palette night {
+    ramp wall "0d0b16 1b1828 2c2840"
+    ramp wall-warm "160c0d 2e1814 4f2c1e"
+    twin wall warm=wall-warm   // declares the light color `warm`
 }
 ```
 
-A twin must have as many tones as its base ramp. Up to 8 light colors per palette.
+A ramp's colors are hex, `#` optional, as one string of space-separated colors or one argument each (`ramp wall "#0d0b16" "#1b1828"`); the editor writes the single string. A twin must have as many tones as its base ramp. Up to 8 light colors per palette.
 
 **Including palettes.** `include "name"` copies another palette's ramps (with their names, in order) and twins into this one, at that spot among its own `ramp` lines; included light colors with the same name become one. A ramp name defined twice is an error, and so are palettes that include each other. A scene of an included palette can be placed in a scene of the including one (A.6), so a host can show a scene in its own colors next to its own:
 
@@ -956,28 +956,4 @@ sequence "trailer" {
 
 ### A.9 Pixel layers (`pixels`)
 
-Hand-painted pixels, usually one per `layer`, drawn alongside shapes and lit like them (D-013). The editor (`pxe edit`, [EDITOR.md](EDITOR.md)) writes these nodes; they are also plain text to edit by hand.
-
-```kdl
-layer "cat" {
-    pixels "cat-art" x=12 y=17 {
-        legend { a "fur.1"; b "fur.2"; e "eye.1" }
-        cel frame=0 """
-        a....a
-        abbbba
-        bebbeb
-        """
-        cel frame=9 x=0 y=2 "bbbbbb"
-    }
-}
-```
-
-| Node | Props |
-|---|---|
-| `pixels "id"` | `x`, `y` (the layer's origin, animatable; 0), `paint` (outline and fallback color; the palette's darkest), every style prop (A.3) |
-| `legend { code "paint" … }` | each code names a paint; codes are 1 or 2 characters, all the same length, never `.` |
-| `cel` | the rows as a string, one code per pixel, `.` (or `..`) for transparent; `frame` (0), `x`, `y` (offset from the layer's origin; 0) |
-
-- A cel shows from its `frame` until the next cel's; in a looping scene the frames wrap with the loop.
-- The editor generates the legend (letters, then two-letter codes past 52 paints) and crops each cel to its painted pixels, so diffs stay small.
-- A layer with a single cel at frame 0 never changes, so the renderer draws it once and copies it (D-011).
+Hand-painted pixels, typed as text grids or loaded from a PNG with `src=`: see [PIXELS.md](PIXELS.md).

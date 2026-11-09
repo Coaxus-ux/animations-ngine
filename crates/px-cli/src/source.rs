@@ -13,7 +13,8 @@ pub(crate) fn load_file(file: &Path, options: LoadOptions<'_>) -> (Result<Loaded
     match px_format::load_file(file, options) {
         Ok(loaded) => {
             print(&loaded.warnings, &loaded.files);
-            let files = paths(&loaded.files);
+            let mut files = paths(&loaded.files);
+            files.extend(loaded.assets.iter().cloned());
             (Ok(loaded), files)
         }
         Err(error) => failed(file, error),

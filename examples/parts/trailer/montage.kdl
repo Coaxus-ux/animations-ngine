@@ -1,5 +1,5 @@
-// The examples, framed for the trailer's montage: each is placed scaled up to the full
-// 320×180 height (re-rasterized, never resampled) between dark bars, in its own palette.
+// The examples, framed for the trailer's montage: each is placed scaled up to the full 320×180
+// height (re-rasterized, never resampled) between dark bars, in its own palette.
 
 use "../../neon-rain.kdl"
 use "../../lighthouse-harbor.kdl"
@@ -14,28 +14,28 @@ motif studio-framed placed paint {
     rect 295 0 25 180 paint=$paint
 }
 
-scene "framed-neon-rain" palette=neon width=320 height=180 fps=12 duration="4s" loop=#true background=sky.shade {
+scene framed-neon-rain palette=neon width=320 height=180 fps=12 duration="4s" loop=#true background=sky.shade {
     studio-framed "neon-rain" paint=sky.deep
 }
 
-scene "framed-lighthouse-harbor" palette=harbor width=320 height=180 fps=12 duration="4s" loop=#true background=sky.base {
+scene framed-lighthouse-harbor palette=harbor width=320 height=180 fps=12 duration="4s" loop=#true background=sky.base {
     studio-framed "lighthouse-harbor" paint=ink
 }
 
-scene "framed-coral-reef" palette=reef width=320 height=180 fps=12 duration="4s" loop=#true background=water.base {
+scene framed-coral-reef palette=reef width=320 height=180 fps=12 duration="4s" loop=#true background=water.base {
     studio-framed "coral-reef" paint=ink
 }
 
-scene "framed-campfire-forest" palette=campfire width=320 height=180 fps=12 duration="2s" loop=#true background=sky.shade {
+scene framed-campfire-forest palette=campfire width=320 height=180 fps=12 duration="2s" loop=#true background=sky.shade {
     studio-framed "campfire-forest" paint=sky.deep
 }
 
-scene "framed-moonlit-beach" palette=moonlit width=320 height=180 fps=12 duration="4s" loop=#true background=sky.base {
+scene framed-moonlit-beach palette=moonlit width=320 height=180 fps=12 duration="4s" loop=#true background=sky.base {
     studio-framed "moonlit-beach" paint=sky.deep
 }
 
-scene "framed-puppy-love" palette=puppy width=320 height=180 fps=12 duration="2s" loop=#true background=sky.lit {
-    use-scene "puppy-love" 47 scale=1.40625
+scene framed-puppy-love palette=puppy width=320 height=180 fps=12 duration="2s" loop=#true background=sky.lit {
+    use-scene puppy-love 47 scale=1.40625
     rect 0 0 47 180 paint=eye.deep
     rect 272 0 48 180 paint=eye.deep
 }

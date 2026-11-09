@@ -1,5 +1,4 @@
 // A firework: ten sparks burst out from (0, 0), droop and fade in 1.5 s, then it is gone.
-// It plays once, so a host decides when with `start` and `end`.
 
 use "festival-palette.kdl"
 
@@ -8,11 +7,10 @@ motif fest-spark dx dy tone {
     rect "=@burst.x * $dx - 1" "=@burst.x * $dy + @burst.y - 1" 2 2 paint=$tone.hi emissive=#true visible="=t < 1.35"
 }
 
-scene "firework" palette=festival width=96 height=96 fps=12 duration="1.5s" background=sky.base {
+scene firework palette=festival width=96 height=96 fps=12 duration="1.5s" background=sky.base {
     camera -48 -48
 
-    // How far the sparks have flown (eased out) and how far they have fallen
-    group "burst" "=40 * (1 - (1 - t / 1.5) ** 2)" "=10 * t * t"
+    group burst "=40 * (1 - (1 - t / 1.5) ** 2)" "=10 * t * t"
     ellipse -4 -4 9 9 paint=flame.hi emissive=#true visible="=t < 0.25"
     fest-spark 1.0 0.0 lantern-gold
     fest-spark 0.809 0.5878 lantern

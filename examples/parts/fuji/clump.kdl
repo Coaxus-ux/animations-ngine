@@ -1,6 +1,4 @@
-// The parts both cherries are grown from. Clumps are named by ten times their radius: a
-// clump is a textured puff of flowers with a highlight along its top, a back is the flat,
-// darker puff behind the twigs. Everything but a limb stirs with the scene's "sway" group.
+// The parts both cherries are grown from.
 
 motif fuji-limb x1 y1 x2 y2 radius {
     capsule $x1 $y1 $x2 $y2 radius=$radius paint=bark.1 shading=soft texture=0.4 texture-scale=1

@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use kdl::KdlNode;
@@ -28,6 +28,7 @@ pub struct Loaded {
     pub origins: Vec<Origin>,
     pub paint_names: PaintNames,
     pub motifs: Vec<MotifSignature>,
+    pub assets: Vec<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -94,7 +95,12 @@ pub fn load_work(
     let built = catalog
         .select(options.scene, &mut diags)
         .and_then(|target| build(target, &catalog, options, &mut diags));
-    let Library { files, motifs, .. } = library;
+    let Library {
+        files,
+        motifs,
+        assets,
+        ..
+    } = library;
     match (diags.finish(), built) {
         (Ok(warnings), Some(Built::Scene(built))) => Ok(Work::Scene(Box::new(Loaded {
             scene: built.scene,
@@ -104,6 +110,7 @@ pub fn load_work(
             origins: built.origins,
             paint_names: built.paint_names,
             motifs,
+            assets,
         }))),
         (Ok(warnings), Some(Built::Sequence(parsed))) => Ok(Work::Sequence(LoadedSequence {
             sequence: parsed.sequence,

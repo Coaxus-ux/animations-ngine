@@ -112,6 +112,21 @@ scatter 67 seed=3 step="0..2" h="14..28" {
 - A body can hold shapes, groups, placed scenes and motif calls, but not `layer`, `pixels`, `camera`, `ambient`, `param`, `wind`, `timeline`, `anim` or another `scatter`. A `scatter` can't take `repeat`.
 - Unlike the other rules, `scatter` doesn't reproduce a hand-placed layout: turning a written run into a `scatter` moves its shapes.
 
+## The shared kit
+
+`examples/kit/` holds motifs that several scenes share. Add one there only when it replaces definitions in at least two scenes, and name it `kit-…`, since motif names are global.
+
+| File | Motifs |
+|---|---|
+| `kit/sky.kdl` | `kit-star x y paint=… visible=1`, a 1×1 emissive dot; `kit-twinkle x y period paint=… duty=0.15`, one that blinks off with `pulse`; `kit-flicker x y paint=… odds=0.85 rate=4 cycle=8 salt=0`, one shown by `chance` |
+
+`paint` is always named, because every palette names its ramps its own way. Scatter them for a sky:
+
+```kdl
+use "kit/sky.kdl"
+scatter 26 seed=1 x="-23..342" y="-19..82" tone="base|lit|hi" { kit-star $x $y paint=star.$tone }
+```
+
 ## Substitution
 
 | Where | Rule | Example |

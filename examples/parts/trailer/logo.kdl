@@ -1,10 +1,9 @@
-// The engine's wordmark for the trailer: "PXE" assembles from scattered pixels, a glint
-// sweeps across it, sparks rise, and a tagline types in under it. `tagline` and `note`
-// change the words, so the same scene opens and closes the trailer.
+// The engine's wordmark for the trailer: "PXE" assembles from scattered pixels, a glint sweeps
+// across it, sparks rise, and a tagline types in under it.
 
 use "studio-palette.kdl"
 
-scene "logo" palette=studio width=320 height=180 fps=12 duration="4s" seed=3 background=ink.deep {
+scene logo palette=studio width=320 height=180 fps=12 duration="4s" seed=3 background=ink.deep {
     param tagline "pixel art, written as code"
     param note ""
     param gather 1.6
@@ -13,7 +12,7 @@ scene "logo" palette=studio width=320 height=180 fps=12 duration="4s" seed=3 bac
     ellipse "=160 - 30 - 80 * min(1, t)" 38 "=60 + 160 * min(1, t)" 60 paint=violet.deep opacity=0.7
     ellipse "=160 - 15 - 50 * min(1, t)" 48 "=30 + 100 * min(1, t)" 40 paint=violet.shade opacity=0.5
 
-    group "gather" "=max(0, 1 - t / $gather)"
+    group gather "=max(0, 1 - t / $gather)"
     text "PXE" 163 36 size=7 align=center paint=violet.base scatter="=@gather.x * @gather.x * 110"
     text "PXE" 160 33 size=7 align=center paint=gold.lit gradient=down gradient-steps=-2 scatter="=@gather.x * @gather.x * 90"
     group "=60 + (t - $gather - 0.4) * 220" 30 10 56 clip=#true {

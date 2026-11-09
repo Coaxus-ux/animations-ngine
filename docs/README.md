@@ -17,7 +17,8 @@ A general-purpose engine to create pixel art scenes, characters, animations and 
 | 1 | [SPEC.md](SPEC.md) | Vision, generality rules, feasibility, principles, technology, decision log |
 | 2 | [BENCHMARKS.md](BENCHMARKS.md) | The nine test scenes, automatic checks and hold-out process that keep the engine general |
 | 3 | [FORMAT.md](FORMAT.md) | Complete KDL format and expression language reference |
-| 3a | [SHORTHAND.md](SHORTHAND.md) | Shorter scene files: bare values, `repeat=`, `motif` |
+| 3a | [SHORTHAND.md](SHORTHAND.md) | Shorter scene files: bare values, `repeat=`, `motif`, `scatter`, the shared kit |
+| 3b | [PIXELS.md](PIXELS.md) | Pixel layers: text grids and PNG art (`pixels src=`) |
 | 4 | [CATALOG.md](CATALOG.md) | Prefab contract, content packs, body plan templates |
 | 5 | [PALETTES.md](PALETTES.md) | Ramps, tones, roles, twins, ramp generation, shipped palettes |
 | 6 | [PIECES.md](PIECES.md) | Text-grid pieces and the standard piece library |

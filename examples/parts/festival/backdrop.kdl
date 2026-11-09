@@ -1,7 +1,5 @@
-// The festival's set, as two scenes so a host can put things between them: the sky with
-// mountains and a far town (parallax layers), and the street with its buildings, lantern
-// strings and lamps. Both reach past the 320 px frame so a zooming, panning camera never
-// runs out of set. Loop every 12 s.
+// The festival's set, as two scenes so a host can put things between them: the sky with mountains
+// and a far town (parallax layers), and the street with its buildings, lantern strings and lamps.
 
 use "festival-palette.kdl"
 use "paper-lantern.kdl"
@@ -14,8 +12,8 @@ motif fest-street-lamp x {
     light-point $x 97 reach=70 intensity=2.2 color=warm
 }
 
-scene "festival-sky" palette=festival width=320 height=180 fps=12 duration="12s" loop=#true background=sky.base {
-    layer "sky" parallax=0 {
+scene festival-sky palette=festival width=320 height=180 fps=12 duration="12s" loop=#true background=sky.base {
+    layer sky parallax=0 {
         rect -100 -60 520 170 paint=sky.deep gradient=down gradient-steps=3
         rect -100 96 520 40 paint=dusk.shade gradient=down gradient-steps=2
         ellipse 236 8 34 34 paint=sky.lit emissive=#true
@@ -32,10 +30,10 @@ scene "festival-sky" palette=festival width=320 height=180 fps=12 duration="12s"
         fest-glow 292 44 1 1 moon.hi visible="=1 - pulse(4s, 0.1)"
         fest-glow 306 10 1 1 moon.base
     }
-    layer "mountains" parallax=0.15 fog="45%" fog-paint=dusk.base {
+    layer mountains parallax=0.15 fog="45%" fog-paint=dusk.base {
         polygon -100 70 points="0,50 60,22 110,40 170,8 230,34 290,14 360,38 420,18 520,46 520,70 0,70" paint=mountain.base shading=dome
     }
-    layer "far-town" parallax=0.35 fog="25%" fog-paint=dusk.shade {
+    layer far-town parallax=0.35 fog="25%" fog-paint=dusk.shade {
         rect -60 104 480 40 paint=stone.deep
         rect 40 96 26 20 paint=stone.shade
         polygon 36 88 points="0,8 17,0 34,8" paint=roof.shade
@@ -57,8 +55,7 @@ scene "festival-sky" palette=festival width=320 height=180 fps=12 duration="12s"
     }
 }
 
-scene "festival-street" palette=festival width=320 height=180 fps=12 duration="12s" loop=#true background=sky.base {
-    // Left building: a tea house with a balcony and a sign
+scene festival-street palette=festival width=320 height=180 fps=12 duration="12s" loop=#true background=sky.base {
     rect -100 36 172 114 paint=stone.base texture=0.25 texture-scale=3 outline=selective casts-shadow=#true
     polygon -104 22 points="0,14 8,4 176,0 184,14" paint=roof.base shading=dome outline=selective
     rect -104 34 184 3 paint=roof.shade
@@ -74,7 +71,6 @@ scene "festival-street" palette=festival width=320 height=180 fps=12 duration="1
     rect 8 110 20 40 paint=wood.shade outline=full outline-paint=roof.deep
     rect 10 112 16 14 paint=window.base emissive=#true gradient=down gradient-steps=-2
 
-    // Right building: a shop with a round window and a striped awning
     rect 246 44 174 106 paint=stone.shade texture=0.25 texture-scale=3 outline=selective casts-shadow=#true
     polygon 240 30 points="0,14 10,2 180,0 186,14" paint=roof.shade shading=dome outline=selective
     ellipse 268 58 18 18 paint=window.lit emissive=#true outline=full outline-paint=wood.shade
@@ -89,18 +85,15 @@ scene "festival-street" palette=festival width=320 height=180 fps=12 duration="1
     ellipse 276 123 5 5 paint=coat-green.lit
     ellipse 294 122 6 6 paint=lantern.lit
 
-    // Lantern strings across the street
     rope 70 40 248 46 sag=18 sway="=osc(3s, -1, 1)" paint=ink
-    use-scene "paper-lantern" "=70 + (2 * i + 0.5) * 178 / 9 + osc(3s, -0.5, 0.5)" "=40 + 6 * (2 * i + 0.5) / 9 + 72 * (2 * i + 0.5) / 9 * (1 - (2 * i + 0.5) / 9)" count=5 offset="=i * 0.3"
-    use-scene "paper-lantern" "=70 + (2 * i + 1.5) * 178 / 9 + osc(3s, -0.5, 0.5)" "=40 + 6 * (2 * i + 1.5) / 9 + 72 * (2 * i + 1.5) / 9 * (1 - (2 * i + 1.5) / 9)" count=4 offset="=i * 0.4" color=lantern-gold
+    use-scene paper-lantern "=70 + (2 * i + 0.5) * 178 / 9 + osc(3s, -0.5, 0.5)" "=40 + 6 * (2 * i + 0.5) / 9 + 72 * (2 * i + 0.5) / 9 * (1 - (2 * i + 0.5) / 9)" count=5 offset="=i * 0.3"
+    use-scene paper-lantern "=70 + (2 * i + 1.5) * 178 / 9 + osc(3s, -0.5, 0.5)" "=40 + 6 * (2 * i + 1.5) / 9 + 72 * (2 * i + 1.5) / 9 * (1 - (2 * i + 1.5) / 9)" count=4 offset="=i * 0.4" color=lantern-gold
     rope 72 60 246 64 sag=10 sway="=osc(3s, 1, -1)" paint=ink
-    use-scene "paper-lantern" "=72 + (i + 0.5) * 174 / 6 + osc(3s, 0.5, -0.5)" "=60 + 4 * (i + 0.5) / 6 + 40 * (i + 0.5) / 6 * (1 - (i + 0.5) / 6)" count=6 offset="=i * 0.25" scale=0.8 color=lantern-gold
+    use-scene paper-lantern "=72 + (i + 0.5) * 174 / 6 + osc(3s, 0.5, -0.5)" "=60 + 4 * (i + 0.5) / 6 + 40 * (i + 0.5) / 6 * (1 - (i + 0.5) / 6)" count=6 offset="=i * 0.25" scale=0.8 color=lantern-gold
 
-    // Street lamps
     fest-street-lamp 96
     fest-street-lamp 226
 
-    // The street
     rect -100 146 520 3 paint=street.lit
     rect -100 149 520 40 paint=street.base texture=0.25 texture-scale=2 gradient=down gradient-steps=-1
     rect 20 158 8 1 paint=street.lit

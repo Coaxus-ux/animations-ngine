@@ -1,29 +1,29 @@
-// The winter night palette: snow under a dark sky, aurora greens and violets, and the warm
-// window light that turns snow and logs into their `warm` twins.
+// The winter night palette: snow under a dark sky, aurora greens and violets, and the warm window
+// light that turns snow and logs into their `warm` twins.
 
-palette "aurora" {
-    ramp "sky"          "#03050e" "#070b1a" "#0c1328" "#141e3a" "#1e2c50"
-    ramp "aurora"       "#0a3a2a" "#127a4a" "#2ac278" "#7af0b0" "#d0ffe8"
-    ramp "aurora-violet" "#2a1040" "#4a1a6a" "#7a2c98" "#b050c8" "#e090f0"
-    ramp "mountain"     "#0e1424" "#18203a" "#26304e" "#3a4666" "#56648a"
-    ramp "snow"         "#2a3450" "#46526e" "#6a7894" "#9aa8c0" "#d4deec"
-    ramp "ice"          "#0a1426" "#101e36" "#182a48" "#22385c" "#304a74"
-    ramp "pine"         "#050c0c" "#091614" "#0f201c" "#162c26" "#203a32"
-    ramp "log"          "#1a0e08" "#2c180e" "#422616" "#5c3820" "#7a4e2c"
-    ramp "stone"        "#16161c" "#24242c" "#363640" "#4a4a56" "#62626e"
-    ramp "window"       "#6a3a10" "#b06a1c" "#e8a034" "#ffd068" "#fff4c0"
-    ramp "fire"         "#a02a0a" "#e0601a" "#ffa83a" "#ffe8a0"
-    ramp "smoke"        "#1c2030" "#2c3244" "#40485c" "#586078" "#767e96"
-    ramp "skin"         "#3a2018" "#6a3c2a" "#a0634a" "#d08e6c" "#f0b894"
-    ramp "wool"         "#3a0e14" "#5e1820" "#8a2630" "#b43a40" "#d85a58"
-    ramp "star"         "#8a90b0" "#c8d0f0" "#ffffff"
-    ramp "ink"          "#020308"
-    ramp "snow-warm"    "#4a3a40" "#6e5652" "#967a6a" "#c4a488" "#f0d6b4"
-    ramp "log-warm"     "#2e1a0c" "#4a2a12" "#683e1c" "#8c5628" "#b27436"
-    ramp "pine-warm"    "#14140a" "#20200e" "#2e2c14" "#403c1c" "#565026"
-    ramp "ice-warm"     "#201c20" "#30282a" "#443834" "#5c4a40" "#7a6250"
-    twin "snow" warm="snow-warm"
-    twin "log" warm="log-warm"
-    twin "pine" warm="pine-warm"
-    twin "ice" warm="ice-warm"
+palette aurora {
+    ramp sky "03050e 070b1a 0c1328 141e3a 1e2c50"
+    ramp aurora "0a3a2a 127a4a 2ac278 7af0b0 d0ffe8"
+    ramp aurora-violet "2a1040 4a1a6a 7a2c98 b050c8 e090f0"
+    ramp mountain "0e1424 18203a 26304e 3a4666 56648a"
+    ramp snow "2a3450 46526e 6a7894 9aa8c0 d4deec"
+    ramp ice "0a1426 101e36 182a48 22385c 304a74"
+    ramp pine "050c0c 091614 0f201c 162c26 203a32"
+    ramp log "1a0e08 2c180e 422616 5c3820 7a4e2c"
+    ramp stone "16161c 24242c 363640 4a4a56 62626e"
+    ramp window "6a3a10 b06a1c e8a034 ffd068 fff4c0"
+    ramp fire "a02a0a e0601a ffa83a ffe8a0"
+    ramp smoke "1c2030 2c3244 40485c 586078 767e96"
+    ramp skin "3a2018 6a3c2a a0634a d08e6c f0b894"
+    ramp wool "3a0e14 5e1820 8a2630 b43a40 d85a58"
+    ramp star "8a90b0 c8d0f0 ffffff"
+    ramp ink "020308"
+    ramp snow-warm "4a3a40 6e5652 967a6a c4a488 f0d6b4"
+    ramp log-warm "2e1a0c 4a2a12 683e1c 8c5628 b27436"
+    ramp pine-warm "14140a 20200e 2e2c14 403c1c 565026"
+    ramp ice-warm "201c20 30282a 443834 5c4a40 7a6250"
+    twin snow warm=snow-warm
+    twin log warm=log-warm
+    twin pine warm=pine-warm
+    twin ice warm=ice-warm
 }

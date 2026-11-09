@@ -1,7 +1,4 @@
-// A five-storey pagoda in red lacquer on a stone plinth, its base centered at (0, 0). Each
-// storey is lit on its west (right) side and shaded under its eaves; bells hang from the
-// roof corners, lanterns from the lowest eaves, and its windows glow after `lights-on`
-// (host seconds).
+// A five-storey pagoda in red lacquer on a stone plinth, its base centered at (0, 0).
 
 use "fuji-palette.kdl"
 
@@ -27,7 +24,7 @@ motif fuji-roof y eave mid inner {
     rect $eave $y 1 2 paint=lamp.1
 }
 
-scene "pagoda" palette=fuji width=48 height=80 fps=12 duration="16s" background=sky-day.5 {
+scene pagoda palette=fuji width=48 height=80 fps=12 duration="16s" background=sky-day.5 {
     param lights-on 10
     camera -24 -72
 

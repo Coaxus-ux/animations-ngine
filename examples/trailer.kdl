@@ -1,9 +1,4 @@
-// The engine's trailer, made with the engine: one sequence of shots. Title cards type in
-// over a dark studio palette, KDL types itself into an editor and becomes a koi, then the
-// showcase scenes play each feature in their own palettes, a montage runs through the
-// other examples, and the wordmark closes it. Every shot is an ordinary scene; shot props
-// set its params, `from` picks where in the scene's time it starts (a marker or a time),
-// and the transitions only ever choose colors of one shot or the other.
+// The engine's trailer, made with the engine: one sequence of shots.
 
 use "parts/trailer/logo.kdl"
 use "parts/trailer/card.kdl"
@@ -14,37 +9,37 @@ use "koi-pond.kdl"
 use "night-train.kdl"
 use "aurora-cabin.kdl"
 
-sequence "trailer" {
-    shot "logo" duration="4s"
+sequence trailer {
+    shot logo duration="4s"
     transition "dither" duration="0.5s"
-    shot "card" duration="2s" kicker="WRITTEN, NOT DRAWN" title="EVERY PIXEL IS CODE" accent=gold
-    shot "code" duration="6.5s"
+    shot card duration="2s" kicker="WRITTEN, NOT DRAWN" title="EVERY PIXEL IS CODE" accent=gold
+    shot code duration="6.5s"
     transition "white" duration="0.5s"
 
-    shot "card" duration="2s" kicker="COMPOSITION" title="SCENES INSIDE SCENES" accent=teal
-    shot "town-festival" duration="5s" from=zoom-in
+    shot card duration="2s" kicker="COMPOSITION" title="SCENES INSIDE SCENES" accent=teal
+    shot town-festival duration="5s" from=zoom-in
     transition "black" duration="0.75s"
-    shot "card" duration="2s" kicker="RE-RASTERIZED, NEVER RESAMPLED" title="ZOOM WITHOUT BLUR" accent=rose
-    shot "koi-pond" duration="5s" from=dive
+    shot card duration="2s" kicker="RE-RASTERIZED, NEVER RESAMPLED" title="ZOOM WITHOUT BLUR" accent=rose
+    shot koi-pond duration="5s" from=dive
     transition "black" duration="0.75s"
-    shot "card" duration="2s" kicker="ATTACH ANYTHING TO ANYTHING" title="LIGHT THAT FOLLOWS" accent=gold
-    shot "night-train" duration="5s" from=board
+    shot card duration="2s" kicker="ATTACH ANYTHING TO ANYTHING" title="LIGHT THAT FOLLOWS" accent=gold
+    shot night-train duration="5s" from=board
     transition "black" duration="0.75s"
-    shot "card" duration="2s" kicker="TIME OFFSETS" title="ONE PART, 86 TIMES" accent=violet
-    shot "aurora-cabin" duration="5.5s" from="1s"
+    shot card duration="2s" kicker="TIME OFFSETS" title="ONE PART, 86 TIMES" accent=violet
+    shot aurora-cabin duration="5.5s" from="1s"
     transition "black" duration="0.75s"
 
-    shot "framed-neon-rain" duration="1.5s"
+    shot framed-neon-rain duration="1.5s"
     transition "wipe" duration="0.25s" from=right
-    shot "framed-lighthouse-harbor" duration="1s"
+    shot framed-lighthouse-harbor duration="1s"
     transition "wipe" duration="0.25s" from=bottom
-    shot "framed-coral-reef" duration="1s"
+    shot framed-coral-reef duration="1s"
     transition "wipe" duration="0.25s" from=left
-    shot "framed-campfire-forest" duration="1s"
+    shot framed-campfire-forest duration="1s"
     transition "wipe" duration="0.25s" from=top
-    shot "framed-moonlit-beach" duration="1s"
+    shot framed-moonlit-beach duration="1s"
     transition "wipe" duration="0.25s" from=right
-    shot "framed-puppy-love" duration="1s"
+    shot framed-puppy-love duration="1s"
     transition "white" duration="0.5s"
-    shot "logo" duration="4.5s" tagline="Code in. Pixels out." note="no AI inside, just code"
+    shot logo duration="4.5s" tagline="Code in. Pixels out." note="no AI inside, just code"
 }

@@ -1,9 +1,9 @@
-// The land between the lake and the volcano, in host canvas coordinates: blue ridges far
-// away, then wooded hills that close in from both sides and meet at the far shore. Still.
+// The land between the lake and the volcano, in host canvas coordinates: blue ridges far away, then
+// wooded hills that close in from both sides and meet at the far shore.
 
 use "fuji-palette.kdl"
 
-scene "far-ridges" palette=fuji width=480 height=180 fps=12 duration="1s" loop=#true background=sky-day.5 {
+scene far-ridges palette=fuji width=480 height=180 fps=12 duration="1s" loop=#true background=sky-day.5 {
     polygon points="-80,128 -80,92 -50,86 -20,90 10,82 40,88 66,84 96,94 130,100 160,108 196,116 230,124 250,128" paint=ridge.4 texture=0.2 texture-scale=3
     polygon points="-80,92 -50,86 -20,90 10,82 40,88 66,84 96,94 130,100 160,108 196,116 230,124 150,118 90,104 50,96 10,92 -40,96" paint=ridge.5 texture=0.15 texture-scale=3
     polygon points="10,82 40,88 66,84 96,94 130,100 108,100 80,94 54,92 30,90" paint=ridge.6
@@ -12,7 +12,7 @@ scene "far-ridges" palette=fuji width=480 height=180 fps=12 duration="1s" loop=#
     polygon points="560,100 530,96 500,100 470,94 490,102 520,102" paint=ridge.4
 }
 
-scene "wooded-hills" palette=fuji width=480 height=180 fps=12 duration="1s" loop=#true background=sky-day.5 {
+scene wooded-hills palette=fuji width=480 height=180 fps=12 duration="1s" loop=#true background=sky-day.5 {
     polygon points="-80,132 -80,100 -60,98 -40,102 -20,100 0,104 20,106 44,110 70,114 96,118 120,121 150,124 180,127 200,130 -80,132" paint=forest.2 texture=0.45 texture-scale=2
     blob -60 100 circles="0,0,5 10,-2,6 22,0,5 34,1,6 46,2,5 58,4,6 70,6,5 84,9,6 98,12,5 112,14,5 126,17,4 140,19,4 154,21,4 168,24,3 182,25,3 196,27,2" smooth=2 paint=forest.3 texture=0.5 texture-scale=2 shading=dome outline=selective
     blob -60 108 circles="0,0,6 14,1,6 28,0,7 42,3,6 56,4,6 70,6,6 84,8,5 98,10,5 112,12,5 126,14,4 140,16,4" paint=forest.2 texture=0.5 texture-scale=2 shading=dome

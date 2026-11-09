@@ -66,7 +66,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             node_text(&source, &model, &preset).unwrap(),
-            "palette \"p\" {\n    // mood\n    twin \"a\" warm=\"a-warm\"\n    ramp \"a\" \"#ffffff\"\n    ramp \"a-warm\" \"#eeeeee\"\n    ramp \"b\" \"#222222\"\n}"
+            "palette \"p\" {\n    // mood\n    twin \"a\" warm=\"a-warm\"\n    ramp \"a\" \"ffffff\"\n    ramp \"a-warm\" \"eeeeee\"\n    ramp \"b\" \"222222\"\n}"
         );
         let without_twin = parse("q", "palette \"q\" {\n    ramp \"a\" \"#ffffff\"\n}\n").unwrap();
         let refused = node_text(&source, &model, &without_twin).unwrap_err();

@@ -1,13 +1,13 @@
-// A blossoming cherry bough close to the camera, reaching left and down from (0, 0) at the
-// top of a frame, grown and flowered like "sakura-tree".
+// A blossoming cherry bough close to the camera, reaching left and down from (0, 0) at the top of a
+// frame, grown and flowered like "sakura-tree".
 
 use "fuji-palette.kdl"
 use "clump.kdl"
 
-scene "sakura-bough" palette=fuji width=180 height=70 fps=12 duration="16s" background=sky-day.5 {
+scene sakura-bough palette=fuji width=180 height=70 fps=12 duration="16s" background=sky-day.5 {
     camera -170 -8
 
-    group "sway" "=round(wind(0) * 1.5)"
+    group sway "=round(wind(0) * 1.5)"
     fuji-back45 -85 23 paint=forest.4
     fuji-back50 -94 27
     fuji-back30 -99 30

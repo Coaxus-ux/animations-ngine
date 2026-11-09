@@ -1,29 +1,22 @@
-// A log cabin in the snow, its front left corner on the ground at (0, 0). Smoke rises from
-// the chimney and drifts with the wind, the window glows with someone reading by the fire
-// (seen only through the glass), and a lantern hangs by the door. The window and lantern
-// light spill warm over the snow. Loops every 12 s.
+// A log cabin in the snow, its front left corner on the ground at (0, 0).
 
 use "cabin-palette.kdl"
 
-scene "cabin" palette=aurora width=96 height=72 fps=12 duration="12s" loop=#true background=sky.base {
+scene cabin palette=aurora width=96 height=72 fps=12 duration="12s" loop=#true background=sky.base {
     camera -8 -64
 
-    // Chimney smoke
     particles 60 -58 4 2 count=30 vx=-3 vy=-10 gravity=-1 life="4s" size=2 wind=6 paint=smoke.lit fade=#true
     particles 60 -56 4 2 count=14 vx=-2 vy=-8 life="3s" size=3 wind=5 paint=smoke.base fade=#true
 
-    // Walls of stacked logs
     rect 0 -34 72 34 paint=log shading=dome outline=selective casts-shadow=#true
     rect 0 "=-34 + $k*6" 72 1 paint=log.shade repeat=6
     ellipse -2 "=-33 + $k*6" 4 5 paint=log.lit outline=full outline-paint=log.deep repeat=5
 
-    // Stone chimney and the roof under a thick blanket of snow
     rect 56 -58 10 30 paint=stone texture=0.4 texture-scale=1.5 shading=dome outline=selective
     polygon -6 -54 points="0,20 42,0 84,20" paint=log.shade shading=dome outline=selective
     polygon -8 -56 points="0,20 6,22 44,3 82,22 88,20 44,-1" paint=snow.lit shading=dome outline=selective
     rect 55 -60 12 3 paint=snow.hi
 
-    // The window: firelight, a reader in an armchair, the frame drawn over them
     rect 12 -26 20 15 paint=window.lit emissive=#true gradient=down gradient-steps=-2
     group 12 -26 20 15 clip=#true {
         ellipse 24 "=-15 + wiggle(2, 0.6)" 8 9 paint=fire.lit emissive=#true tone-shift="=round(wiggle(3, 1))"
@@ -38,7 +31,6 @@ scene "cabin" palette=aurora width=96 height=72 fps=12 duration="12s" loop=#true
     rect 10 -11 24 2 paint=snow.lit
     light-rect 12 -26 20 15 reach=46 intensity=2.4 color=warm
 
-    // Door, porch lantern and woodpile
     rect 44 -24 12 24 paint=log.deep outline=full outline-paint=ink
     rect 53 -13 1 2 paint=window.hi
     line 60 -26 60 -22 paint=ink

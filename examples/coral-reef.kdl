@@ -1,33 +1,29 @@
-// A coral reef seen from the sea floor. Sun rays reach down through the water, kelp sways,
-// a school of fish crosses the scene, a big fish patrols back and forth, a jellyfish glows
-// and bubbles rise from a clam. Shows: cone lights as god rays with a twin color, emissive
-// glow with a point light, ropes as kelp, `shade` caustics, fog layers, particles, expressions
-// that flip a fish to face where it swims. Loops every 4 seconds.
+// A coral reef seen from the sea floor.
 
-palette "reef" {
-    ramp "water"      "#061a2a" "#0a2840" "#0f3856" "#164a6c" "#1f5e84"
-    ramp "water-sun"  "#0e3040" "#165066" "#20708a" "#3090a8" "#48b0c4"
-    ramp "sand"       "#2a2c2a" "#3e3e36" "#575444" "#736c54" "#928866"
-    ramp "sand-sun"   "#3c4038" "#565a48" "#767660" "#9a967a" "#c0ba98"
-    ramp "rock"       "#12181e" "#1c252c" "#28333c" "#36444e" "#485862"
-    ramp "rock-sun"   "#1e2a30" "#2c3c42" "#3e5258" "#526c70" "#6a888a"
-    ramp "coral"      "#3a1428" "#602038" "#8c3048" "#b84858" "#e06a6c"
-    ramp "coral-sun"  "#4a2430" "#743644" "#a44c58" "#d0686a" "#f4907e"
-    ramp "amber"      "#3a1c10" "#64301a" "#94482a" "#c46638" "#ec9050"
-    ramp "amber-sun"  "#4a2c1c" "#744428" "#a2603a" "#cc824c" "#f2a866"
-    ramp "kelp"       "#0c2418" "#133624" "#1c4a30" "#28623e" "#367a4e"
-    ramp "kelp-sun"   "#16362a" "#205036" "#2c6a44" "#3c8654" "#52a266"
-    ramp "fish"       "#4a3410" "#7a5818" "#b08424" "#e0b03a" "#fcd860"
-    ramp "blue-fish"  "#102040" "#1a3466" "#284c8e" "#3a68b4" "#5488d4"
-    ramp "jelly"      "#5a2a6a" "#9a50b0" "#d88ee8" "#f8d4ff"
-    ramp "bubble"     "#4a8aa8" "#8cc8dc" "#d0f0f8"
-    ramp "ink"        "#03080e"
-    twin "water" sun="water-sun"
-    twin "sand" sun="sand-sun"
-    twin "rock" sun="rock-sun"
-    twin "coral" sun="coral-sun"
-    twin "amber" sun="amber-sun"
-    twin "kelp" sun="kelp-sun"
+palette reef {
+    ramp water "061a2a 0a2840 0f3856 164a6c 1f5e84"
+    ramp water-sun "0e3040 165066 20708a 3090a8 48b0c4"
+    ramp sand "2a2c2a 3e3e36 575444 736c54 928866"
+    ramp sand-sun "3c4038 565a48 767660 9a967a c0ba98"
+    ramp rock "12181e 1c252c 28333c 36444e 485862"
+    ramp rock-sun "1e2a30 2c3c42 3e5258 526c70 6a888a"
+    ramp coral "3a1428 602038 8c3048 b84858 e06a6c"
+    ramp coral-sun "4a2430 743644 a44c58 d0686a f4907e"
+    ramp amber "3a1c10 64301a 94482a c46638 ec9050"
+    ramp amber-sun "4a2c1c 744428 a2603a cc824c f2a866"
+    ramp kelp "0c2418 133624 1c4a30 28623e 367a4e"
+    ramp kelp-sun "16362a 205036 2c6a44 3c8654 52a266"
+    ramp fish "4a3410 7a5818 b08424 e0b03a fcd860"
+    ramp blue-fish "102040 1a3466 284c8e 3a68b4 5488d4"
+    ramp jelly "5a2a6a 9a50b0 d88ee8 f8d4ff"
+    ramp bubble "4a8aa8 8cc8dc d0f0f8"
+    ramp ink "03080e"
+    twin water sun=water-sun
+    twin sand sun=sand-sun
+    twin rock sun=rock-sun
+    twin coral sun=coral-sun
+    twin amber sun=amber-sun
+    twin kelp sun=kelp-sun
 }
 
 motif kelp root tip top swing tone y=118 strength=6 period="4s" width=3 {
@@ -38,12 +34,11 @@ motif trailing-fish dx dy body tail {
     polygon "=$dx-3 + @school.x" "=$dy + @school.y" points="0,0 3,2 0,4" paint=blue-fish.$tail
 }
 
-scene "coral-reef" palette=reef width=192 height=128 fps=12 duration="4s" loop=#true seed=17 background=water.base {
+scene coral-reef palette=reef width=192 height=128 fps=12 duration="4s" loop=#true seed=17 background=water.base {
     ambient darkness=1 occlusion=1 key-light=270
     wind strength=1 gust=0.6 speed=3
 
-    // Open water, brighter toward the surface, with a rippling surface line
-    layer "water" parallax=0 {
+    layer water parallax=0 {
         rect 0 0 "100%" 128 paint=water.lit gradient=down gradient-steps=-4
         rect 0 0 "100%" 3 paint=water.hi
         rect "=20 + osc(2s, -3, 3)" 3 18 1 paint=water.hi
@@ -51,28 +46,25 @@ scene "coral-reef" palette=reef width=192 height=128 fps=12 duration="4s" loop=#
         rect "=140 + osc(2s, -2, 2)" 3 22 1 paint=water.hi
     }
 
-    // Distant reef walls fade into the blue
-    layer "far-reef" parallax=0.3 fog="55%" fog-paint=water.base {
+    layer far-reef parallax=0.3 fog="55%" fog-paint=water.base {
         blob 0 96 circles="0,0,18 22,-4,14 40,2,16 60,-6,12" smooth=6 paint=rock.shade
         blob 120 92 circles="0,0,14 18,-8,16 38,-2,18 62,4,14" smooth=6 paint=rock.shade
         capsule 150 80 146 62 paint=coral.shade
         capsule 24 86 28 70 paint=amber.shade
     }
-    layer "mid-reef" parallax=0.6 fog="25%" fog-paint=water.base {
+    layer mid-reef parallax=0.6 fog="25%" fog-paint=water.base {
         blob 36 104 circles="0,0,12 16,-6,10 30,0,12" smooth=5 paint=rock.base shading=dome
         blob 150 106 circles="0,0,10 14,-5,12 28,2,9" smooth=5 paint=rock.base shading=dome
         kelp 60 58 60 -2 shade y=102 strength=4 width=2
         kelp 170 172 56 2 shade y=100 strength=4 width=2
     }
 
-    // The sea floor with caustics dancing on it
     blob "floor" 0 122 circles="0,0,14 30,-3,16 64,1,14 98,-2,16 132,0,14 166,-3,16 196,0,14" smooth=8 paint=sand.base texture=0.3 texture-scale=3
     rect 0 118 "100%" 10 paint=sand.base texture=0.3 texture-scale=3
     shade "=30 + osc(4s, -6, 6)" 114 22 4 steps=1 round=#true
     shade "=96 + osc(2s, 5, -5)" 118 18 3 steps=1 round=#true
     shade "=150 + osc(4s, 4, -4)" 113 20 4 steps=1 round=#true
 
-    // Rocks and corals in front
     blob "rock" 8 110 circles="0,0,10 12,-4,9 22,2,8" smooth=4 paint=rock.base shading=dome outline=selective texture=0.25 casts-shadow=#true contact-shadow=1
     blob 128 112 circles="0,0,9 11,-3,8" smooth=4 paint=rock.lit shading=dome outline=selective texture=0.25 casts-shadow=#true contact-shadow=1
     capsule 60 116 56 96 paint=coral.base shading=dome outline=selective casts-shadow=#true
@@ -84,39 +76,33 @@ scene "coral-reef" palette=reef width=192 height=128 fps=12 duration="4s" loop=#
     ellipse "clam" 106 114 12 6 paint=rock.lit shading=dome outline=full
     ellipse 110 115 3 3 paint=bubble.hi emissive=#true
 
-    // Kelp swaying with the current
     kelp 20 22 40 -3 base
     kelp 26 30 56 2 lit
     kelp 140 138 46 3 base
     kelp 146 150 62 -2 lit period="2s"
     kelp 186 184 70 -2 base strength=5
 
-    // A school of small fish crossing, one lap per loop
     ellipse "school" "=mod(10 + t * 56, 224) - 16" "=50 + osc(2s, -2, 2)" 7 4 paint=blue-fish.lit shading=dome outline=selective
     polygon "=@school.x - 3" "=@school.y" points="0,0 3,2 0,4" paint=blue-fish.base
     trailing-fish -10 5 base shade
     trailing-fish -6 -6 lit base
     trailing-fish -18 -1 base shade
 
-    // A big fish patrolling: its tail and eye swap sides with the direction it swims
     ellipse "big-fish" "=86 + osc(4s, -34, 34)" "=74 + osc(2s, -2, 2)" 18 10 paint=fish.lit shading=dome outline=selective casts-shadow=#true
     blob "=@big-fish.x + (cos(t * tau / 4) >= 0 ? -3 : 20)" "=@big-fish.y + 5" circles="0,-3,2.5 0,3,2.5" smooth=2 paint=fish.base outline=selective
     rect "=@big-fish.x + (cos(t * tau / 4) >= 0 ? 13 : 4)" "=@big-fish.y + 3" 1 1 paint=ink
     rect "=@big-fish.x + 7" "=@big-fish.y + 1" 2 8 paint=fish.base
 
-    // A glowing jellyfish drifting up and down
     blob "jelly" 160 "=34 + osc(4s, -5, 5)" circles="0,0,6 -3,1,4 3,1,4" smooth=2 paint=jelly.lit emissive=#true
     rope 157 "=@jelly.y + 3" "=156 + osc(2s, -2, 2)" "=@jelly.y + 16" sway="=osc(2s, -1, 1)" paint=jelly.base emissive=#true
     rope 160 "=@jelly.y + 4" "=160 + osc(2s, 2, -2)" "=@jelly.y + 19" sway="=osc(2s, 1, -1)" paint=jelly.base emissive=#true
     rope 163 "=@jelly.y + 3" "=164 + osc(2s, -2, 2)" "=@jelly.y + 15" sway="=osc(2s, -1, 1)" paint=jelly.base emissive=#true
     light-point 160 "=@jelly.y" reach=26 intensity=1.6
 
-    // Sun rays from the surface, slowly breathing
     light-cone 40 -30 angle="80deg" spread="24deg" reach=170 intensity="=2.8 + osc(4s, -0.4, 0.4)" color=sun shadows=#true
     light-cone 100 -30 angle="84deg" spread="20deg" reach=170 intensity="=2.6 + osc(2s, 0.4, -0.4)" color=sun shadows=#true
     light-cone 150 -30 angle="78deg" spread="26deg" reach=170 intensity="=3 + osc(4s, 0.3, -0.3)" color=sun shadows=#true
 
-    // Bubbles rising from the clam
     particles 108 104 6 8 count=8 vy=-24 life="4s" wind=3 paint=bubble.lit emissive=#true
     particles 0 0 "100%" 128 count=24 vx=1 vy=-2 life="4s" wind=2 paint=water.hi fade=#true
 }

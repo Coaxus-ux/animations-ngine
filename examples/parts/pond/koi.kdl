@@ -1,16 +1,11 @@
-// A koi seen from above, swimming toward +x with its head at (0, 0). Eight spine points each
-// trail the swimming wave a little more, so the body bends and the tail sweeps. Built in
-// layers like a painted koi: shadow on the floor, translucent fins with rays, a three-tone
-// body with a scale texture, markings, a dorsal ridge and a detailed head. Colors come from
-// params: `body`, `patch` (big markings), `spots` (with `spotted`); `metallic` adds a
-// shimmer that runs down the body (ogon). One stroke of the tail per second.
+// A koi seen from above, swimming toward +x with its head at (0, 0).
 
 use "pond-palette.kdl"
 
 motif pond-koi-band a b lift w tone { line "=@s$a.x" "=@s$a.y + $lift" "=@s$b.x" "=@s$b.y + $lift" width=$w paint=$body.$tone }
 motif pond-koi-flesh a b w { line "=@s$a.x" "=@s$a.y" "=@s$b.x" "=@s$b.y" width=$w paint=$body texture=0.3 texture-scale=1.5 }
 
-scene "koi" palette=pond width=72 height=36 fps=12 duration="1s" loop=#true background=water.base {
+scene koi palette=pond width=72 height=36 fps=12 duration="1s" loop=#true background=water.base {
     param body "koi-white"
     param patch "koi-red"
     param spots "koi-black"
@@ -18,22 +13,19 @@ scene "koi" palette=pond width=72 height=36 fps=12 duration="1s" loop=#true back
     param metallic #false
     camera -52 -18
 
-    // The spine, head first: each point trails the wave by a little more
-    group "s0" 0 "=0.3 * sin(tau * t)"
-    group "s1" -5 "=0.6 * sin(tau * t - 0.55)"
-    group "s2" -10 "=0.95 * sin(tau * t - 1.10)"
-    group "s3" -15 "=1.35 * sin(tau * t - 1.65)"
-    group "s4" -20 "=1.8 * sin(tau * t - 2.20)"
-    group "s5" -25 "=2.3 * sin(tau * t - 2.75)"
-    group "s6" -30 "=2.8 * sin(tau * t - 3.30)"
-    group "s7" -34 "=3.3 * sin(tau * t - 3.85)"
-    group "tail" "=@s7.x - 9" "=@s7.y + 2.6 * sin(tau * t - 4.6)"
+    group s0 0 "=0.3 * sin(tau * t)"
+    group s1 -5 "=0.6 * sin(tau * t - 0.55)"
+    group s2 -10 "=0.95 * sin(tau * t - 1.10)"
+    group s3 -15 "=1.35 * sin(tau * t - 1.65)"
+    group s4 -20 "=1.8 * sin(tau * t - 2.20)"
+    group s5 -25 "=2.3 * sin(tau * t - 2.75)"
+    group s6 -30 "=2.8 * sin(tau * t - 3.30)"
+    group s7 -34 "=3.3 * sin(tau * t - 3.85)"
+    group tail "=@s7.x - 9" "=@s7.y + 2.6 * sin(tau * t - 4.6)"
 
-    // Shadow on the pond floor
     shade "=@s2.x - 8" "=@s2.y + 1" 19 12 round=#true
     shade "=@s5.x - 6" "=@s5.y + 2" 15 8 round=#true
 
-    // Tail: a translucent fan, its rays and lit tips following the flick
     polygon "=@s7.x" "=@s7.y" points="1,-1 -6,-6 -9,-6 -6,0 -9,6 -6,6 1,1" paint=$body.lit opacity=0.8
     line "=@s7.x" "=@s7.y" "=@tail.x" "=@tail.y - 6" paint=$body.lit
     line "=@s7.x" "=@s7.y" "=@tail.x" "=@tail.y + 6" paint=$body.lit
@@ -41,7 +33,6 @@ scene "koi" palette=pond width=72 height=36 fps=12 duration="1s" loop=#true back
     line "=@s7.x - 1" "=@s7.y" "=@tail.x + 2" "=@tail.y + 3" paint=$body.base
     line "=@s7.x - 1" "=@s7.y" "=@tail.x + 3" "=@tail.y" paint=$body.base
 
-    // Pectoral fins splay out behind the head and paddle in turn; pelvic fins further back
     polygon "=@s1.x" "=@s1.y - 3" points="1,0 0,-5 -3,-8 -7,-8 -8,-5 -4,0" paint=$body.lit
     polygon "=@s1.x" "=@s1.y + 3" points="1,0 0,5 -3,8 -7,8 -8,5 -4,0" paint=$body.lit
     line "=@s1.x - 1" "=@s1.y - 3" "=@s1.x - 3 - round(osc(1s, 0, 1))" "=@s1.y - 10" paint=$body.base
@@ -51,8 +42,6 @@ scene "koi" palette=pond width=72 height=36 fps=12 duration="1s" loop=#true back
     polygon "=@s4.x" "=@s4.y - 3" points="0,0 -1,-4 -4,-5 -5,-3 -3,0" paint=$body.lit
     polygon "=@s4.x" "=@s4.y + 3" points="0,0 -1,4 -4,5 -5,3 -3,0" paint=$body.lit
 
-    // Body as capsules between spine points, so it stays smooth at any zoom: a darker belly
-    // a pixel lower, the main color with a scale texture, then a lit band along the back
     ellipse "=@s0.x - 4" "=@s0.y - 3" 8 8 paint=$body.shade
     pond-koi-band 0 1 1 9 shade
     pond-koi-band 1 2 1 11 shade
@@ -74,7 +63,6 @@ scene "koi" palette=pond width=72 height=36 fps=12 duration="1s" loop=#true back
     pond-koi-band 3 4 -1.5 4 lit
     pond-koi-band 4 5 -1.5 3 lit
 
-    // The dorsal ridge, then the markings over it, following the body as it bends
     rope "=@s1.x" "=@s1.y - 1" "=@s6.x" "=@s6.y - 1" sag="=(@s3.y + @s4.y) / 2 - (@s1.y + @s6.y) / 2" paint=$body.hi
     blob "=@s1.x" "=@s1.y" circles="1,-1,3.8 -4,1,3.4 -7,-2,2.8" smooth=2 paint=$patch texture=0.25 texture-scale=1.5
     blob "=@s4.x" "=@s4.y" circles="2,-1,3.6 -2,1,3.2 -5,-1,2.2" smooth=2 paint=$patch texture=0.25 texture-scale=1.5
@@ -87,11 +75,9 @@ scene "koi" palette=pond width=72 height=36 fps=12 duration="1s" loop=#true back
     rect "=@s3.x + 2" "=@s3.y - 2" 1 1 paint=$body.hi
     rect "=@s5.x + 2" "=@s5.y - 2" 1 1 paint=$body.hi
 
-    // A shimmer that runs down the body
     rect "=-4 - mod(t * 28, 26)" "=-1 + 0.8 * sin(tau * t - 1.2)" 2 1 paint=$body.hi visible="=$metallic"
     rect "=-7 - mod(t * 28 + 13, 26)" "=1 + 0.8 * sin(tau * t - 1.8)" 1 1 paint=$body.hi visible="=$metallic"
 
-    // Head: gill lines, eyes with a catchlight, nostrils and barbels
     line "=@s1.x + 1" "=@s1.y - 4" "=@s1.x + 2" "=@s1.y - 1" paint=$body.shade
     line "=@s1.x + 1" "=@s1.y + 4" "=@s1.x + 2" "=@s1.y + 1" paint=$body.shade
     rect "=@s0.x" "=@s0.y - 4" 2 1 paint=ink

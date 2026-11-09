@@ -1,19 +1,15 @@
-// One horizontal band of a sky ramp, its top left corner at (0, 0). A host stacks many with
-// `count`: copy `i` shows tone `i / 4` mixed a quarter step at a time with the next tone, so
-// eight tones become a smooth 29-band gradient. The band fades in between `from` and `to`
-// (host seconds), which lets later skies cover earlier ones, and is skipped from `until` on,
-// once a later sky covers it completely.
+// One horizontal band of a sky ramp, its top left corner at (0, 0).
 
 use "fuji-palette.kdl"
 
-scene "sky-band" palette=fuji width=488 height=5 fps=12 duration="16s" background=sky-day.0 {
+scene sky-band palette=fuji width=488 height=5 fps=12 duration="16s" background=sky-day.0 {
     param ramp "sky-day"
     param from -2
     param to -1
     param until 99
     param rows 5
 
-    group "fade" "=smoothstep($from, $to, t)"
+    group fade "=smoothstep($from, $to, t)"
     rect 0 0 488 "=$rows" paint=$ramp.0 tone-shift="=floor(i / 4)" emissive=#true opacity="=@fade.x" visible="=@fade.x > 0.001 && t < $until"
     rect 0 0 488 "=$rows" paint=$ramp.0 tone-shift="=min(7, floor(i / 4) + 1)" emissive=#true opacity="=@fade.x * (i % 4) / 4" visible="=@fade.x > 0.001 && t < $until && i % 4 > 0"
 }

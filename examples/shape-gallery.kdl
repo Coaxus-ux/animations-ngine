@@ -1,13 +1,11 @@
 // Every shape, surface style and keyframe interpolation in one looping sheet.
-// Top row: shapes with dome shading and outlines. Middle: textures, gradients and a clip.
-// Bottom: the same hop with different interpolations. Loops every 2 seconds.
 
-palette "gallery" {
-    ramp "bg"    "#1a1726" "#24203a" "#2f2a4a"
-    ramp "teal"  "#0f2f36" "#1d5357" "#2f7f73" "#55ab8c" "#90d5a5"
-    ramp "coral" "#3a1426" "#6e2338" "#a83c45" "#d9665a" "#f5a385"
-    ramp "gold"  "#3d2410" "#73451a" "#a87022" "#d9a33a" "#f5d87a"
-    ramp "ink"   "#0b0912"
+palette gallery {
+    ramp bg "1a1726 24203a 2f2a4a"
+    ramp teal "0f2f36 1d5357 2f7f73 55ab8c 90d5a5"
+    ramp coral "3a1426 6e2338 a83c45 d9665a f5a385"
+    ramp gold "3d2410 73451a a87022 d9a33a f5d87a"
+    ramp ink "0b0912"
 }
 
 motif studio-hop x go back paint from=100 to=76 {
@@ -16,8 +14,7 @@ motif studio-hop x go back paint from=100 to=76 {
     }
 }
 
-scene "shape-gallery" palette=gallery width=160 height=120 fps=12 duration="2s" loop=#true seed=5 background=bg.base {
-    // Shapes
+scene shape-gallery palette=gallery width=160 height=120 fps=12 duration="2s" loop=#true seed=5 background=bg.base {
     rounded-rect 6 8 24 20 radius=5 paint=teal.base shading=dome outline=selective contact-shadow=1
     capsule 40 18 60 18 radius=6 paint=coral.base shading=soft shading-steps=2 outline=full
     polygon 70 6 points="12,0 24,22 0,22" paint=gold.base shading=dome outline=selective cleanup=#true
@@ -25,11 +22,10 @@ scene "shape-gallery" palette=gallery width=160 height=120 fps=12 duration="2s" 
     rope 132 6 156 6 sag="=4 + sin(t * tau) * 2" paint=gold.hi
     particles 132 10 24 16 count=12 vy=-8 life="1s" paint=gold.hi fade=#true
 
-    // Surfaces
     rect 6 40 30 24 paint=teal.base texture=0.5 texture-scale=3 outline=full
     rect 44 40 30 24 paint=coral.base gradient=down gradient-steps=3
     ellipse 82 40 26 24 paint=gold.base gradient=radial gradient-steps=-3
-    group "porthole" 116 40 26 24 clip=#true round=#true {
+    group porthole 116 40 26 24 clip=#true round=#true {
         rect 116 40 26 24 paint=teal.deep
         rect "=110 + mod(t * 20, 40)" 46 10 12 paint=coral.lit shading=dome
     }
@@ -37,7 +33,6 @@ scene "shape-gallery" palette=gallery width=160 height=120 fps=12 duration="2s" 
         anim tone-shift loop="pingpong" { k "0s" -2; k "1s" 1 interp="smooth" }
     }
 
-    // Interpolations: one hop per column, all on the same baseline
     rect 0 108 "100%" 12 paint=bg.deep
     studio-hop 4 linear linear paint=teal.lit
     studio-hop 24 ease-out ease-in paint=teal.lit

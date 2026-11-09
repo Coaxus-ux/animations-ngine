@@ -1,9 +1,8 @@
-// A pine weighed down with snow, its foot at (0, 0). Four tiers of needles, each with a
-// cap of snow; the top sways a pixel in the wind. Still, so hosts can scale and copy it.
+// A pine weighed down with snow, its foot at (0, 0).
 
 use "cabin-palette.kdl"
 
-scene "snowy-pine" palette=aurora width=40 height=56 fps=12 duration="6s" loop=#true background=sky.base {
+scene snowy-pine palette=aurora width=40 height=56 fps=12 duration="6s" loop=#true background=sky.base {
     camera -20 -52
 
     rect -2 -8 4 8 paint=log.shade

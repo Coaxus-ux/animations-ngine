@@ -1,10 +1,9 @@
-// The volcano, its summit crater at (0, 0): a wide cone with concave flanks lit from the
-// west (right), a snow cap whose fingers run down the gullies, and dark lava ridges between
-// them. Still; the host lights it and hides its foot behind hills.
+// The volcano, its summit crater at (0, 0): a wide cone with concave flanks lit from the west
+// (right), a snow cap whose fingers run down the gullies, and dark lava ridges between them.
 
 use "fuji-palette.kdl"
 
-scene "fuji" palette=fuji width=480 height=140 fps=12 duration="1s" loop=#true background=sky-day.5 {
+scene fuji palette=fuji width=480 height=140 fps=12 duration="1s" loop=#true background=sky-day.5 {
     camera -240 -12
 
     polygon points="-16,0 -9,-2 -3,-1 0,-1 4,20 12,50 22,90 23,96 -84,96 -80,90 -40,50 -20,20" paint=rock.3 texture=0.15 texture-scale=3

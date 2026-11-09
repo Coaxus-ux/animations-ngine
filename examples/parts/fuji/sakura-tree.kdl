@@ -1,17 +1,13 @@
-// A large old cherry tree close to the camera, its trunk rising from (0, 0) at the bottom
-// edge of a frame and its limbs spreading up and to the right. It is grown as branching limbs
-// that taper toward the tips, with blossom only on the outer twigs: small clumps of flowers
-// with gaps between them, a darker back layer with a few leaves behind the twigs, sunlit front
-// clumps, and dithered, half-transparent flowers at the edges. The twigs and blossom stir in
-// the wind; the trunk stays still.
+// A large old cherry tree close to the camera, its trunk rising from (0, 0) at the bottom edge of a
+// frame and its limbs spreading up and to the right.
 
 use "fuji-palette.kdl"
 use "clump.kdl"
 
-scene "sakura-tree" palette=fuji width=260 height=190 fps=12 duration="16s" background=sky-day.5 {
+scene sakura-tree palette=fuji width=260 height=190 fps=12 duration="16s" background=sky-day.5 {
     camera -40 -180
 
-    group "sway" "=round(wind(0) * 1.5)"
+    group sway "=round(wind(0) * 1.5)"
     fuji-back55 45 -167
     fuji-back60 43 -173
     fuji-back50 42 -176
@@ -273,4 +269,3 @@ scene "sakura-tree" palette=fuji width=260 height=190 fps=12 duration="16s" back
     fuji-clump55 79 -44 6
     particles 0 -150 200 80 count=16 vx=-10 vy=8 life="5s" size=0.5 wind=5 paint=sakura.6 fade=#true
 }
-

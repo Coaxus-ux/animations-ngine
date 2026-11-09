@@ -71,16 +71,20 @@ impl NamedPalette {
         let Some(name) = args.next().and_then(|entry| values::string(entry, diags)) else {
             return;
         };
-        let colors: Vec<Rgb> = args
-            .filter_map(|entry| {
-                let text = values::string(entry, diags)?;
-                Rgb::parse_hex(text)
-                    .map_err(|error| {
+        let mut colors: Vec<Rgb> = Vec::new();
+        for entry in args {
+            let Some(text) = values::string(entry, diags) else {
+                continue;
+            };
+            for color in Rgb::parse_list(text) {
+                match color {
+                    Ok(color) => colors.push(color),
+                    Err(error) => {
                         diags.error(entry.span().offset(), format!("color \"{text}\": {error}"));
-                    })
-                    .ok()
-            })
-            .collect();
+                    }
+                }
+            }
+        }
         props.finish(diags);
         if self.ramps.contains_key(name) {
             diags.error(
@@ -176,6 +180,40 @@ impl NamedPalette {
             );
         }
         paint
+    }
+
+    pub(crate) fn paint_of_color(
+        &self,
+        rgb: Rgb,
+        offset: usize,
+        diags: &mut Diagnostics,
+    ) -> Option<Paint> {
+        let mut found = Vec::new();
+        for (name, id) in &self.ramps {
+            let colors = self.palette.ramp(*id).map(Ramp::colors).unwrap_or_default();
+            for (tone, color) in colors.iter().enumerate() {
+                if let Ok(tone) = u8::try_from(tone)
+                    && *color == rgb
+                {
+                    found.push((
+                        format!("{name}.{tone}"),
+                        Paint {
+                            ramp: *id,
+                            tone: Tone::new(tone),
+                        },
+                    ));
+                }
+            }
+        }
+        match found.as_slice() {
+            [(_, paint)] => return Some(*paint),
+            [] => diags.error(offset, format!("color {rgb} is not in the palette")),
+            [(first, _), (second, _), ..] => diags.error(
+                offset,
+                format!("color {rgb} is both {first} and {second}; choose one in the legend: legend {{ \"{rgb}\" {first} }}"),
+            ),
+        }
+        None
     }
 
     fn add_twins(&mut self, node: &KdlNode, diags: &mut Diagnostics) {

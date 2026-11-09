@@ -1,58 +1,55 @@
-// Mount Fuji from day to night. Four sky ramps (day, golden hour, dusk, night) are cross-faded
-// by the host; every lit surface has a `glow` twin, so the low sun paints the snow, rock,
-// clouds, water and trees rose and gold (the "red Fuji" of late afternoon), and a `warm`
-// twin for the lamps that come on at nightfall.
+// Mount Fuji from day to night.
 
-palette "fuji" {
-    ramp "sky-day"    "#1b3f86" "#22519e" "#2c63b2" "#3a77c2" "#4f8bcd" "#6aa1d6" "#8cb9e0" "#b8d6ec"
-    ramp "sky-gold"   "#2c4a86" "#44629a" "#6a7ca4" "#9a90a0" "#c9a08e" "#e8b07a" "#f7c87e" "#ffe2a4"
-    ramp "sky-dusk"   "#1c1a48" "#2c2260" "#482a72" "#6e3478" "#9c4274" "#cc5a6a" "#ec8060" "#ffb070"
-    ramp "sky-night"  "#02030a" "#050815" "#080e22" "#0c1530" "#111d3e" "#18284e" "#22365e" "#2e466e"
-    ramp "sun"        "#ff7a2a" "#ffa448" "#ffd07a" "#fff0c0" "#fffdf0"
-    ramp "moon"       "#8f9cba" "#c4cee4" "#eef2fa" "#ffffff"
-    ramp "star"       "#5c6a90" "#a4b2d4" "#e4ecff" "#ffffff"
-    ramp "galaxy"     "#0e1634" "#16204a" "#22305e" "#344676"
+palette fuji {
+    ramp sky-day "1b3f86 22519e 2c63b2 3a77c2 4f8bcd 6aa1d6 8cb9e0 b8d6ec"
+    ramp sky-gold "2c4a86 44629a 6a7ca4 9a90a0 c9a08e e8b07a f7c87e ffe2a4"
+    ramp sky-dusk "1c1a48 2c2260 482a72 6e3478 9c4274 cc5a6a ec8060 ffb070"
+    ramp sky-night "02030a 050815 080e22 0c1530 111d3e 18284e 22365e 2e466e"
+    ramp sun "ff7a2a ffa448 ffd07a fff0c0 fffdf0"
+    ramp moon "8f9cba c4cee4 eef2fa ffffff"
+    ramp star "5c6a90 a4b2d4 e4ecff ffffff"
+    ramp galaxy "0e1634 16204a 22305e 344676"
 
-    ramp "snow"       "#3c4a68" "#566684" "#7686a4" "#98a8c2" "#bccade" "#dce6f2" "#f4f8fc" "#ffffff"
-    ramp "snow-glow"  "#4a3254" "#6e4062" "#985070" "#c26474" "#e47e78" "#f6a088" "#ffc4a2" "#ffe6cc"
-    ramp "rock"       "#0c1020" "#141a30" "#1e2642" "#2a3456" "#38446a" "#4a5880" "#5e6e96" "#7686ac"
-    ramp "rock-glow"  "#1e1020" "#30182c" "#46223a" "#602e46" "#7c3c50" "#9a4c5a" "#b86064" "#d47a70"
-    ramp "ridge"      "#0e1628" "#16203a" "#1e2c4c" "#283a5e" "#344a70" "#425c82" "#546e92" "#6a84a4"
-    ramp "ridge-glow" "#1e1426" "#2e1c34" "#422844" "#583452" "#704460" "#8c566c" "#a86a78" "#c48288"
-    ramp "forest"     "#050c0c" "#0a1614" "#10221c" "#183026" "#223e30" "#2e4e3a" "#3c6046" "#4e7452"
-    ramp "forest-glow" "#120c08" "#20140c" "#302010" "#422c14" "#563a18" "#6c4a20" "#84602a" "#9c7636"
-    ramp "cloud"      "#3a4664" "#56627e" "#76829c" "#98a2ba" "#bcc4d6" "#dce2ec" "#f2f4f8" "#ffffff"
-    ramp "cloud-glow" "#3c2440" "#62304e" "#904054" "#c05656" "#e4785a" "#f8a064" "#ffc884" "#ffeab8"
-    ramp "water"      "#040a18" "#081226" "#0e1c36" "#162848" "#20365a" "#2c466c" "#3a587e" "#4c6c92"
-    ramp "water-glow" "#140a18" "#22122a" "#361c38" "#4e2844" "#6a344c" "#8a4452" "#ac5a58" "#cc7660"
-    ramp "foam"       "#6a80a4" "#a4b8d4" "#dce8f4" "#ffffff"
+    ramp snow "3c4a68 566684 7686a4 98a8c2 bccade dce6f2 f4f8fc ffffff"
+    ramp snow-glow "4a3254 6e4062 985070 c26474 e47e78 f6a088 ffc4a2 ffe6cc"
+    ramp rock "0c1020 141a30 1e2642 2a3456 38446a 4a5880 5e6e96 7686ac"
+    ramp rock-glow "1e1020 30182c 46223a 602e46 7c3c50 9a4c5a b86064 d47a70"
+    ramp ridge "0e1628 16203a 1e2c4c 283a5e 344a70 425c82 546e92 6a84a4"
+    ramp ridge-glow "1e1426 2e1c34 422844 583452 704460 8c566c a86a78 c48288"
+    ramp forest "050c0c 0a1614 10221c 183026 223e30 2e4e3a 3c6046 4e7452"
+    ramp forest-glow "120c08 20140c 302010 422c14 563a18 6c4a20 84602a 9c7636"
+    ramp cloud "3a4664 56627e 76829c 98a2ba bcc4d6 dce2ec f2f4f8 ffffff"
+    ramp cloud-glow "3c2440 62304e 904054 c05656 e4785a f8a064 ffc884 ffeab8"
+    ramp water "040a18 081226 0e1c36 162848 20365a 2c466c 3a587e 4c6c92"
+    ramp water-glow "140a18 22122a 361c38 4e2844 6a344c 8a4452 ac5a58 cc7660"
+    ramp foam "6a80a4 a4b8d4 dce8f4 ffffff"
 
-    ramp "sakura"     "#3a1830" "#5e2440" "#8a3456" "#b44c6e" "#d86c88" "#f092a6" "#fcb8c6" "#ffdce4"
-    ramp "sakura-glow" "#4a1c24" "#702a30" "#9c3c3c" "#c4564a" "#e2785a" "#f49c6e" "#ffc08a" "#ffe2b4"
-    ramp "sakura-warm" "#40201c" "#683026" "#944432" "#bc5e40" "#dc7e52" "#f2a066" "#ffc482" "#ffe4b0"
-    ramp "bark"       "#0c0808" "#181010" "#241818" "#322220" "#42302a"
-    ramp "lacquer"    "#2a0a0c" "#4a1012" "#701a16" "#9a2a1c" "#c43e24" "#e4582e"
-    ramp "lacquer-glow" "#3a1408" "#5e200c" "#8a3412" "#b64e1c" "#de7030" "#f8984a"
-    ramp "lacquer-warm" "#3a1206" "#5e1e08" "#8a320e" "#b84c16" "#e06c22" "#ff9030"
-    ramp "tile"       "#080a10" "#10141e" "#1a202e" "#262e40" "#344054"
-    ramp "tile-glow"  "#140c10" "#24161a" "#3a2428" "#583638" "#7a4c48"
-    ramp "plaster"    "#3a3a44" "#5a5a66" "#7e7e8a" "#a4a4ae" "#cacad2"
-    ramp "lamp"       "#8a4a14" "#d47a20" "#f8ac3c" "#ffd47a" "#fff2c4"
-    ramp "ink"        "#010205"
+    ramp sakura "3a1830 5e2440 8a3456 b44c6e d86c88 f092a6 fcb8c6 ffdce4"
+    ramp sakura-glow "4a1c24 702a30 9c3c3c c4564a e2785a f49c6e ffc08a ffe2b4"
+    ramp sakura-warm "40201c 683026 944432 bc5e40 dc7e52 f2a066 ffc482 ffe4b0"
+    ramp bark "0c0808 181010 241818 322220 42302a"
+    ramp lacquer "2a0a0c 4a1012 701a16 9a2a1c c43e24 e4582e"
+    ramp lacquer-glow "3a1408 5e200c 8a3412 b64e1c de7030 f8984a"
+    ramp lacquer-warm "3a1206 5e1e08 8a320e b84c16 e06c22 ff9030"
+    ramp tile "080a10 10141e 1a202e 262e40 344054"
+    ramp tile-glow "140c10 24161a 3a2428 583638 7a4c48"
+    ramp plaster "3a3a44 5a5a66 7e7e8a a4a4ae cacad2"
+    ramp lamp "8a4a14 d47a20 f8ac3c ffd47a fff2c4"
+    ramp ink "010205"
 
-    ramp "snow-warm"   "#4a3c48" "#6a5458" "#8e706a" "#b4907e" "#d6ae92" "#f0caa8" "#ffe0c0" "#fff2dc"
-    ramp "water-warm"  "#100a0e" "#1e1214" "#2e1c18" "#42281e" "#583826" "#704a30" "#8a603a" "#a87a48"
-    ramp "forest-warm" "#0e0a06" "#1a120a" "#2a1c0e" "#3a2812" "#4c3618" "#60461e" "#765826" "#8c6c30"
-    ramp "plaster-warm" "#4a3628" "#6e5038" "#96704c" "#bc9262" "#e0b47c"
+    ramp snow-warm "4a3c48 6a5458 8e706a b4907e d6ae92 f0caa8 ffe0c0 fff2dc"
+    ramp water-warm "100a0e 1e1214 2e1c18 42281e 583826 704a30 8a603a a87a48"
+    ramp forest-warm "0e0a06 1a120a 2a1c0e 3a2812 4c3618 60461e 765826 8c6c30"
+    ramp plaster-warm "4a3628 6e5038 96704c bc9262 e0b47c"
 
-    twin "snow" glow="snow-glow" warm="snow-warm"
-    twin "rock" glow="rock-glow"
-    twin "ridge" glow="ridge-glow"
-    twin "forest" glow="forest-glow" warm="forest-warm"
-    twin "cloud" glow="cloud-glow"
-    twin "water" glow="water-glow" warm="water-warm"
-    twin "plaster" warm="plaster-warm"
-    twin "lacquer" glow="lacquer-glow" warm="lacquer-warm"
-    twin "tile" glow="tile-glow"
-    twin "sakura" glow="sakura-glow" warm="sakura-warm"
+    twin snow glow=snow-glow warm=snow-warm
+    twin rock glow=rock-glow
+    twin ridge glow=ridge-glow
+    twin forest glow=forest-glow warm=forest-warm
+    twin cloud glow=cloud-glow
+    twin water glow=water-glow warm=water-warm
+    twin plaster warm=plaster-warm
+    twin lacquer glow=lacquer-glow warm=lacquer-warm
+    twin tile glow=tile-glow
+    twin sakura glow=sakura-glow warm=sakura-warm
 }

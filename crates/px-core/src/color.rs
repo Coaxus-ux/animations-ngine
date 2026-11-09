@@ -26,7 +26,15 @@ impl Rgb {
     }
 
     pub fn parse_hex(text: &str) -> Result<Self, ColorParseError> {
-        let digits = text.strip_prefix('#').ok_or(ColorParseError::MissingHash)?;
+        Self::parse_digits(text.strip_prefix('#').ok_or(ColorParseError::MissingHash)?)
+    }
+
+    pub fn parse_list(text: &str) -> impl Iterator<Item = Result<Self, ColorParseError>> + '_ {
+        text.split_whitespace()
+            .map(|token| Self::parse_digits(token.strip_prefix('#').unwrap_or(token)))
+    }
+
+    fn parse_digits(digits: &str) -> Result<Self, ColorParseError> {
         let bytes = digits.as_bytes();
         if bytes.len() != 6 {
             return Err(ColorParseError::WrongLength { len: bytes.len() });

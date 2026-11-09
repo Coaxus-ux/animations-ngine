@@ -1,14 +1,13 @@
-// One column of an aurora curtain, its foot at (0, 0): a glowing band that stretches,
-// sways and shimmers over 6 s. A host lines up many with `count`, each `offset` a little
-// later, so the waves travel along the curtain. `color` picks the ramp.
+// One column of an aurora curtain, its foot at (0, 0): a glowing band that stretches, sways and
+// shimmers over 6 s.
 
 use "cabin-palette.kdl"
 
-scene "aurora-band" palette=aurora width=16 height=80 fps=12 duration="6s" loop=#true background=sky.base {
+scene aurora-band palette=aurora width=16 height=80 fps=12 duration="6s" loop=#true background=sky.base {
     param color "aurora"
     camera -8 -70
 
-    group "wave" "=3 * sin(tau * t / 6)" "=34 + 16 * sin(tau * t / 3)"
+    group wave "=3 * sin(tau * t / 6)" "=34 + 16 * sin(tau * t / 3)"
     rect "=@wave.x - 5" "=-@wave.y - 18" 11 "=@wave.y + 18" paint=$color.base emissive=#true gradient=down gradient-steps=-2 opacity=0.6 tone-shift="=round(wiggle(0.8, 1))"
     rect "=@wave.x - 1" "=-@wave.y - 6" 2 10 paint=$color.hi emissive=#true opacity=0.8
     rect "=@wave.x - 1" "=-@wave.y - 18" 2 "=@wave.y + 6" paint=$color.lit emissive=#true gradient=down gradient-steps=-2 opacity=0.5

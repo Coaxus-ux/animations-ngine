@@ -733,6 +733,7 @@ name = "px-format"
 version = "0.0.1"
 dependencies = [
  "kdl",
+ "png",
  "px-core",
  "px-director",
  "px-engine",

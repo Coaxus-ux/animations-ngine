@@ -1,9 +1,4 @@
-// Sunflowers, their stem base at (0, 0). `sunflower` is a full plant: a stem, two leaves and a
-// head of two petal rings and a short bright one around a seed disc. `sx` and `sy` squash the
-// head to turn it aside or tilt it and `tall` is the stem length. The sway repeats every 4 s,
-// so a host sends a gust across a field by giving each copy an `offset` that follows its
-// position. `far-sunflower` is the few-pixel version for the distant rows and `leaf-clump` the
-// foliage that fills the field between the stems.
+// Sunflowers, their stem base at (0, 0).
 
 use "sunflower-palette.kdl"
 
@@ -14,13 +9,13 @@ motif sun-leaf x y tone shape {
     polygon $x $y points=$shape paint=leaf.$tone shading=dome outline=selective texture=0.3 texture-scale=1
 }
 
-scene "sunflower" palette=sunflower width=48 height=48 fps=12 duration="4s" loop=#true background=leaf.1 {
+scene sunflower palette=sunflower width=48 height=48 fps=12 duration="4s" loop=#true background=leaf.1 {
     param tall 24
     param sx 1
     param sy 0.9
     camera -24 -40
 
-    group "head" "=1.6 * sin(tau * t / 4)" "=-$tall + 0.5 * sin(tau * t / 4 + 1.2)"
+    group head "=1.6 * sin(tau * t / 4)" "=-$tall + 0.5 * sin(tau * t / 4 + 1.2)"
     rope 0 0 "=@head.x" "=@head.y + 4" sway="=-0.3 * @head.x" width=2 paint=leaf.4
     sun-leaf "=@head.x * 0.4" "=-$tall * 0.42" 5 "0,0 2,-4 6,-6.5 11,-6 15,-2 11,2 5,2.5"
     sun-leaf "=@head.x * 0.25" "=-$tall * 0.22" 4 "0,0 -2,-4 -6,-6 -11,-5.5 -15,-1 -10,2.5 -4,2.5"
@@ -58,17 +53,17 @@ scene "sunflower" palette=sunflower width=48 height=48 fps=12 duration="4s" loop
     ellipse "=@head.x - 2.2 * $sx" "=@head.y - 2.2 * $sy" "=4.4 * $sx" "=4.4 * $sy" paint=seed.1 texture=0.5 texture-scale=1
 }
 
-scene "far-sunflower" palette=sunflower width=12 height=12 fps=12 duration="4s" loop=#true background=leaf.1 {
+scene far-sunflower palette=sunflower width=12 height=12 fps=12 duration="4s" loop=#true background=leaf.1 {
     camera -6 -9
-    group "head" "=0.7 * sin(tau * t / 4)" -3
+    group head "=0.7 * sin(tau * t / 4)" -3
     line 0 0 "=@head.x" -3 paint=leaf.3
     ellipse "=@head.x - 3" "=@head.y - 2.2" 6 4.4 paint=petal.3 texture=0.6 texture-scale=1
     ellipse "=@head.x - 1.2" "=@head.y - 1" 2.4 2 paint=seed.1
 }
 
-scene "leaf-clump" palette=sunflower width=44 height=24 fps=12 duration="4s" loop=#true background=leaf.1 {
+scene leaf-clump palette=sunflower width=44 height=24 fps=12 duration="4s" loop=#true background=leaf.1 {
     camera -22 -18
-    group "sway" "=0.8 * sin(tau * t / 4)"
+    group sway "=0.8 * sin(tau * t / 4)"
     sun-leaf "=@sway.x * 0.5" -2 3 "0,0 -3,-5 -9,-8 -16,-7 -20,-3 -13,1 -5,1"
     sun-leaf "=@sway.x * 0.5" -3 4 "0,0 3,-5 9,-8 16,-7 20,-2 13,1 5,1"
     sun-leaf "=@sway.x" -6 5 "0,0 -4,-4 -6,-9 -4,-13 1,-14 4,-10 3,-4"

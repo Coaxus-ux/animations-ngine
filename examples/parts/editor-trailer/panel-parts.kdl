@@ -1,11 +1,11 @@
-// The small pieces the trailer's editor is built from: a panel title bar, a button, the tool
-// bar, row icons, the timeline ruler with its frame ticks, a key diamond and the pointer.
+// The small pieces the trailer's editor is built from: a panel title bar, a button, the tool bar,
+// row icons, the timeline ruler with its frame ticks, a key diamond and the pointer.
 
 use "editor-palette.kdl"
 
 motif ed-text words x y visible=1 { text $words $x $y paint=ui-ink-hi visible=$visible }
 
-scene "panel-title" palette=editor width=352 height=10 fps=12 duration="1s" loop=#true background=ui-title {
+scene panel-title palette=editor width=352 height=10 fps=12 duration="1s" loop=#true background=ui-title {
     param width 125
     param title "Panel"
 
@@ -17,7 +17,7 @@ scene "panel-title" palette=editor width=352 height=10 fps=12 duration="1s" loop
     rect "=$width - 9" 4 6 2 paint=ui-ink-hi
 }
 
-scene "button" palette=editor width=64 height=11 fps=12 duration="1s" loop=#true background=ui-panel {
+scene button palette=editor width=64 height=11 fps=12 duration="1s" loop=#true background=ui-panel {
     param width 40
     param label "Button"
     param enabled #true
@@ -29,10 +29,10 @@ scene "button" palette=editor width=64 height=11 fps=12 duration="1s" loop=#true
     text "$label" 5 1 paint=ui-disabled visible="=1 - $enabled"
 }
 
-scene "tool-bar" palette=editor width=18 height=228 fps=12 duration="1s" loop=#true background=ui-title {
+scene tool-bar palette=editor width=18 height=228 fps=12 duration="1s" loop=#true background=ui-title {
     param tool 0
 
-    use-scene "tool-cell" count=11 y="=21 * i"
+    use-scene tool-cell count=11 y="=21 * i"
     rect 0 "=21 * $tool" 18 18 paint=ui-accent
 
     capsule 5 13 13 5 radius=1.5 paint=ui-ink-hi
@@ -75,15 +75,15 @@ scene "tool-bar" palette=editor width=18 height=228 fps=12 duration="1s" loop=#t
     polygon 5 212 points="0,0 0,11 3,8 5,12 7,11 5,7 9,7" paint=ui-accent-hi outline=full outline-paint=ui-ink-hi
 }
 
-scene "tool-cell" palette=editor width=18 height=18 fps=12 duration="1s" loop=#true background=ui-panel {
+scene tool-cell palette=editor width=18 height=18 fps=12 duration="1s" loop=#true background=ui-panel {
     rect 0 0 18 18 paint=ui-panel
 }
 
-scene "inspector-field" palette=editor width=63 height=11 fps=12 duration="1s" loop=#true background=ui-panel {
+scene inspector-field palette=editor width=63 height=11 fps=12 duration="1s" loop=#true background=ui-panel {
     rect 0 0 63 11 paint=ui-field
 }
 
-scene "eye" palette=editor width=8 height=8 fps=12 duration="1s" loop=#true background=ui-panel {
+scene eye palette=editor width=8 height=8 fps=12 duration="1s" loop=#true background=ui-panel {
     pixels "eye-icon" {
         legend { i "ui-ink-hi"; a "ui-accent" }
         cel """
@@ -99,7 +99,7 @@ scene "eye" palette=editor width=8 height=8 fps=12 duration="1s" loop=#true back
     }
 }
 
-scene "file-icon" palette=editor width=8 height=8 fps=12 duration="1s" loop=#true background=ui-panel {
+scene file-icon palette=editor width=8 height=8 fps=12 duration="1s" loop=#true background=ui-panel {
     pixels "file-icon" {
         legend { i "ui-ink-hi" }
         cel """
@@ -115,7 +115,7 @@ scene "file-icon" palette=editor width=8 height=8 fps=12 duration="1s" loop=#tru
     }
 }
 
-scene "ruler" palette=editor width=350 height=10 fps=12 duration="1s" loop=#true background=ui-bar {
+scene ruler palette=editor width=350 height=10 fps=12 duration="1s" loop=#true background=ui-bar {
     param from "0.0s"
     param l0 "|0s"
     param l1 "|1s"
@@ -126,32 +126,32 @@ scene "ruler" palette=editor width=350 height=10 fps=12 duration="1s" loop=#true
     param l6 "|6s"
 
     rect 0 0 350 10 paint=ui-bar
-    use-scene "tick" "=46 + i * 4" count=72
+    use-scene tick "=46 + i * 4" count=72
     text "$from" 5 1 paint=ui-ink
     text "$l$k" "=45 + $k*48" 1 paint=ui-ink repeat=7
 }
 
-scene "tick" palette=editor width=1 height=10 fps=12 duration="1s" loop=#true background=ui-bar {
+scene tick palette=editor width=1 height=10 fps=12 duration="1s" loop=#true background=ui-bar {
     rect 0 8 1 1 paint=ui-ink
 }
 
-scene "key" palette=editor width=5 height=5 fps=12 duration="1s" loop=#true background=ui-panel {
+scene key palette=editor width=5 height=5 fps=12 duration="1s" loop=#true background=ui-panel {
     polygon -2 points="2,0 4,2 2,4 0,2" paint=ui-ink-hi
 }
 
-scene "pointer" palette=editor width=10 height=14 fps=12 duration="1s" loop=#true background=ui-window {
+scene pointer palette=editor width=10 height=14 fps=12 duration="1s" loop=#true background=ui-window {
     polygon points="0,0 0,12 3,9 5,14 7,13 5,8 9,8" paint=ui-ink-hi outline=full outline-paint=ui-backdrop
 }
 
-scene "click" palette=editor width=1 height=1 fps=12 duration="0.25s" background=ui-window {
-    group "spread" "=2 + 32 * t"
+scene click palette=editor width=1 height=1 fps=12 duration="0.25s" background=ui-window {
+    group spread "=2 + 32 * t"
     rect "=-1 - @spread.x" 0 2 1 paint=ui-accent-hi
     rect "=@spread.x" 0 2 1 paint=ui-accent-hi
     rect 0 "=-1 - @spread.x" 1 2 paint=ui-accent-hi
     rect 0 "=@spread.x" 1 2 paint=ui-accent-hi
 }
 
-scene "selection" palette=editor width=256 height=256 fps=12 duration="1s" loop=#true background=ui-window {
+scene selection palette=editor width=256 height=256 fps=12 duration="1s" loop=#true background=ui-window {
     param width 32
     param height 32
 

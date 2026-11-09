@@ -1,14 +1,12 @@
-// The sunflower field open in the editor with the code beside it (View > Split, F2): the
-// pointer clicks after the "sky" layer, types `ambient darkness=2` into the scene's KDL and,
-// 300 ms after the last key, the scene reloads and dusk deepens over the field while it keeps
-// swaying; then the camera dives into the canvas. The code is laid out with the font's glyph
-// widths, strings in the code view's string color.
+// The sunflower field open in the editor with the code beside it (View > Split, F2): the pointer
+// clicks after the "sky" layer, types `ambient darkness=2` into the scene's KDL and, 300 ms after
+// the last key, the scene reloads and dusk deepens over the field while it keeps swaying; then the
+// camera dives into the canvas.
 
 use "../../sunflower-field.kdl"
 use "chrome.kdl"
 use "swatches.kdl"
 
-// A code row under the new line: it drops one row when Enter lands at 1.3 s.
 motif ed-code-below y x words paint=ui-ink-hi { text $words $x "=$y + 11 * step(1.3, t)" paint=$paint }
 motif ed-use-row y name at tail {
     ed-code-below $y 347 "use-scene "
@@ -16,22 +14,22 @@ motif ed-use-row y name at tail {
     ed-code-below $y $at $tail
 }
 
-palette "sunflowers-in-editor" {
-    include "sunflower"
-    include "editor"
+palette sunflowers-in-editor {
+    include sunflower
+    include editor
 }
 
-scene "in-editor-sunflowers" palette=sunflowers-in-editor width=640 height=360 fps=12 duration="10s" seed=11 background=ui-bar {
+scene in-editor-sunflowers palette=sunflowers-in-editor width=640 height=360 fps=12 duration="10s" seed=11 background=ui-bar {
     timeline {
-        marker "click" at="1s"
-        marker "enter" at="1.3s"
-        marker "typing" at="1.45s"
-        marker "typed" at="2.672s"
-        marker "load" at="2.97s"
-        marker "dive" at="6.6s"
-        marker "full" at="7.9s"
+        marker click at="1s"
+        marker enter at="1.3s"
+        marker typing at="1.45s"
+        marker typed at="2.672s"
+        marker load at="2.97s"
+        marker dive at="6.6s"
+        marker full at="7.9s"
     }
-    group "mouse" {
+    group mouse {
         anim x {
             k "0s" 230
             k "click" 337 interp=ease-in-out
@@ -45,7 +43,7 @@ scene "in-editor-sunflowers" palette=sunflowers-in-editor width=640 height=360 f
             k "3.6s" 168 interp=ease-in-out
         }
     }
-    group "caret" {
+    group caret {
         anim x {
             k "click" 336
             k "1.29s" 336
@@ -89,7 +87,7 @@ scene "in-editor-sunflowers" palette=sunflowers-in-editor width=640 height=360 f
         }
     }
 
-    use-scene "editor-chrome" file=sunflower-field.kdl tab=118 status="160x224 | zoom 100% | color sky.7" help=226
+    use-scene editor-chrome file=sunflower-field.kdl tab=118 status="160x224 | zoom 100% | color sky.7" help=226
 
     text "sky\ndawn\ncloud\ntree\nleaf\npetal\nseed\nink" 2 72 paint=ui-ink
     ed-ramp 36 72 8 sky
@@ -105,7 +103,7 @@ scene "in-editor-sunflowers" palette=sunflowers-in-editor width=640 height=360 f
     ed-colors paint=sky.7
 
     group 131 45 160 207 clip=#true {
-        use-scene "sunflower-field" 131 37
+        use-scene sunflower-field 131 37
     }
     rect 291 45 2 207 paint=ui-bar
     rect 293 45 20 207 paint=ui-bar
@@ -148,27 +146,27 @@ scene "in-editor-sunflowers" palette=sunflowers-in-editor width=640 height=360 f
     }
 
     group 487 45 121 300 clip=#true {
-        use-scene "eye" 489 "=58 + 11 * i" count=5
+        use-scene eye 489 "=58 + 11 * i" count=5
         text "air (shapes)\nnear-field (shapes)\nfar-field (shapes)\nhorizon (shapes)\nclouds (shapes)" 514 58 paint=ui-ink
         rect 488 158 118 11 paint=ui-accent
-        use-scene "file-icon" 489 159
+        use-scene file-icon 489 159
         ed-text "scene \"sunflower-field\"" 502 159
-        use-scene "eye" 495 170
+        use-scene eye 495 170
         ed-text "layer \"sky\"" 508 170
-        use-scene "file-icon" 501 181
+        use-scene file-icon 501 181
         ed-text "use-scene \"dusk-band\"" 514 181
         ed-text "* ellipse\n* ellipse\n* ellipse\n* rect" 503 192
         ed-text "scene \"sunflower-field\"" 492 261
-        use-scene "inspector-field" 546 "=272 + 12 * i" count=6
+        use-scene inspector-field 546 "=272 + 12 * i" count=6
         ed-fields "palette\nwidth\nheight\nfps\nduration\nloop" "sunflower\n160\n224\n12\n16s\nyes"
     }
 
-    use-scene "ruler" 132 278
+    use-scene ruler 132 278
     rect "=177 + 4 * floor(mod(t * 12, 72))" 288 4 58 paint=ui-raised
     rect "=177 + 4 * floor(mod(t * 12, 72))" 278 1 10 paint=ui-accent
 
-    use-scene "click" 337 127 start=click end="1.25s"
-    use-scene "pointer" "=@mouse.x" "=@mouse.y" end=dive
+    use-scene click 337 127 start=click end="1.25s"
+    use-scene pointer "=@mouse.x" "=@mouse.y" end=dive
 
     camera "=(211 - 320) * @dive.x" "=(148.5 - 180) * @dive.x" zoom="=1 + 0.74 * @dive.x"
 }

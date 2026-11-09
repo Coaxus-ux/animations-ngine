@@ -1,12 +1,11 @@
-// The colors of the fallen warrior. Each ramp holds the reference colors from tone 2 up, two
-// shadow tones below them for the dark and one warm highlight above for the flickering light.
+// The colors of the fallen warrior.
 
-palette "fallen" {
-    ramp "night" "#100a12" "#1a121c" "#261a24" "#35242e"
-    ramp "root"  "#2a1c1d" "#4d332a" "#7d533d" "#a47a58"
-    ramp "skin"  "#372727" "#664b40" "#a97d62" "#c89b74" "#dbaf81"
-    ramp "steel" "#201d24" "#37363a" "#585858" "#7e7e7e" "#9d9d9d" "#bfb09c"
-    ramp "cloth" "#332b2c" "#5e534b" "#9b8b75" "#aea191" "#cab394"
-    ramp "blood" "#3c0f19" "#721922" "#bd262f" "#d9434e" "#e67669"
-    ramp "eye"   "#feffff"
+palette fallen {
+    ramp night "100a12 1a121c 261a24 35242e"
+    ramp root "2a1c1d 4d332a 7d533d a47a58"
+    ramp skin "372727 664b40 a97d62 c89b74 dbaf81"
+    ramp steel "201d24 37363a 585858 7e7e7e 9d9d9d bfb09c"
+    ramp cloth "332b2c 5e534b 9b8b75 aea191 cab394"
+    ramp blood "3c0f19 721922 bd262f d9434e e67669"
+    ramp eye "feffff"
 }

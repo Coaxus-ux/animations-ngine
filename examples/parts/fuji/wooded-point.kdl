@@ -1,6 +1,6 @@
-// A wooded point running out into the lake, in host canvas coordinates: a dark shoreline, a
-// canopy of rounded treetops with cherry trees in bloom among them, and the pagoda standing
-// in the trees, its base hidden by the front row. Its windows and lanterns light up at 11 s.
+// A wooded point running out into the lake, in host canvas coordinates: a dark shoreline, a canopy
+// of rounded treetops with cherry trees in bloom among them, and the pagoda standing in the trees,
+// its base hidden by the front row.
 
 use "fuji-palette.kdl"
 use "pagoda.kdl"
@@ -12,7 +12,7 @@ motif fuji-cherry x y crown spread side tone top=3 {
     rect $x "=$y-$top" 2 1 paint=sakura.7
 }
 
-scene "wooded-point" palette=fuji width=480 height=180 fps=12 duration="16s" background=sky-day.5 {
+scene wooded-point palette=fuji width=480 height=180 fps=12 duration="16s" background=sky-day.5 {
     polygon points="-80,180 -80,108 -20,104 40,104 90,107 130,110 170,112 196,116 214,122 228,130 232,134 214,140 170,148 110,156 40,164 -80,170" paint=forest.2 texture=0.45 texture-scale=2 shading=soft
     polygon points="232,134 214,140 170,148 110,156 40,164 -80,170 -80,174 40,168 112,160 172,152 216,143 234,136" paint=forest.0
     fuji-tree -80 105 4 3 3
@@ -53,7 +53,7 @@ scene "wooded-point" palette=fuji width=480 height=180 fps=12 duration="16s" bac
     fuji-tree 200 116 3 2 4
     fuji-tree 209 117 3 2 4
     fuji-cherry 216 121 2.5 2 1.5 5
-    use-scene "pagoda" 176 116 id=pagoda scale=0.8 lights-on=11
+    use-scene pagoda 176 116 id=pagoda scale=0.8 lights-on=11
     fuji-tree -80 110 4.5 3.5 3
     fuji-tree -74 110 3 2 3
     fuji-tree -67 109 4.5 3.5 2

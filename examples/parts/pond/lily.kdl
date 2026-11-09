@@ -1,6 +1,4 @@
-// A lily pad floating on the pond, its center at (0, 0), with a notch and veins. With
-// `flower` it carries a lotus. It drifts and turns its shine a little every 4 s; anything can
-// sit on it with `attach`.
+// A lily pad floating on the pond, its center at (0, 0), with a notch and veins.
 
 use "pond-palette.kdl"
 
@@ -9,11 +7,11 @@ motif pond-petal points { polygon "=@drift.x" "=@drift.y" points="0.0,0.0 $point
 motif pond-petal-lit points { polygon "=@drift.x" "=@drift.y" points="0.0,0.0 $points" paint=lotus.lit shading=dome visible="=$flower" }
 motif pond-bud points { polygon "=@drift.x" "=@drift.y" points="0.0,0.0 $points" paint=lotus.hi visible="=$flower" }
 
-scene "lily" palette=pond width=28 height=28 fps=12 duration="4s" loop=#true background=water.base {
+scene lily palette=pond width=28 height=28 fps=12 duration="4s" loop=#true background=water.base {
     param flower #false
     camera -14 -14
 
-    group "drift" "=osc(4s, -0.6, 0.6)" "=osc(4s, 0.4, -0.4)"
+    group drift "=osc(4s, -0.6, 0.6)" "=osc(4s, 0.4, -0.4)"
     shade "=@drift.x - 7" "=@drift.y - 5" 19 18 round=#true
     polygon "pad" "=@drift.x" "=@drift.y" points="0.0,0.0 9.0,0.0 5.3,7.3 2.8,8.6 0.0,9.0 -2.8,8.6 -5.3,7.3 -7.3,5.3 -8.6,2.8 -9.0,0.0 -8.6,-2.8 -7.3,-5.3 -5.3,-7.3 -2.8,-8.6 -0.0,-9.0 2.8,-8.6 5.3,-7.3 7.3,-5.3 8.6,-2.8" paint=pad shading=dome outline=selective
     pond-vein 3.0 5.2

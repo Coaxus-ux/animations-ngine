@@ -1,38 +1,25 @@
-// A winter night under the northern lights. Two aurora curtains (one green, one violet)
-// ripple across the sky, each made of dozens of copies of one glowing band whose time is
-// shifted copy by copy, so the waves travel along them. Snowy pines stand in three depths, a
-// frozen lake mirrors the sky, snow falls in two layers, and a cabin's window and lantern
-// warm the snow around it. A star falls at the "wish" marker; then the camera drifts in
-// to the window, where someone reads by the fire, and back out.
-//
-// Shows: `count` + `offset` building a large animated structure from one small scene,
-// copies scaled per index, parallax layers with fog, a reflection limited to the ice,
-// colored light twins, clip groups, particles at two depths, keyframes on markers, zoom.
-// Loops every 12 seconds.
+// A winter night under the northern lights.
 
 use "parts/cabin/cabin-palette.kdl"
 use "parts/cabin/aurora-band.kdl"
 use "parts/cabin/snowy-pine.kdl"
 use "parts/cabin/cabin.kdl"
+use "kit/sky.kdl"
 
-motif cabin-star x y tone { rect $x $y 1 1 paint=star.$tone emissive=#true }
-motif cabin-twinkle x y tone period width {
-    rect $x $y 1 1 paint=star.$tone emissive=#true visible="=1 - pulse($period, $width)"
-}
 
-scene "aurora-cabin" palette=aurora width=320 height=180 fps=12 duration="12s" loop=#true seed=12 background=sky.base {
+scene aurora-cabin palette=aurora width=320 height=180 fps=12 duration="12s" loop=#true seed=12 background=sky.base {
     ambient darkness=1 occlusion=1 key-light=240
     wind strength=1.2 gust=0.6 speed=3
 
     timeline {
-        marker "wish" at="1.5s"
-        marker "approach" at="4s"
-        marker "inside" at="6s"
-        marker "away" at="9s"
-        marker "wide" at="11s"
+        marker wish at="1.5s"
+        marker approach at="4s"
+        marker inside at="6s"
+        marker away at="9s"
+        marker wide at="11s"
     }
 
-    group "focus" {
+    group focus {
         anim x {
             k "approach" 0
             k "inside" 1 interp=ease-in-out
@@ -42,84 +29,43 @@ scene "aurora-cabin" palette=aurora width=320 height=180 fps=12 duration="12s" l
     }
     camera "=osc(12s, 0, 24) * (1 - @focus.x) + (172 - 160) * @focus.x" "=(126 - 90) * @focus.x" zoom="=1 + 2 * @focus.x"
 
-    layer "sky" parallax=0 {
+    layer sky parallax=0 {
         rect -60 -60 440 200 paint=sky.deep gradient=down gradient-steps=3
-        cabin-star 91 55 lit
-        cabin-star 279 40 base
-        cabin-star 280 -19 lit
-        cabin-twinkle 102 50 lit "6s" 0.2
-        cabin-twinkle 297 90 hi "3s" 0.2
-        cabin-star -23 65 base
-        cabin-twinkle 272 -15 lit "2s" 0.2
-        cabin-star 274 72 lit
-        cabin-star 335 80 lit
-        cabin-star 342 82 base
-        cabin-twinkle 157 -8 lit "6s" 0.1
-        cabin-star 314 35 lit
-        cabin-star 185 44 hi
-        cabin-star 149 48 hi
-        cabin-star 88 23 base
-        cabin-star 113 57 base
-        cabin-twinkle 327 90 hi "2s" 0.1
-        cabin-twinkle 263 14 hi "2s" 0.2
-        cabin-twinkle 217 -9 base "2s" 0.2
-        cabin-star -20 17 lit
-        cabin-star 30 -15 base
-        cabin-star 163 71 hi
-        cabin-twinkle 112 44 base "2s" 0.2
-        cabin-star 9 -7 base
-        cabin-twinkle 71 32 hi "4s" 0.1
-        cabin-twinkle -9 23 lit "3s" 0.2
-        cabin-twinkle 205 46 lit "2s" 0.2
-        cabin-star 294 72 lit
-        cabin-star 193 13 hi
-        cabin-star 143 -19 hi
-        cabin-twinkle 131 -18 hi "3s" 0.1
-        cabin-star 291 22 hi
-        cabin-star 150 57 hi
-        cabin-star 220 -18 hi
-        cabin-twinkle -20 27 hi "6s" 0.2
-        cabin-twinkle 277 20 lit "3s" 0.2
-        cabin-twinkle 274 13 base "6s" 0.1
-        cabin-star 261 67 lit
-        cabin-star 226 8 lit
-        cabin-twinkle 92 21 base "6s" 0.1
+        scatter 26 seed=1 x="-23..342" y="-19..82" tone="base|lit|hi" { kit-star $x $y paint=star.$tone }
+        scatter 16 seed=2 x="-20..327" y="-18..90" tone="base|lit|hi" period="2s|3s|4s|6s" duty="0.1|0.2" { kit-twinkle $x $y $period paint=star.$tone duty=$duty }
         line "=30 + 260 * (t - 1.5)" "=10 + 90 * (t - 1.5)" "=@self.x1 - 10" "=@self.y1 - 3.5" paint=star.hi emissive=#true visible="=t >= 1.5 && t < 2"
     }
-    layer "aurora" parallax=0.1 {
-        use-scene "aurora-band" "=-40 + i * 13" "=70 - 10 * cos(i * 0.4)" count=30 offset="=3 + i * 0.2" scale=0.8 color=aurora-violet
-        use-scene "aurora-band" "=-60 + i * 7" "=92 - 14 * sin(i * 0.28)" count=56 offset="=i * 0.14" scale="=0.9 + 0.2 * sin(i * 0.5)"
+    layer aurora parallax=0.1 {
+        use-scene aurora-band "=-40 + i * 13" "=70 - 10 * cos(i * 0.4)" count=30 offset="=3 + i * 0.2" scale=0.8 color=aurora-violet
+        use-scene aurora-band "=-60 + i * 7" "=92 - 14 * sin(i * 0.28)" count=56 offset="=i * 0.14" scale="=0.9 + 0.2 * sin(i * 0.5)"
     }
-    layer "mountains" parallax=0.25 fog="30%" fog-paint=sky.lit {
+    layer mountains parallax=0.25 fog="30%" fog-paint=sky.lit {
         polygon -80 78 points="0,52 40,24 70,34 120,6 170,30 210,14 260,32 320,0 380,28 440,18 480,40 480,64 0,64" paint=snow.shade shading=dome outline=selective
         polygon -80 78 points="120,6 132,16 124,18 112,13" paint=snow.lit
         polygon -80 78 points="320,0 334,12 326,14 312,8" paint=snow.lit
     }
-    layer "far-pines" parallax=0.5 fog="35%" fog-paint=sky.lit {
+    layer far-pines parallax=0.5 fog="35%" fog-paint=sky.lit {
         rect -80 122 480 12 paint=snow.shade
-        use-scene "snowy-pine" "=-60 + i * 19 + 5 * sin(i * 2.1)" 126 count=24 scale="=0.35 + 0.08 * (i % 4)"
+        use-scene snowy-pine "=-60 + i * 19 + 5 * sin(i * 2.1)" 126 count=24 scale="=0.35 + 0.08 * (i % 4)"
     }
 
-    // The frozen lake mirrors the sky above it
     rect -80 130 480 16 paint=ice.base gradient=down gradient-steps=-1
     rect "=40 + osc(6s, -4, 4)" 134 30 1 paint=ice.hi
     rect "=210 + osc(6s, 3, -3)" 139 22 1 paint=ice.lit
     reflection -80 130 480 16 axis=130 ripple=0 speed=0 opacity=0.8 on=ice
 
-    // Snowy ground, drifts and the cabin
     rect -80 144 480 50 paint=snow.base gradient=down gradient-steps=-2 texture=0.25 texture-scale=3
     blob 40 150 circles="0,0,8 12,-2,10 26,0,7" smooth=5 paint=snow.lit shading=dome
     blob 250 152 circles="0,0,9 14,-3,11 30,1,8" smooth=5 paint=snow.lit shading=dome
-    use-scene "snowy-pine" 128 148 scale=0.9
-    use-scene "snowy-pine" 238 150 scale=1.1
-    use-scene "cabin" 150 148
+    use-scene snowy-pine 128 148 scale=0.9
+    use-scene snowy-pine 238 150 scale=1.1
+    use-scene cabin 150 148
     polygon 150 146 points="0,2 72,2 80,6 -6,6" paint=snow.lit
 
-    // Snow falling: fine and slow far away, larger and faster close by
     particles -40 -20 400 20 count=90 vx=-3 vy=14 life="12s" wind=5 paint=snow.hi
-    layer "near" parallax=1.4 {
-        use-scene "snowy-pine" -6 196 scale=1.9
-        use-scene "snowy-pine" 318 200 scale=2.2
+    layer near parallax=1.4 {
+        use-scene snowy-pine -6 196 scale=1.9
+        use-scene snowy-pine 318 200 scale=2.2
         particles -40 -20 400 20 count=30 vx=-5 vy=30 life="6s" size=2 wind=8 paint=snow.hi
     }
 }

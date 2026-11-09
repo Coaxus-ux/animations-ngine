@@ -1,7 +1,5 @@
-// A passenger carriage seen from the side, its front coupling at (0, 0) and its body
-// stretching back to x = -58. Four lit windows, each a clip group holding a passenger (a
-// placed scene), so people show only through the glass. The window light spills on whatever
-// is near. Wheels turn twice a second. `color` sets the livery.
+// A passenger carriage seen from the side, its front coupling at (0, 0) and its body stretching back
+// to x = -58.
 
 use "train-palette.kdl"
 use "passenger.kdl"
@@ -11,17 +9,16 @@ motif train-window x offset hair=hair coat=coat reading=#true {
     rect "=$x-1" -20 12 11 paint=ink
     rect $x -19 10 9 paint=window.lit emissive=#true gradient=down gradient-steps=-1
     group $x -19 10 9 clip=#true {
-        use-scene "passenger" "=$x+4" -6 scale=0.7 offset=$offset hair=$hair coat=$coat reading=$reading
+        use-scene passenger "=$x+4" -6 scale=0.7 offset=$offset hair=$hair coat=$coat reading=$reading
     }
     rect $x -19 10 1 paint=window.hi emissive=#true
 }
 
-scene "carriage" palette=night-train width=72 height=36 fps=12 duration="12s" loop=#true background=sky.base {
+scene carriage palette=night-train width=72 height=36 fps=12 duration="12s" loop=#true background=sky.base {
     param color "car"
     param sleepers #false
     camera -66 -30
 
-    // Underframe and bogies
     rect -56 -6 54 2 paint=iron.base
     rect -54 -5 14 2 paint=iron.shade
     train-wheel -51 -2
@@ -30,7 +27,6 @@ scene "carriage" palette=night-train width=72 height=36 fps=12 duration="12s" lo
     train-wheel -15 -2
     train-wheel -7 -2
 
-    // Body, roof and the window band
     rounded-rect "body" -58 -25 58 20 paint=$color shading=dome outline=selective casts-shadow=#true
     rounded-rect -59 -28 60 4 paint=iron.lit shading=dome outline=selective
     rect -50 -30 4 2 paint=iron.base

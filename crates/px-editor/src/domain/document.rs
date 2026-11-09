@@ -291,6 +291,10 @@ impl Sources for DocumentSources<'_> {
         self.others.insert(path.to_path_buf(), text.clone());
         Ok(text)
     }
+
+    fn read_bytes(&mut self, path: &Path) -> Result<Vec<u8>, String> {
+        self.store.read_bytes(path)
+    }
 }
 
 #[cfg(test)]

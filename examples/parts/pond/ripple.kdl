@@ -1,5 +1,5 @@
-// A ring spreading on the water from (0, 0), with a fainter one behind it: a fish kissing
-// the surface or a petal landing. It brightens the water it passes over. Repeats every 2 s.
+// A ring spreading on the water from (0, 0), with a fainter one behind it: a fish kissing the
+// surface or a petal landing.
 
 use "pond-palette.kdl"
 
@@ -8,11 +8,11 @@ motif pond-ring r when {
     shade "=1 - $r" "=1 - $r" "=2 * $r - 2" "=2 * $r - 2" round=#true visible=$when
 }
 
-scene "ripple" palette=pond width=40 height=40 fps=12 duration="2s" loop=#true background=water.base {
+scene ripple palette=pond width=40 height=40 fps=12 duration="2s" loop=#true background=water.base {
     camera -20 -20
 
-    group "outer" "=2 + 16 * ease('ease-out', t / 2)"
-    group "inner" "=max(0, @outer.x - 6)"
+    group outer "=2 + 16 * ease('ease-out', t / 2)"
+    group inner "=max(0, @outer.x - 6)"
     pond-ring "=@outer.x" "=t < 1.7"
     pond-ring "=@inner.x" "=t > 0.4 && t < 1.4"
 }

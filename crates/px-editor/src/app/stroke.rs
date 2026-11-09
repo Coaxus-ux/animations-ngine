@@ -93,6 +93,14 @@ impl App {
             .as_ref()
             .filter(|_| layer.paintable())
             .ok_or("Select a pixel layer to paint on")?;
+        if let Some(src) = document
+            .source()
+            .node(&art.path)
+            .and_then(|node| node.entry("src"))
+            .and_then(|entry| entry.value().as_string())
+        {
+            return Err(format!("This art comes from {src}; edit the image"));
+        }
         let origin = art
             .origin
             .ok_or("This layer moves, so it can't be painted")?;

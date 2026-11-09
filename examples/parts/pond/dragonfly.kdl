@@ -1,12 +1,11 @@
 // A dragonfly seen from above: it hovers, darts to a new spot, hovers again and darts back.
-// Its wings blur between two positions; its shadow falls on the water below. Every 3 s.
 
 use "pond-palette.kdl"
 
-scene "dragonfly" palette=pond width=64 height=40 fps=12 duration="3s" loop=#true background=water.base {
+scene dragonfly palette=pond width=64 height=40 fps=12 duration="3s" loop=#true background=water.base {
     camera -20 -20
 
-    group "body" {
+    group body {
         anim x { k "0s" 0; k "0.8s" 1; k "1s" 28 interp="ease-out"; k "2.2s" 27; k "2.4s" 0 interp="ease-out"; k "3s" 0 }
         anim y { k "0s" 0; k "0.8s" -1; k "1s" -6 interp="ease-out"; k "2.2s" -5; k "2.4s" 0 interp="ease-out"; k "3s" 0 }
     }

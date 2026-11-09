@@ -1,28 +1,27 @@
-// Mount Fuji open in the editor, playing on its timeline from golden hour: the playhead pages
-// along the ruler past the markers and the keys of the scene's groups, the pointer picks the
-// "glow" group by one of its keys and the inspector shows it, then the camera dives into the
-// canvas as dusk turns to night and the lights come on. The host lights the scene as the
-// scene lights itself: its ambient darkness keys, at the same scene times.
+// Mount Fuji open in the editor, playing on its timeline from golden hour: the playhead pages along
+// the ruler past the markers and the keys of the scene's groups, the pointer picks the "glow" group
+// by one of its keys and the inspector shows it, then the camera dives into the canvas as dusk turns
+// to night and the lights come on.
 
 use "../../mount-fuji.kdl"
 use "chrome.kdl"
 use "swatches.kdl"
 use "fuji-track.kdl"
 
-palette "fuji-in-editor" {
-    include "fuji"
-    include "editor"
+palette fuji-in-editor {
+    include fuji
+    include editor
 }
 
-scene "in-editor-fuji" palette=fuji-in-editor width=640 height=360 fps=12 duration="10s" seed=37 background=ui-bar {
+scene in-editor-fuji palette=fuji-in-editor width=640 height=360 fps=12 duration="10s" seed=37 background=ui-bar {
     wind strength=1 gust=0.6 speed=2
     timeline {
-        marker "page" at="1.5s"
-        marker "pick" at="2.8s"
-        marker "dive" at="6s"
-        marker "full" at="7.4s"
+        marker page at="1.5s"
+        marker pick at="2.8s"
+        marker dive at="6s"
+        marker full at="7.4s"
     }
-    group "mouse" {
+    group mouse {
         anim x {
             k "0s" 300
             k "2.7s" 352 interp=ease-in-out
@@ -47,7 +46,7 @@ scene "in-editor-fuji" palette=fuji-in-editor width=640 height=360 fps=12 durati
         }
     }
 
-    use-scene "editor-chrome" file=mount-fuji.kdl tab=94 status="480x180 | zoom 100% | color sky-day.7" help=244
+    use-scene editor-chrome file=mount-fuji.kdl tab=94 status="480x180 | zoom 100% | color sky-day.7" help=244
 
     group 0 45 44 261 clip=#true {
         text "sky-day\nsky-gold\nsky-dusk\nsky-night\nsun\nmoon\nstar\ngalaxy\nsnow\nsnow-glow\nrock\nrock-glow\nridge\nridge-glow\nforest\nforest-glow\ncloud\ncloud-glow\nwater\nwater-glow" 2 72 paint=ui-ink
@@ -77,25 +76,25 @@ scene "in-editor-fuji" palette=fuji-in-editor width=640 height=360 fps=12 durati
     ed-colors paint=sky-day.7
 
     group 131 45 352 207 clip=#true {
-        use-scene "mount-fuji" 67 58 offset=4.5
+        use-scene mount-fuji 67 58 offset=4.5
     }
 
     group 487 45 121 300 clip=#true {
-        use-scene "eye" 489 "=58 + 11 * i" count=5
+        use-scene eye 489 "=58 + 11 * i" count=5
         text "near (shapes)\nshore (shapes)\nheadland (shapes)\nlake (shapes)\nwoods (shapes)" 514 58 paint=ui-ink
         rect 488 213 118 11 paint=ui-accent visible="=t >= 2.8 && t < 6"
-        use-scene "file-icon" 489 159
+        use-scene file-icon 489 159
         ed-text "scene \"mount-fuji\"" 502 159
         ed-text "~ wind\n@ timeline\n# group \"gold\"\n# group \"dusk\"\n# group \"glow\"\n# group \"sun\"\n# group \"moon\"" 495 170
         ed-text "scene \"mount-fuji\"" 492 261 visible="=t < 2.8"
         ed-text "group \"glow\"" 492 261 visible="=t >= 2.8"
-        use-scene "inspector-field" 546 "=272 + 12 * i" count=6
+        use-scene inspector-field 546 "=272 + 12 * i" count=6
         ed-fields "palette\nwidth\nheight\nfps\nduration\nseed" "fuji\n480\n180\n12\n16s\n37" visible="=t < 2.8"
         ed-fields "x\ny\nwidth\nheight\nclip\nround" "7 keys\n0\n0\n0\nno\nno" visible="=t >= 2.8"
     }
 
-    use-scene "ruler" 132 278 from="4.5s" end=page
-    use-scene "ruler" 132 278 start=page from="6.0s" l0="|6s" l1="|7s" l2="|8s" l3="|9s" l4="|10s" l5="|11s" l6="|12s"
+    use-scene ruler 132 278 from="4.5s" end=page
+    use-scene ruler 132 278 start=page from="6.0s" l0="|6s" l1="|7s" l2="|8s" l3="|9s" l4="|10s" l5="|11s" l6="|12s"
     text "markers" 137 290 paint=ui-ink
     text "gold" 137 300 paint=ui-ink
     text "dusk" 137 310 paint=ui-ink
@@ -104,13 +103,13 @@ scene "in-editor-fuji" palette=fuji-in-editor width=640 height=360 fps=12 durati
     text "sun" 137 340 paint=ui-ink
     group 176 288 306 58 clip=#true {
         rect "=177 + 4 * floor(((4.5 + t) - 6 * step(6, (4.5 + t))) * 12)" 288 4 58 paint=ui-raised
-        use-scene "fuji-track" end=page
-        use-scene "fuji-track" -288 start=page
+        use-scene fuji-track end=page
+        use-scene fuji-track -288 start=page
     }
     rect "=177 + 4 * floor(((4.5 + t) - 6 * step(6, (4.5 + t))) * 12)" 278 1 10 paint=ui-accent
 
-    use-scene "click" 352 334 start=pick end="3.05s"
-    use-scene "pointer" "=@mouse.x" "=@mouse.y" end=dive
+    use-scene click 352 334 start=pick end="3.05s"
+    use-scene pointer "=@mouse.x" "=@mouse.y" end=dive
 
     camera "=(307 - 320) * @dive.x" "=(148 - 180) * @dive.x" zoom="=1 + 0.82 * @dive.x"
 }

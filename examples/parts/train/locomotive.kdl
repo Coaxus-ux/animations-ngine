@@ -1,26 +1,20 @@
-// A steam locomotive and its tender seen from the side, facing right, its front buffer at
-// (0, 0). Three driving wheels turn with the connecting rod sliding between them, smoke
-// streams back from the chimney (so it trails behind as the engine moves), the cab glows
-// and the headlamp is an object named `lamp` that a light can be attached to.
+// A steam locomotive and its tender seen from the side, facing right, its front buffer at (0, 0).
 
 use "train-palette.kdl"
 use "wheel.kdl"
 
-scene "locomotive" palette=night-train width=96 height=48 fps=12 duration="12s" loop=#true background=sky.base {
+scene locomotive palette=night-train width=96 height=48 fps=12 duration="12s" loop=#true background=sky.base {
     camera -84 -40
 
-    // Smoke, pouring back from the chimney
     particles -16 -36 4 2 count=40 vx=-46 vy=-12 gravity=-4 life="1.5s" size=2 wind=4 paint=smoke.lit fade=#true
     particles -16 -34 4 2 count=20 vx=-40 vy=-8 life="1s" size=3 wind=3 paint=smoke.base fade=#true
 
-    // Tender with its coal
     rounded-rect -82 -22 24 17 paint=train shading=dome outline=selective casts-shadow=#true
     polygon -80 -26 points="0,4 4,0 10,2 16,0 20,4" paint=iron.shade texture=0.4 texture-scale=1
     rect -82 -12 24 1 paint=brass.base
     train-wheel -76 -3
     train-wheel -64 -3
 
-    // Cab, with the driver lit by the firebox
     rect -56 -28 18 23 paint=train.base shading=dome outline=selective casts-shadow=#true
     rounded-rect -58 -31 22 4 radius=1 paint=iron.lit outline=selective
     rect -52 -25 8 8 paint=window.base emissive=#true gradient=down gradient-steps=-1
@@ -29,7 +23,6 @@ scene "locomotive" palette=night-train width=96 height=48 fps=12 duration="12s" 
     rect -50 -20 4 3 paint=coat.shade
     light-point -48 -18 reach=22 intensity=1.6 color=lamp
 
-    // Boiler, chimney and dome, with brass bands
     rounded-rect -40 -21 34 12 radius=5 paint=train shading=dome outline=selective casts-shadow=#true
     rect -34 -21 1 12 paint=brass.lit
     rect -22 -21 1 12 paint=brass.lit
@@ -42,7 +35,6 @@ scene "locomotive" palette=night-train width=96 height=48 fps=12 duration="12s" 
     polygon -4 -6 points="0,0 6,0 8,6 0,6" paint=iron.lit outline=selective
     rect -40 -9 36 2 paint=iron.shade
 
-    // Driving wheels and the rod that couples them
     train-wheel -34 -4 radius=3 spin=1.5 ramp=car
     train-wheel -23 -4 radius=3 spin=1.5 ramp=car
     train-wheel -12 -4 radius=3 spin=1.5 ramp=car

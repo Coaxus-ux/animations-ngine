@@ -1,42 +1,37 @@
-// A lantern swinging over an alley at night: darkness, a warm light with cast shadows,
-// emissive surfaces, dome shading, outlines, a rope and fireflies. Loops every 2 seconds.
+// A lantern swinging over an alley at night: darkness, a warm light with cast shadows, emissive
+// surfaces, dome shading, outlines, a rope and fireflies.
 
-palette "night" {
-    ramp "wall"      "#0d0b16" "#1b1828" "#2c2840" "#433d5c" "#5f587d"
-    ramp "wall-warm" "#160c0d" "#2e1814" "#4f2c1e" "#7d4a2a" "#b8763c"
-    ramp "wood"      "#120a08" "#2a1a12" "#4a2e1c" "#6e4628" "#94633a"
-    ramp "wood-warm" "#1a0a05" "#3a1a0a" "#653310" "#9a5418" "#d08a2a"
-    ramp "flame"     "#7a2e0e" "#d0661a" "#ffb347" "#ffe08a" "#fff6d8"
-    ramp "ink"       "#06050a"
-    twin "wall" warm="wall-warm"
-    twin "wood" warm="wood-warm"
+palette night {
+    ramp wall "0d0b16 1b1828 2c2840 433d5c 5f587d"
+    ramp wall-warm "160c0d 2e1814 4f2c1e 7d4a2a b8763c"
+    ramp wood "120a08 2a1a12 4a2e1c 6e4628 94633a"
+    ramp wood-warm "1a0a05 3a1a0a 653310 9a5418 d08a2a"
+    ramp flame "7a2e0e d0661a ffb347 ffe08a fff6d8"
+    ramp ink "06050a"
+    twin wall warm=wall-warm
+    twin wood warm=wood-warm
 }
 
-scene "lantern-night" palette=night width=128 height=96 fps=12 duration="2s" loop=#true seed=7 background=wall.shade {
+scene lantern-night palette=night width=128 height=96 fps=12 duration="2s" loop=#true seed=7 background=wall.shade {
     ambient darkness=2 occlusion=1
     wind strength=1 gust=0.6 speed=12
 
-    // Back wall with brick texture, then the floor
     rect 0 0 "100%" 70 paint=wall.base texture=0.15 texture-scale=6
     rect 0 70 "100%" 26 paint=wall.shade gradient=down gradient-steps=-2
 
-    // A window glowing from inside
     rounded-rect 86 14 26 30 radius=3 paint=wall.deep outline=full
     rect 89 17 20 24 paint=flame.lit emissive=#true
     rect 98 17 2 24 paint=wall.deep
     light-rect 89 17 20 24 reach=26 color=warm
 
-    // Crates that block the lantern light
     rounded-rect 14 56 22 18 paint=wood.base shading=dome outline=selective casts-shadow=#true contact-shadow=1
     rounded-rect 20 42 14 14 paint=wood.lit shading=dome outline=selective casts-shadow=#true
     capsule 58 78 74 78 radius=3 paint=wood.shade shading=dome casts-shadow=#true contact-shadow=1
 
-    // The lantern hangs from a rope and swings with the wind
     rope "cord" 64 0 "=64 + wind(64) * 3" 28 sag=1 sway=1 paint=ink
     rounded-rect "lantern" "=@cord.x2 - 4" 28 9 11 paint=wood.deep outline=full
     blob "=@lantern.x + 4" 34 circles="0,0,3 0,-2,2" smooth=2 paint=flame.hi emissive=#true
     light-point "=@lantern.x + 4" 34 reach=70 intensity="=3 + wiggle(0.4, 6)" color=warm shadows=#true
 
-    // Fireflies drifting up through the light
     particles 0 60 "100%" 30 count=18 vy=-6 life="2s" wind=4 paint=flame.hi emissive=#true fade=#true
 }

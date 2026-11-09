@@ -1,13 +1,4 @@
-// A koi pond seen from above on a spring afternoon. Koi of five varieties swim at two depths
-// (the deeper ones fade into the water), under lily pads, lotus flowers and a red bridge;
-// a frog rides a drifting pad, ripples spread, cherry petals float by, a dragonfly darts and
-// the shade of a maple sways with sunlight dappling through it. The camera dives in on the
-// golden ogon and follows it, three times closer, then rises again.
-//
-// Shows: parts (`use`), placed scenes with params, copies, flips, speeds and offsets; layers
-// with fog for depth; `attach` (a frog and ripples riding lily pads); a timeline with
-// markers driving the zoom; shade as caustics, dappled light and cast shadows; particles,
-// ropes in the wind, textures and dome shading. Loops every 12 seconds.
+// A koi pond seen from above on a spring afternoon.
 
 use "parts/pond/pond-palette.kdl"
 use "parts/pond/koi.kdl"
@@ -24,19 +15,18 @@ motif pond-bank-stone x y big small { blob $x $y circles="0,0,$big 7,1,$small" s
 motif pond-stepping-stone x y { blob $x $y circles="0,0,6 5,2,5" smooth=2 paint=stone.lit shading=dome texture=0.25 texture-scale=2 outline=selective }
 motif pond-grass x y { line $x $y "=$x + wind($x) * 2 + 1" "=$y - 4" paint=moss.hi }
 
-scene "koi-pond" palette=pond width=320 height=180 fps=12 duration="12s" loop=#true seed=5 background=water.base {
+scene koi-pond palette=pond width=320 height=180 fps=12 duration="12s" loop=#true seed=5 background=water.base {
     ambient occlusion=1 key-light=225
     wind strength=1 gust=0.6 speed=5
 
     timeline {
-        marker "dive" at="2.5s"
-        marker "close" at="4.5s"
-        marker "rise" at="8s"
-        marker "wide" at="10s"
+        marker dive at="2.5s"
+        marker close at="4.5s"
+        marker rise at="8s"
+        marker wide at="10s"
     }
 
-    // 0 shows the whole pond, 1 follows the ogon three times closer
-    group "focus" {
+    group focus {
         anim x {
             k "dive" 0
             k "close" 1 interp=ease-in-out
@@ -46,8 +36,7 @@ scene "koi-pond" palette=pond width=320 height=180 fps=12 duration="12s" loop=#t
     }
     camera "=(@ogon.x - 22 - 160) * @focus.x" "=(@ogon.y - 90) * @focus.x" zoom="=1 + 2 * @focus.x"
 
-    // The pond floor, seen through the water: pebbles, sunken stones and waterweed
-    layer "floor" parallax=1 fog="50%" fog-paint=water.shade {
+    layer floor parallax=1 fog="50%" fog-paint=water.shade {
         rect -80 -60 480 300 paint=floor.base texture=0.35 texture-scale=4
         scatter 34 seed=1 x="-7..326" y="34..146" w="3..7" h="3..5" tone="floor.lit|floor.hi|floor.shade|stone.base" {
             pond-pebble $x $y $w $h $tone
@@ -69,20 +58,17 @@ scene "koi-pond" palette=pond width=320 height=180 fps=12 duration="12s" loop=#t
         pond-caustic 230 114 23 9
     }
 
-    // Deep koi, slower and further down
-    layer "deep" parallax=1 fog="30%" fog-paint=water.shade {
-        use-scene "koi" "=mod(t * 220 / 6 + i * 210, 440) - 60" "=72 + i * 46 + 6 * sin(tau * t / 6 + i)" count=2 scale=0.7 speed=0.75 offset="=i * 0.4" body=koi-black patch=koi-white
-        use-scene "koi" "=380 - mod(t * 110 / 3 + 120, 440)" "=108 + 5 * sin(tau * t / 4)" flip=#true scale=0.75 speed=0.75 body=koi-orange patch=koi-gold
+    layer deep parallax=1 fog="30%" fog-paint=water.shade {
+        use-scene koi "=mod(t * 220 / 6 + i * 210, 440) - 60" "=72 + i * 46 + 6 * sin(tau * t / 6 + i)" count=2 scale=0.7 speed=0.75 offset="=i * 0.4" body=koi-black patch=koi-white
+        use-scene koi "=380 - mod(t * 110 / 3 + 120, 440)" "=108 + 5 * sin(tau * t / 4)" flip=#true scale=0.75 speed=0.75 body=koi-orange patch=koi-gold
     }
 
-    // Koi near the surface
-    use-scene "koi" "=mod(t * 110 / 3 + 40, 440) - 60" "=96 + 10 * sin(tau * t / 6)" id=ogon scale=1.25 body=koi-gold patch=koi-gold metallic=#true
-    use-scene "koi" "=380 - mod(t * 110 / 3 + 60, 440)" "=58 + 8 * sin(tau * t / 6 + 2)" flip=#true scale=1.1 speed=1.25 body=koi-white patch=koi-red
-    use-scene "koi" "=380 - mod(t * 110 / 3 + 260, 440)" "=134 + 6 * sin(tau * t / 4)" flip=#true body=koi-white patch=koi-red spotted=#true offset="0.3s"
-    use-scene "koi" "=mod(t * 110 / 3 + 250, 440) - 60" "=48 + 6 * sin(tau * t / 4 + 1)" scale=0.95 speed=1.25 body=koi-black patch=koi-red offset="0.6s"
-    use-scene "koi" "=mod(t * 110 / 3 + 330, 440) - 60" "=122 + 8 * sin(tau * t / 6 + 3)" scale=1.05 body=koi-orange patch=koi-white offset="0.2s"
+    use-scene koi "=mod(t * 110 / 3 + 40, 440) - 60" "=96 + 10 * sin(tau * t / 6)" id=ogon scale=1.25 body=koi-gold patch=koi-gold metallic=#true
+    use-scene koi "=380 - mod(t * 110 / 3 + 60, 440)" "=58 + 8 * sin(tau * t / 6 + 2)" flip=#true scale=1.1 speed=1.25 body=koi-white patch=koi-red
+    use-scene koi "=380 - mod(t * 110 / 3 + 260, 440)" "=134 + 6 * sin(tau * t / 4)" flip=#true body=koi-white patch=koi-red spotted=#true offset="0.3s"
+    use-scene koi "=mod(t * 110 / 3 + 250, 440) - 60" "=48 + 6 * sin(tau * t / 4 + 1)" scale=0.95 speed=1.25 body=koi-black patch=koi-red offset="0.6s"
+    use-scene koi "=mod(t * 110 / 3 + 330, 440) - 60" "=122 + 8 * sin(tau * t / 6 + 3)" scale=1.05 body=koi-orange patch=koi-white offset="0.2s"
 
-    // Shade of a maple leaning over the pond, swaying, with sunlight dappling through it
     shade "=-30 + osc(4s, -3, 3)" -20 150 90 round=#true
     shade "=60 + osc(4s, 2, -2)" -30 110 70 round=#true
     shade "=210 + osc(6s, -2, 2)" 120 140 90 round=#true
@@ -91,21 +77,19 @@ scene "koi-pond" palette=pond width=320 height=180 fps=12 duration="12s" loop=#t
     shade "=92 + osc(4s, -2, 2)" "=8 + osc(6s, -1, 1)" 12 8 steps=1 round=#true
     shade "=246 + osc(6s, -2, 2)" "=146 + osc(4s, 2, -2)" 12 8 steps=1 round=#true
 
-    // Lily pads; a frog rides one, ripples spread from others
-    use-scene "lily" 96 70 id=pad-a scale=1.4 flower=#true
-    use-scene "lily" 118 86 id=pad-b scale=1.1
-    use-scene "lily" 84 92 id=pad-c scale=0.9 offset="1s"
-    use-scene "lily" 206 118 id=pad-d scale=1.3 offset="2s" flower=#true
-    use-scene "lily" 228 104 scale=0.9 offset="3s"
-    use-scene "lily" 176 52 id=pad-e scale=1.2 offset="1.5s"
-    use-scene "lily" 20 96 offset="0.5s" flower=#true
-    use-scene "lily" 300 78 scale=1.2 offset="2.5s"
-    use-scene "frog" attach=pad-b y=-1 scale=0.9
-    use-scene "ripple" attach=pad-e offset="0.5s"
-    use-scene "ripple" attach=pad-c offset="1.2s" scale=0.8
-    use-scene "ripple" "=150 + i * 110" "=128 - i * 72" count=2 offset="=i * 0.9" scale=0.9
+    use-scene lily 96 70 id=pad-a scale=1.4 flower=#true
+    use-scene lily 118 86 id=pad-b scale=1.1
+    use-scene lily 84 92 id=pad-c scale=0.9 offset="1s"
+    use-scene lily 206 118 id=pad-d scale=1.3 offset="2s" flower=#true
+    use-scene lily 228 104 scale=0.9 offset="3s"
+    use-scene lily 176 52 id=pad-e scale=1.2 offset="1.5s"
+    use-scene lily 20 96 offset="0.5s" flower=#true
+    use-scene lily 300 78 scale=1.2 offset="2.5s"
+    use-scene frog attach=pad-b y=-1 scale=0.9
+    use-scene ripple attach=pad-e offset="0.5s"
+    use-scene ripple attach=pad-c offset="1.2s" scale=0.8
+    use-scene ripple "=150 + i * 110" "=128 - i * 72" count=2 offset="=i * 0.9" scale=0.9
 
-    // Banks: moss and stones above, stepping stones below
     polygon -20 points="0,0 360,0 360,16 320,20 280,15 240,22 200,17 160,24 120,18 80,23 40,17 0,22" paint=moss texture=0.4 texture-scale=2 shading=dome outline=selective
     pond-bank-stone -10 16 5.9 3.7
     pond-bank-stone 32 20 5.5 3.6
@@ -124,20 +108,17 @@ scene "koi-pond" palette=pond width=320 height=180 fps=12 duration="12s" loop=#t
     scatter 5 seed=2 x="20..320" y="5..14" { pond-grass $x $y }
     scatter 5 seed=3 x="20..320" y="173..176" { pond-grass $x $y }
 
-    // A stone lantern on the far bank
     rect 36 2 14 14 paint=stone.shade outline=full outline-paint=ink
     polygon 34 points="9,0 18,7 9,14 0,7" paint=stone.lit shading=dome outline=selective
     rect 41 5 4 4 paint=lamp.hi emissive=#true
 
-    // The red bridge, with its shadow on the water
     rect 252 -10 34 200 paint=water.deep opacity=0.5
     rect 244 -10 30 200 paint=wood.lit texture=0.3 texture-scale=2 outline=selective casts-shadow=#true
     line 245 "=-8 + $k*6" 272 "=-8 + $k*6" paint=wood.shade repeat=33
     rect "=241 + $k*32" -10 4 200 paint=lacquer shading=dome outline=selective repeat=2
     rect "=240 + ($k % 2)*32" "=4 + floor($k/2)*36" 6 5 paint=lacquer.lit outline=full outline-paint=lacquer.deep repeat=12
 
-    // Petals drifting on the surface, and a dragonfly
     particles -40 20 380 140 count=22 vx=5 vy=1 life="12s" wind=3 paint=petal.lit
     particles -40 20 380 140 count=10 vx=4 vy=1.5 life="6s" size=2 wind=2 paint=petal.base
-    use-scene "dragonfly" 150 40 scale=1.1
+    use-scene dragonfly 150 40 scale=1.1
 }

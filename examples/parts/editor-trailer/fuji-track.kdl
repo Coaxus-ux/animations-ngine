@@ -1,29 +1,29 @@
-// The rows under Mount Fuji's ruler in the trailer's editor: the scene's markers, and a key
-// diamond at every key of its "gold", "dusk", "night", "glow" and "sun" groups, laid out
-// 48 px per second from the ruler's 0 s tick so the shot can page it along.
+// The rows under Mount Fuji's ruler in the trailer's editor: the scene's markers, and a key diamond
+// at every key of its "gold", "dusk", "night", "glow" and "sun" groups, laid out 48 px per second
+// from the ruler's 0 s tick so the shot can page it along.
 
 use "panel-parts.kdl"
 
 motif ed-marker x name { rect $x 290 1 9 paint=ui-accent-hi; ed-text $name "=$x+2" 290 }
 
-scene "fuji-track" palette=editor width=768 height=60 fps=12 duration="1s" loop=#true background=ui-panel {
+scene fuji-track palette=editor width=768 height=60 fps=12 duration="1s" loop=#true background=ui-panel {
     ed-marker 225 afternoon
     ed-marker 417 golden
     ed-marker 561 sunset
     ed-marker 681 dusk
     ed-marker 801 night
     ed-marker 849 wish
-    use-scene "key" 227 302
-    use-scene "key" 419 302
-    use-scene "key" 563 312
-    use-scene "key" 683 312
-    use-scene "key" 683 322
-    use-scene "key" 803 322
-    use-scene "key" "=227 + $k*96" 332 repeat=3
-    use-scene "key" 563 332
-    use-scene "key" 640 332
-    use-scene "key" 683 332
-    use-scene "key" 731 332
-    use-scene "key" 179 342
-    use-scene "key" 683 342
+    use-scene key 227 302
+    use-scene key 419 302
+    use-scene key 563 312
+    use-scene key 683 312
+    use-scene key 683 322
+    use-scene key 803 322
+    use-scene key "=227 + $k*96" 332 repeat=3
+    use-scene key 563 332
+    use-scene key 640 332
+    use-scene key 683 332
+    use-scene key 731 332
+    use-scene key 179 342
+    use-scene key 683 342
 }

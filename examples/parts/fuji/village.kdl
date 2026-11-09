@@ -1,10 +1,8 @@
-// Lakeside buildings, each standing on the shore at (0, 0); odd copies are wider. Their
-// windows light up one by one after `lights-on` (host seconds), so a row of copies comes
-// alive at nightfall.
+// Lakeside buildings, each standing on the shore at (0, 0); odd copies are wider.
 
 use "fuji-palette.kdl"
 
-scene "house" palette=fuji width=24 height=16 fps=12 duration="16s" background=sky-day.5 {
+scene house palette=fuji width=24 height=16 fps=12 duration="16s" background=sky-day.5 {
     param lights-on 10
     camera -12 -12
 
@@ -16,7 +14,7 @@ scene "house" palette=fuji width=24 height=16 fps=12 duration="16s" background=s
     rect 5 -2 1 1 paint=lamp.3 emissive=#true visible="=i % 2 == 1 && t > $lights-on + 2.5 * rand(3)"
 }
 
-scene "stone-lantern" palette=fuji width=16 height=24 fps=12 duration="16s" background=sky-day.5 {
+scene stone-lantern palette=fuji width=16 height=24 fps=12 duration="16s" background=sky-day.5 {
     param lights-on 10
     camera -8 -20
 

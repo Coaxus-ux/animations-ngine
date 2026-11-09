@@ -40,7 +40,8 @@ impl PaletteModel {
                     .filter(|entry| entry.name().is_none())
                     .skip(1)
                     .filter_map(|entry| entry.value().as_string())
-                    .filter_map(|hex| Rgb::parse_hex(hex).ok())
+                    .flat_map(Rgb::parse_list)
+                    .filter_map(Result::ok)
                     .collect();
                 Some(RampModel {
                     name: name.to_owned(),
@@ -69,11 +70,11 @@ impl PaletteModel {
 
 #[must_use]
 pub fn ramp_kdl(name: &str, colors: &[Rgb]) -> String {
-    let mut text = format!("ramp {name:?}");
-    for color in colors {
-        let _ = write!(text, " \"{color}\"");
-    }
-    text
+    let hex: Vec<String> = colors
+        .iter()
+        .map(|color| color.to_string().trim_start_matches('#').to_owned())
+        .collect();
+    format!("ramp {name:?} \"{}\"", hex.join(" "))
 }
 
 pub fn palette_path(document: &Document) -> Result<NodePath, String> {
@@ -120,15 +121,26 @@ mod tests {
         assert!(source.node(&model.ramps[1].path).is_some());
         assert_eq!(
             model.to_kdl(),
-            "palette \"p\" {\n    ramp \"ink\" \"#000000\" \"#ffffff\"\n    ramp \"sky\" \"#102030\"\n    ramp \"sky-warm\" \"#302010\"\n}\n"
+            "palette \"p\" {\n    ramp \"ink\" \"000000 ffffff\"\n    ramp \"sky\" \"102030\"\n    ramp \"sky-warm\" \"302010\"\n}\n"
         );
     }
 
     #[test]
-    fn ramp_kdl_is_one_line_of_quoted_lowercase_hex() {
+    fn ramp_kdl_is_one_quoted_string_of_lowercase_hex() {
         assert_eq!(
-            ramp_kdl("fur", &[Rgb::new(0xAB, 1, 2)]),
-            "ramp \"fur\" \"#ab0102\""
+            ramp_kdl("fur", &[Rgb::new(0xAB, 1, 2), Rgb::new(3, 4, 0xEF)]),
+            "ramp \"fur\" \"ab0102 0304ef\""
+        );
+    }
+
+    #[test]
+    fn compact_and_long_ramps_read_the_same_colors() {
+        let compact = "palette \"p\" {\n    ramp \"ink\" \"000000 #FFFFFF\"\n}\n";
+        let source = Source::parse(compact).unwrap();
+        let model = PaletteModel::from_source(&source, &palette()).unwrap();
+        assert_eq!(
+            model.ramps[0].colors,
+            vec![Rgb::new(0, 0, 0), Rgb::new(255, 255, 255)]
         );
     }
 

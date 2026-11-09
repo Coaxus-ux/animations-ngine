@@ -1,46 +1,42 @@
-// A rainy street at night. Two neon signs tint the walls pink and cyan, the puddles mirror
-// the city, a car drives through with its headlights on, and someone waits under a lamp.
-// Shows: two light colors with twins, emissive signs that flicker, reflections limited to
-// puddles, a keyframed car carrying a cone light, parallax skyline, rain. Loops every 4 seconds.
+// A rainy street at night.
 
-palette "neon" {
-    ramp "sky"         "#0c0a1a" "#15122b" "#1f1a3d" "#2b2452" "#3a3168"
-    ramp "bldg"        "#0e0d1a" "#161427" "#1f1c36" "#2a2647" "#37325a"
-    ramp "bldg-pink"   "#1a0d1c" "#27122d" "#381840" "#4a2152" "#5e2c66"
-    ramp "bldg-cyan"   "#0a1620" "#0f2130" "#152e42" "#1d3d56" "#274f6c"
-    ramp "street"      "#0b0b14" "#13131f" "#1c1c2c" "#26263a" "#32324a"
-    ramp "street-pink" "#170b16" "#24101f" "#33162c" "#43203b" "#552b4b"
-    ramp "street-cyan" "#08141a" "#0d1f27" "#132b36" "#1a3a47" "#244b5a"
-    ramp "car"         "#1a1626" "#2a2440" "#3e3660" "#5a4f84" "#7a6eaa"
-    ramp "car-pink"    "#26122a" "#3d1c44" "#5a2a62" "#7a3c84" "#9c52a8"
-    ramp "car-cyan"    "#0e1e28" "#183242" "#24485e" "#346280" "#4880a6"
-    ramp "coat"        "#161a22" "#222836" "#30384c" "#424c66" "#566282"
-    ramp "coat-pink"   "#24141f" "#3a1f33" "#522c4a" "#6c3c62" "#8a4e7e"
-    ramp "coat-cyan"   "#0f1c24" "#182c3a" "#243f52" "#32566e" "#44708e"
-    ramp "puddle"      "#0a0c18" "#121628" "#1c223c" "#283052" "#36406a"
-    ramp "umbrella"    "#2a0a14" "#4e1424" "#7a2234" "#a83444" "#d04a58"
-    ramp "window"      "#4a3018" "#8a5c26" "#d0943c" "#ffd27a"
-    ramp "pink"        "#5a0f3a" "#b0206a" "#ff4fa0" "#ffb0d8"
-    ramp "cyan"        "#0a3a48" "#1590a8" "#3fe0f0" "#b8fbff"
-    ramp "lamp"        "#8a7a5a" "#e0d0a0" "#fff8e0"
-    ramp "rain"        "#4a5680" "#7d8cb8" "#b4c2e8"
-    twin "bldg" pink="bldg-pink" cyan="bldg-cyan"
-    twin "street" pink="street-pink" cyan="street-cyan"
-    twin "car" pink="car-pink" cyan="car-cyan"
-    twin "coat" pink="coat-pink" cyan="coat-cyan"
+palette neon {
+    ramp sky "0c0a1a 15122b 1f1a3d 2b2452 3a3168"
+    ramp bldg "0e0d1a 161427 1f1c36 2a2647 37325a"
+    ramp bldg-pink "1a0d1c 27122d 381840 4a2152 5e2c66"
+    ramp bldg-cyan "0a1620 0f2130 152e42 1d3d56 274f6c"
+    ramp street "0b0b14 13131f 1c1c2c 26263a 32324a"
+    ramp street-pink "170b16 24101f 33162c 43203b 552b4b"
+    ramp street-cyan "08141a 0d1f27 132b36 1a3a47 244b5a"
+    ramp car "1a1626 2a2440 3e3660 5a4f84 7a6eaa"
+    ramp car-pink "26122a 3d1c44 5a2a62 7a3c84 9c52a8"
+    ramp car-cyan "0e1e28 183242 24485e 346280 4880a6"
+    ramp coat "161a22 222836 30384c 424c66 566282"
+    ramp coat-pink "24141f 3a1f33 522c4a 6c3c62 8a4e7e"
+    ramp coat-cyan "0f1c24 182c3a 243f52 32566e 44708e"
+    ramp puddle "0a0c18 121628 1c223c 283052 36406a"
+    ramp umbrella "2a0a14 4e1424 7a2234 a83444 d04a58"
+    ramp window "4a3018 8a5c26 d0943c ffd27a"
+    ramp pink "5a0f3a b0206a ff4fa0 ffb0d8"
+    ramp cyan "0a3a48 1590a8 3fe0f0 b8fbff"
+    ramp lamp "8a7a5a e0d0a0 fff8e0"
+    ramp rain "4a5680 7d8cb8 b4c2e8"
+    twin bldg pink=bldg-pink cyan=bldg-cyan
+    twin street pink=street-pink cyan=street-cyan
+    twin car pink=car-pink cyan=car-cyan
+    twin coat pink=coat-pink cyan=coat-cyan
 }
 
 motif window x y w h tone { rect $x $y $w $h paint=window.$tone emissive=#true }
 
-scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#true seed=33 background=sky.shade {
+scene neon-rain palette=neon width=192 height=128 fps=12 duration="4s" loop=#true seed=33 background=sky.shade {
     ambient darkness=1 occlusion=1 key-light=270
     wind strength=1 gust=0.4 speed=6
 
-    // A hazy sky and a far skyline with a few lit windows
-    layer "sky" parallax=0 {
+    layer sky parallax=0 {
         rect 0 0 "100%" 80 paint=sky.deep gradient=down gradient-steps=3
     }
-    layer "skyline" parallax=0.2 fog="35%" fog-paint=sky.lit {
+    layer skyline parallax=0.2 fog="35%" fog-paint=sky.lit {
         rect 0 30 22 60 paint=bldg.shade
         rect 20 18 16 72 paint=bldg.base
         rect 38 36 26 54 paint=bldg.shade
@@ -61,7 +57,6 @@ scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#t
         rect 72 0 3 2 paint=pink.base emissive=#true visible="=square(t)"
     }
 
-    // Left building: brick-textured facade, lit windows and a pink sign
     rect "left" 0 6 62 94 paint=bldg.base texture=0.2 texture-scale=3 outline=selective
     rect 0 6 62 3 paint=bldg.lit
     window 6 16 10 14 lit
@@ -78,7 +73,6 @@ scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#t
     rect 53 40 4 22 paint=pink.hi emissive=#true tone-shift="=-floor(pulse(2s, 0.08) * 2)"
     light-rect 50 36 10 30 intensity="=2.4 - pulse(2s, 0.08) * 2" color=pink
 
-    // Right building with an awning and a cyan sign
     rect "right" 128 0 64 100 paint=bldg.shade texture=0.2 texture-scale=3 outline=selective
     window 140 10 10 16 lit
     rect 158 10 10 16 paint=bldg.deep
@@ -93,7 +87,6 @@ scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#t
     rect 140 84 14 16 paint=bldg.deep outline=full
     window 160 82 26 18 lit
 
-    // Sidewalk, curb and the wet road
     rect 0 100 "100%" 6 paint=street.lit texture=0.2 texture-scale=2
     rect 0 106 "100%" 2 paint=street.hi
     rect 0 108 "100%" 20 paint=street.base gradient=down gradient-steps=-1
@@ -101,7 +94,6 @@ scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#t
     rect "=32 + $k*38" 117 14 1 paint=street.hi repeat=4
     rect 184 117 8 1 paint=street.hi
 
-    // Puddles hold the reflection of everything above the curb
     ellipse 8 110 44 6 paint=puddle.base
     ellipse 60 120 56 7 paint=puddle.base
     ellipse 126 110 40 5 paint=puddle.base
@@ -109,7 +101,6 @@ scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#t
     ellipse 82 102 22 3 paint=puddle.base
     reflection 0 100 192 28 axis=100 speed=4 on=puddle
 
-    // Street lamp with someone waiting under it, umbrella open
     capsule 98 36 98 100 radius=1.5 paint=bldg.lit shading=dome casts-shadow=#true contact-shadow=1
     polygon 92 30 points="2,0 10,0 12,6 0,6" paint=bldg.lit shading=dome outline=selective
     ellipse 94 35 8 3 paint=lamp.hi emissive=#true
@@ -121,8 +112,7 @@ scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#t
     capsule 113 93 113 100 radius=1.5 paint=coat.shade
     capsule 117 93 "=117 + on2(square(t * 2, 0.25))" 100 radius=1.5 paint=coat.shade contact-shadow=1
 
-    // A car drives through every 4 seconds, headlights first
-    group "car" {
+    group car {
         rounded-rect "car-body" y=98 width=48 height=11 radius=3 paint=car.hi shading=dome outline=selective casts-shadow=#true contact-shadow=1 {
             anim x loop="repeat" { k "0s" -70; k "4s" 210 }
         }
@@ -135,7 +125,6 @@ scene "neon-rain" palette=neon width=192 height=128 fps=12 duration="4s" loop=#t
         light-cone "=@car-body.x + 48" 102 angle="4deg" spread="34deg" reach=64 intensity=2.4
     }
 
-    // Rain, and splashes where it lands
     particles -20 -12 230 12 count=70 vx=-10 vy=150 life="1s" wind=3 streak="0.03s" paint=rain.base
     particles 0 104 192 22 count=26 vy=-6 gravity=40 life="0.25s" paint=rain.hi fade=#true
 }

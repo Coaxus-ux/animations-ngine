@@ -117,3 +117,37 @@ fn include_mistakes_are_reported() {
         errors(&cycle)
     );
 }
+
+#[test]
+fn a_ramp_written_as_one_string_matches_one_color_per_argument() {
+    let scene = |palette: &str| {
+        load(&format!(
+            "{palette}\nscene \"main\" palette=\"p\" width=3 height=1 fps=1 duration=\"1f\" background=\"sky.0\" {{ rect 1 0 1 1 paint=sky.1; rect 2 0 1 1 paint=sky.2 }}"
+        ))
+    };
+    let long = scene(r##"palette "p" { ramp "sky" "#000000" "#102030" "#ffffff" }"##);
+    let compact = scene(r#"palette "p" { ramp "sky" "000000 #102030 FFFFFF" }"#);
+    assert_eq!(colors(&compact), colors(&long));
+    assert_eq!(
+        colors(&compact),
+        vec![
+            Rgb::new(0, 0, 0),
+            Rgb::new(0x10, 0x20, 0x30),
+            Rgb::new(255, 255, 255)
+        ]
+    );
+}
+
+#[test]
+fn a_bad_color_in_a_compact_ramp_names_the_string() {
+    let found = errors(
+        r#"palette "p" { ramp "sky" "000000 12345" }
+scene "main" palette="p" width=1 height=1 fps=1 duration="1f" background="sky.0" {}"#,
+    );
+    assert!(
+        found
+            .iter()
+            .any(|message| message.contains("\"000000 12345\"")),
+        "{found:?}"
+    );
+}

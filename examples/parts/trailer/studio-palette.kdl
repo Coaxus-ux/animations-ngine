@@ -1,12 +1,12 @@
-// The trailer's own palette: deep night inks, paper whites and three accents for titles,
-// plus the tones of a code editor.
+// The trailer's own palette: deep night inks, paper whites and three accents for titles, plus the
+// tones of a code editor.
 
-palette "studio" {
-    ramp "ink"    "#04050a" "#090c16" "#111626" "#1b2238" "#283250"
-    ramp "paper"  "#6c7290" "#9ca2bc" "#c8cde0" "#eceff8" "#ffffff"
-    ramp "gold"   "#4a2e08" "#8a5c12" "#d09624" "#ffcc4e" "#fff2b0"
-    ramp "teal"   "#06302f" "#0c5a58" "#14948e" "#3cd2c4" "#aef8ee"
-    ramp "rose"   "#420a24" "#80183e" "#c8346a" "#ff6a96" "#ffc2d6"
-    ramp "violet" "#1c0c3a" "#34186a" "#5a30a8" "#8c62e0" "#c8b0ff"
-    ramp "panel"  "#0a0d15" "#11151f" "#191e2c" "#232a3c" "#303a52"
+palette studio {
+    ramp ink "04050a 090c16 111626 1b2238 283250"
+    ramp paper "6c7290 9ca2bc c8cde0 eceff8 ffffff"
+    ramp gold "4a2e08 8a5c12 d09624 ffcc4e fff2b0"
+    ramp teal "06302f 0c5a58 14948e 3cd2c4 aef8ee"
+    ramp rose "420a24 80183e c8346a ff6a96 ffc2d6"
+    ramp violet "1c0c3a 34186a 5a30a8 8c62e0 c8b0ff"
+    ramp panel "0a0d15 11151f 191e2c 232a3c 303a52"
 }

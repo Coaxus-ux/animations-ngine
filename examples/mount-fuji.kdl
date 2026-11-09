@@ -1,14 +1,4 @@
-// Mount Fuji from a lake shore, from late afternoon into the night. The camera drifts along
-// the panorama while the sun sinks behind the western ridges: the sky passes through golden
-// hour and dusk to a starry night (four sky ramps cross-faded in dithered quarter steps), the
-// low sun paints the snow, clouds, water and blossoms rose and gold through `glow` twins, the
-// land darkens, the Milky Way and the moon come out, and the pagoda on the wooded point, the
-// lakeside village and the stone lantern light up one by one and shimmer in the lake.
-//
-// Shows: timeline markers driving every change through keyframed groups, `count` copies with
-// per-copy params, eight-tone ramps, light twins, animated ambient darkness, a reflection on
-// the water ramp, parallax over a panning camera, particles for stars, petals and the Milky
-// Way. Plays once over 16 seconds; render it big with `--detail 4`.
+// Mount Fuji from a lake shore, from late afternoon into the night.
 
 use "parts/fuji/fuji-palette.kdl"
 use "parts/fuji/sky-band.kdl"
@@ -40,37 +30,37 @@ motif fuji-bird n x y flap {
     line "=@bird$n.x2" "=@bird$n.y2" "=@bird$n.x1 + 5" "=@bird$n.y1" paint=ink visible="=between(4s, 11s)"
 }
 
-scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=37 background=sky-day.4 {
+scene mount-fuji palette=fuji width=480 height=180 fps=12 duration="16s" seed=37 background=sky-day.4 {
     wind strength=1 gust=0.6 speed=2
 
     timeline {
-        marker "afternoon" at="1s"
-        marker "golden" at="5s"
-        marker "sunset" at="8s"
-        marker "dusk" at="10.5s"
-        marker "night" at="13s"
-        marker "wish" at="14s"
+        marker afternoon at="1s"
+        marker golden at="5s"
+        marker sunset at="8s"
+        marker dusk at="10.5s"
+        marker night at="13s"
+        marker wish at="14s"
     }
 
-    group "gold" {
+    group gold {
         anim x {
             k "afternoon" 0
             k "golden" 1 interp=ease-in-out
         }
     }
-    group "dusk" {
+    group dusk {
         anim x {
             k "sunset" 0
             k "dusk" 1 interp=ease-in-out
         }
     }
-    group "night" {
+    group night {
         anim x {
             k "dusk" 0
             k "night" 1 interp=ease-in-out
         }
     }
-    group "glow" {
+    group glow {
         anim x {
             k "afternoon" 0
             k "3s" 0.6
@@ -81,7 +71,7 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
             k "11.5s" 0
         }
     }
-    group "sun" {
+    group sun {
         anim x {
             k "0s" 372
             k "dusk" 434 interp=ease-in
@@ -91,7 +81,7 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
             k "dusk" 140 interp=ease-in
         }
     }
-    group "moon" {
+    group moon {
         anim x {
             k "dusk" 84
             k "16s" 112 interp=ease-out
@@ -116,11 +106,11 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
         k "16s" x=24 interp=ease-in-out
     }
 
-    layer "sky" parallax=0 {
-        use-scene "sky-band" -4 "=-12 + i * 5" count=29 until=5
-        use-scene "sky-band" -4 "=-12 + i * 5" count=29 ramp=sky-gold from=1 to=5 until=10.5
-        use-scene "sky-band" -4 "=-12 + i * 5" count=29 ramp=sky-dusk from=8 to=10.5 until=13
-        use-scene "sky-band" -4 "=-12 + i * 5" count=29 ramp=sky-night from=10.5 to=13
+    layer sky parallax=0 {
+        use-scene sky-band -4 "=-12 + i * 5" count=29 until=5
+        use-scene sky-band -4 "=-12 + i * 5" count=29 ramp=sky-gold from=1 to=5 until=10.5
+        use-scene sky-band -4 "=-12 + i * 5" count=29 ramp=sky-dusk from=8 to=10.5 until=13
+        use-scene sky-band -4 "=-12 + i * 5" count=29 ramp=sky-night from=10.5 to=13
         ellipse "=@sun.x - 150" 100 300 56 paint=sky-dusk.7 emissive=#true opacity="=0.55 * @gold.x * (1 - @night.x)" visible="=@gold.x > 0.04 && @night.x < 0.96"
         ellipse "=@sun.x - 90" 110 180 36 paint=sun.2 emissive=#true opacity="=0.4 * @gold.x * (1 - @dusk.x)" visible="=@gold.x > 0.04 && @dusk.x < 0.96"
         blob 4 136 circles="0,-2,15 24,-7,13 48,-20,13 72,-25,15 96,-38,13 120,-43,13 144,-56,15 168,-61,13 192,-74,13 216,-79,15 240,-92,13 264,-97,13 288,-110,15 312,-115,13 336,-128,13 360,-133,15" smooth=8 paint=galaxy.1 emissive=#true opacity="=0.6 * @night.x" visible="=@night.x > 0.04"
@@ -151,7 +141,7 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
         fuji-sun-disc 8 "=@gold.x < 0.5" paint=sun.4
         fuji-sun-disc 6 "=@gold.x >= 0.5" paint=sun.4
     }
-    layer "clouds" parallax=0.05 {
+    layer clouds parallax=0.05 {
         fuji-cirrus 0 10 2 34 90
         fuji-cirrus 1 130 1 22 140
         fuji-cirrus 2 300 2 40 120
@@ -162,26 +152,26 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
         fuji-cirrus 7 -40 1 74 80
         fuji-cirrus 8 170 2 48 50
     }
-    layer "volcano" parallax=0.12 {
-        use-scene "fuji" 240 40
+    layer volcano parallax=0.12 {
+        use-scene fuji 240 40
         ellipse "=206 + osc(16s, -3, 3)" 24 68 7 paint=cloud.5 shading=dome outline=selective
         ellipse "=214 + osc(16s, -2, 2)" 20 50 6 paint=cloud.6 shading=dome
         ellipse "=224 + osc(16s, -1, 1)" 17 30 4 paint=cloud.7
     }
-    layer "ridges" parallax=0.2 {
-        use-scene "far-ridges"
+    layer ridges parallax=0.2 {
+        use-scene far-ridges
         fuji-haze -70 1.5 116 120 5
         fuji-haze 20 1 119 90 4
         fuji-haze 300 -1 118 110 5
         fuji-haze 400 -1.5 120 130 4
         fuji-haze 180 1 121 70 3
     }
-    layer "woods" parallax=0.35 {
-        use-scene "wooded-hills"
-        use-scene "house" "=110 + i * 15 + 4 * sin(i * 2.3)" "=128 - (i % 3 == 1)" count=6 lights-on=10.5
-        use-scene "house" "=320 + i * 16 + 3 * sin(i * 1.7)" 128 count=5 lights-on=11
+    layer woods parallax=0.35 {
+        use-scene wooded-hills
+        use-scene house "=110 + i * 15 + 4 * sin(i * 2.3)" "=128 - (i % 3 == 1)" count=6 lights-on=10.5
+        use-scene house "=320 + i * 16 + 3 * sin(i * 1.7)" 128 count=5 lights-on=11
     }
-    layer "lake" parallax=0 {
+    layer lake parallax=0 {
         rect -40 128 560 52 paint=water.6 gradient=down gradient-steps=-5
         fuji-sun-glint 5 130 1 2 0
         fuji-sun-glint 8 132 2 3 1
@@ -212,10 +202,10 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
     }
     reflection -80 128 640 52 axis=128 on=water
 
-    layer "headland" parallax=0.6 {
-        use-scene "wooded-point" id=point
+    layer headland parallax=0.6 {
+        use-scene wooded-point id=point
     }
-    layer "shore" parallax=1 {
+    layer shore parallax=1 {
         polygon points="360,180 380,170 404,162 430,156 460,152 500,150 540,150 570,152 570,180" paint=forest.2 texture=0.45 texture-scale=2 shading=soft outline=selective
         polygon points="-60,180 -60,158 -20,156 30,158 80,163 130,170 170,180" paint=forest.1 texture=0.5 texture-scale=2 shading=soft outline=selective
         fuji-reed 456 152 144 4
@@ -227,11 +217,11 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
         fuji-reed 551 152 148 4
         fuji-reed 467 152 143 4
         fuji-reed 532 152 145 4
-        use-scene "stone-lantern" 414 162 lights-on=12
+        use-scene stone-lantern 414 162 lights-on=12
     }
-    layer "near" parallax=1.25 {
-        use-scene "sakura-tree" -6 184
-        use-scene "sakura-bough" 524 -6
+    layer near parallax=1.25 {
+        use-scene sakura-tree -6 184
+        use-scene sakura-bough 524 -6
         particles 280 -10 300 50 count=60 vx=-18 vy=9 life="16s" wind=10 paint=sakura.5 opacity="=1 - 0.4 * @night.x"
     }
 
@@ -239,7 +229,7 @@ scene "mount-fuji" palette=fuji width=480 height=180 fps=12 duration="16s" seed=
     light-point "=@moon.x" "=@moon.y" reach=320 intensity="=0.6 * @night.x"
     light-point "=-16 + $k*32" -10 attach=point.pagoda reach=30 intensity="=step(11, t) * (2 + wiggle(0.3, 3))" color=warm repeat=2
     light-point 414 149 reach=28 intensity="=step(12, t) * (2.2 + wiggle(0.3, 2))" color=warm
-    group "birds" {
+    group birds {
         fuji-bird 0 -30 40 0
         fuji-bird 1 -44 46 0.3
         fuji-bird 2 -38 52 0.6
