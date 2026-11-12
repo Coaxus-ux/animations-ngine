@@ -1,15 +1,14 @@
 // A paper sky lantern rising from (0, 0) and drifting, with its flame lighting what is near.
-// It climbs 240 px in 12 s, so a host loop of 12 s sends it up exactly once.
 
 use "festival-palette.kdl"
 
-scene "sky-lantern" palette="festival" width=32 height=48 fps=12 duration="12s" loop=#true background="sky.base" {
+scene sky-lantern palette=festival width=32 height=48 fps=12 duration="12s" loop=#true background=sky.base {
     camera { k "0s" x=-16 y=-40; k "12s" x=-16 y=-280 }
 
-    group "rise" x="=osc(3s, -3, 3)" y="=-20 * t"
-    rounded-rect "shell" x="=@rise.x - 5" y="=@rise.y - 16" width=11 height=13 radius=4 paint="lantern-gold" shading="dome" outline="selective" outline-paint="lantern-gold.shade" emissive=#true
-    rect x="=@rise.x - 2" y="=@rise.y - 13" width=5 height=8 paint="lantern-gold.hi" emissive=#true tone-shift="=-round(wiggle(0.75, 2))"
-    rect x="=@rise.x - 4" y="=@rise.y - 3" width=9 height=1 paint="wood.shade"
-    rect x="=@rise.x" y="=@rise.y - 2" width=1 height=2 paint="flame.hi" emissive=#true
-    light-point x="=@rise.x" y="=@rise.y - 6" reach=20 intensity="=1.2 + wiggle(1, 0.2)" color="warm"
+    group rise "=osc(3s, -3, 3)" "=-20 * t"
+    rounded-rect "shell" "=@rise.x - 5" "=@rise.y - 16" 11 13 radius=4 paint=lantern-gold shading=dome outline=selective outline-paint=lantern-gold.shade emissive=#true
+    rect "=@rise.x - 2" "=@rise.y - 13" 5 8 paint=lantern-gold.hi emissive=#true tone-shift="=-round(wiggle(0.75, 2))"
+    rect "=@rise.x - 4" "=@rise.y - 3" 9 1 paint=wood.shade
+    rect "=@rise.x" "=@rise.y - 2" 1 2 paint=flame.hi emissive=#true
+    light-point "=@rise.x" "=@rise.y - 6" reach=20 intensity="=1.2 + wiggle(1, 0.2)" color=warm
 }

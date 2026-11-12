@@ -1,6 +1,6 @@
 use kdl::KdlValue;
 use px_engine::{Cel, Geometry, Scene};
-use px_format::edit::NodePath;
+use px_format::edit::{NodePath, coordinates_of};
 use px_ui::Input;
 
 use super::dialog::{Dialog, DialogKind, keys};
@@ -60,6 +60,9 @@ impl App {
             Intent::ReplaceNode { path, text } => {
                 self.replace_node(targets.source, &path, text, store);
             }
+            Intent::SetArgument { path, index, text } => {
+                self.set_argument(targets.source, &path, index, &text, store);
+            }
             Intent::ResizeCanvas {
                 width,
                 height,
@@ -114,6 +117,39 @@ impl App {
             store,
         );
         let selected = start.and_then(|start| self.document()?.source().path_at(start));
+        self.select_element(source, selected.as_ref());
+    }
+
+    fn set_argument(
+        &mut self,
+        source: WindowId,
+        path: &NodePath,
+        index: usize,
+        text: &str,
+        store: &mut dyn FileStore,
+    ) {
+        let found = self.document().and_then(|document| {
+            let source = document.source();
+            let start = source.span(path)?.0;
+            let holds_id = !coordinates_of(source.node(path)?.name().value()).is_empty();
+            Some((start, index == 0 && holds_id))
+        });
+        let Some((start, first_of_kind)) = found else {
+            return;
+        };
+        let Some(value) = argument_value(text, first_of_kind) else {
+            self.editing.status = Status::problem("This slot takes a number or an =expression");
+            return;
+        };
+        let command = Command::SetArgument {
+            path: path.clone(),
+            index,
+            value,
+        };
+        self.run(&command, store);
+        let selected = self
+            .document()
+            .and_then(|document| document.source().path_at(start));
         self.select_element(source, selected.as_ref());
     }
 
@@ -224,5 +260,24 @@ fn anchor_name(anchor: Anchor) -> &'static str {
         Anchor::BottomLeft => "bottom left",
         Anchor::Bottom => "bottom",
         Anchor::BottomRight => "bottom right",
+    }
+}
+
+fn argument_value(text: &str, first_of_kind: bool) -> Option<KdlValue> {
+    let text = text.trim();
+    if let Ok(number) = text.parse::<i128>() {
+        return Some(KdlValue::Integer(number));
+    }
+    if let Some(number) = text.parse::<f64>().ok().filter(|number| number.is_finite()) {
+        return Some(KdlValue::Float(number));
+    }
+    match text {
+        "" => None,
+        "#true" => Some(KdlValue::Bool(true)),
+        "#false" => Some(KdlValue::Bool(false)),
+        _ if text.starts_with(['=', '$']) || !first_of_kind => {
+            Some(KdlValue::String(text.to_owned()))
+        }
+        _ => None,
     }
 }

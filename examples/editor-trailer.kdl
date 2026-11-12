@@ -1,0 +1,26 @@
+// The editor's trailer, made with the engine: `pxe edit` redrawn as scenes at 640×360, with three
+// showcase scenes playing live inside it.
+
+use "parts/editor-trailer/wide.kdl"
+use "parts/editor-trailer/in-editor-fuji.kdl"
+use "parts/editor-trailer/in-editor-sunflowers.kdl"
+use "parts/editor-trailer/in-editor-fallen.kdl"
+
+sequence editor-trailer frame-budget="100ms" {
+    shot logo-wide duration="4s" tagline="pixel art, written as code" note="now with an editor"
+    transition "dither" duration="0.5s"
+    shot card-wide duration="2s" kicker="DRAWN BY THE ENGINE ITSELF" title="PXE EDIT" accent=gold
+    transition "white" duration="0.5s"
+    shot in-editor-fuji duration="10s"
+    transition "black" duration="0.75s"
+
+    shot card-wide duration="2s" kicker="EDIT THE KDL, SEE IT RELOAD" title="CODE BESIDE CANVAS" accent=rose
+    shot in-editor-sunflowers duration="10s"
+    transition "black" duration="0.75s"
+
+    shot card-wide duration="2s" kicker="PICK ANY PART OF A SCENE" title="SCENES INSIDE SCENES" accent=teal
+    shot in-editor-fallen duration="10s"
+    transition "white" duration="0.5s"
+
+    shot logo-wide duration="4.5s" tagline="Code in. Pixels out." note="cargo pxe edit"
+}

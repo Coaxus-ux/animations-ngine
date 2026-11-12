@@ -21,6 +21,10 @@ impl FileStore for DiskFiles {
         fs::write(path, text).map_err(|error| format!("{}: {error}", path.display()))
     }
 
+    fn read_bytes(&mut self, path: &Path) -> Result<Vec<u8>, String> {
+        fs::read(path).map_err(|error| format!("{}: {error}", path.display()))
+    }
+
     fn write_bytes(&mut self, path: &Path, bytes: &[u8]) -> Result<(), String> {
         if let Some(parent) = path
             .parent()

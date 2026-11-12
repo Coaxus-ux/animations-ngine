@@ -1,60 +1,43 @@
-// A log cabin in the snow, its front left corner on the ground at (0, 0). Smoke rises from
-// the chimney and drifts with the wind, the window glows with someone reading by the fire
-// (seen only through the glass), and a lantern hangs by the door. The window and lantern
-// light spill warm over the snow. Loops every 12 s.
+// A log cabin in the snow, its front left corner on the ground at (0, 0).
 
 use "cabin-palette.kdl"
 
-scene "cabin" palette="aurora" width=96 height=72 fps=12 duration="12s" loop=#true background="sky.base" {
-    camera x=-8 y=-64
+scene cabin palette=aurora width=96 height=72 fps=12 duration="12s" loop=#true background=sky.base {
+    camera -8 -64
 
-    // Chimney smoke
-    particles x=60 y=-58 width=4 height=2 count=30 vx=-3 vy=-10 gravity=-1 life="4s" size=2 wind=6 paint="smoke.lit" fade=#true
-    particles x=60 y=-56 width=4 height=2 count=14 vx=-2 vy=-8 life="3s" size=3 wind=5 paint="smoke.base" fade=#true
+    particles 60 -58 4 2 count=30 vx=-3 vy=-10 gravity=-1 life="4s" size=2 wind=6 paint=smoke.lit fade=#true
+    particles 60 -56 4 2 count=14 vx=-2 vy=-8 life="3s" size=3 wind=5 paint=smoke.base fade=#true
 
-    // Walls of stacked logs
-    rect x=0 y=-34 width=72 height=34 paint="log" shading="dome" outline="selective" casts-shadow=#true
-    rect x=0 y=-34 width=72 height=1 paint="log.shade"
-    rect x=0 y=-28 width=72 height=1 paint="log.shade"
-    rect x=0 y=-22 width=72 height=1 paint="log.shade"
-    rect x=0 y=-16 width=72 height=1 paint="log.shade"
-    rect x=0 y=-10 width=72 height=1 paint="log.shade"
-    rect x=0 y=-4 width=72 height=1 paint="log.shade"
-    ellipse x=-2 y=-33 width=4 height=5 paint="log.lit" outline="full" outline-paint="log.deep"
-    ellipse x=-2 y=-27 width=4 height=5 paint="log.lit" outline="full" outline-paint="log.deep"
-    ellipse x=-2 y=-21 width=4 height=5 paint="log.lit" outline="full" outline-paint="log.deep"
-    ellipse x=-2 y=-15 width=4 height=5 paint="log.lit" outline="full" outline-paint="log.deep"
-    ellipse x=-2 y=-9 width=4 height=5 paint="log.lit" outline="full" outline-paint="log.deep"
+    rect 0 -34 72 34 paint=log shading=dome outline=selective casts-shadow=#true
+    rect 0 "=-34 + $k*6" 72 1 paint=log.shade repeat=6
+    ellipse -2 "=-33 + $k*6" 4 5 paint=log.lit outline=full outline-paint=log.deep repeat=5
 
-    // Stone chimney and the roof under a thick blanket of snow
-    rect x=56 y=-58 width=10 height=30 paint="stone" texture=0.4 texture-scale=1.5 shading="dome" outline="selective"
-    polygon x=-6 y=-54 points="0,20 42,0 84,20" paint="log.shade" shading="dome" outline="selective"
-    polygon x=-8 y=-56 points="0,20 6,22 44,3 82,22 88,20 44,-1" paint="snow.lit" shading="dome" outline="selective"
-    rect x=55 y=-60 width=12 height=3 paint="snow.hi"
+    rect 56 -58 10 30 paint=stone texture=0.4 texture-scale=1.5 shading=dome outline=selective
+    polygon -6 -54 points="0,20 42,0 84,20" paint=log.shade shading=dome outline=selective
+    polygon -8 -56 points="0,20 6,22 44,3 82,22 88,20 44,-1" paint=snow.lit shading=dome outline=selective
+    rect 55 -60 12 3 paint=snow.hi
 
-    // The window: firelight, a reader in an armchair, the frame drawn over them
-    rect x=12 y=-26 width=20 height=15 paint="window.lit" emissive=#true gradient="down" gradient-steps=-2
-    group x=12 y=-26 width=20 height=15 clip=#true {
-        ellipse x=24 y="=-15 + wiggle(2, 0.6)" width=8 height=9 paint="fire.lit" emissive=#true tone-shift="=round(wiggle(3, 1))"
-        rounded-rect x=13 y=-20 width=9 height=10 radius=3 paint="wool.shade" shading="dome"
-        ellipse x=17 y="=-22 + round(osc(4s, 0, 0.5))" width=6 height=6 paint="skin" shading="dome" outline="selective"
-        rect x=17 y="=-22 + round(osc(4s, 0, 0.5))" width=5 height=2 paint="log.deep"
-        rect x=21 y=-17 width=4 height=3 paint="snow.hi"
+    rect 12 -26 20 15 paint=window.lit emissive=#true gradient=down gradient-steps=-2
+    group 12 -26 20 15 clip=#true {
+        ellipse 24 "=-15 + wiggle(2, 0.6)" 8 9 paint=fire.lit emissive=#true tone-shift="=round(wiggle(3, 1))"
+        rounded-rect 13 -20 9 10 radius=3 paint=wool.shade shading=dome
+        ellipse 17 "=-22 + round(osc(4s, 0, 0.5))" 6 6 paint=skin shading=dome outline=selective
+        rect 17 "=-22 + round(osc(4s, 0, 0.5))" 5 2 paint=log.deep
+        rect 21 -17 4 3 paint=snow.hi
     }
-    rect x=21 y=-26 width=2 height=15 paint="log.deep"
-    rect x=12 y=-19 width=20 height=1 paint="log.deep"
-    rect x=10 y=-27 width=24 height=2 paint="log.lit" outline="selective"
-    rect x=10 y=-11 width=24 height=2 paint="snow.lit"
-    light-rect x=12 y=-26 width=20 height=15 reach=46 intensity=2.4 color="warm"
+    rect 21 -26 2 15 paint=log.deep
+    rect 12 -19 20 1 paint=log.deep
+    rect 10 -27 24 2 paint=log.lit outline=selective
+    rect 10 -11 24 2 paint=snow.lit
+    light-rect 12 -26 20 15 reach=46 intensity=2.4 color=warm
 
-    // Door, porch lantern and woodpile
-    rect x=44 y=-24 width=12 height=24 paint="log.deep" outline="full" outline-paint="ink"
-    rect x=53 y=-13 width=1 height=2 paint="window.hi"
-    line x1=60 y1=-26 x2=60 y2=-22 paint="ink"
-    rounded-rect x=58 y=-22 width=5 height=6 radius=1 paint="window.hi" emissive=#true outline="full" outline-paint="ink"
-    light-point x=60 y=-19 reach=26 intensity="=1.8 + wiggle(2, 0.2)" color="warm"
-    ellipse x=74 y=-8 width=6 height=6 paint="log.lit" outline="full" outline-paint="log.deep"
-    ellipse x=79 y=-8 width=6 height=6 paint="log.lit" outline="full" outline-paint="log.deep"
-    ellipse x=76 y=-13 width=6 height=6 paint="log.lit" outline="full" outline-paint="log.deep"
-    polygon x=72 y=-15 points="0,3 8,0 15,3 13,4 2,4" paint="snow.hi"
+    rect 44 -24 12 24 paint=log.deep outline=full outline-paint=ink
+    rect 53 -13 1 2 paint=window.hi
+    line 60 -26 60 -22 paint=ink
+    rounded-rect 58 -22 5 6 radius=1 paint=window.hi emissive=#true outline=full outline-paint=ink
+    light-point 60 -19 reach=26 intensity="=1.8 + wiggle(2, 0.2)" color=warm
+    ellipse 74 -8 6 6 paint=log.lit outline=full outline-paint=log.deep
+    ellipse 79 -8 6 6 paint=log.lit outline=full outline-paint=log.deep
+    ellipse 76 -13 6 6 paint=log.lit outline=full outline-paint=log.deep
+    polygon 72 -15 points="0,3 8,0 15,3 13,4 2,4" paint=snow.hi
 }

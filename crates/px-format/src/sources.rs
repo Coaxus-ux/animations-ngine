@@ -4,6 +4,13 @@ use std::path::{Component, Path, PathBuf};
 
 pub trait Sources {
     fn read(&mut self, path: &Path) -> Result<String, String>;
+
+    fn read_bytes(&mut self, path: &Path) -> Result<Vec<u8>, String> {
+        Err(format!(
+            "{}: binary files can't be read here",
+            path.display()
+        ))
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -13,11 +20,16 @@ impl Sources for FsSources {
     fn read(&mut self, path: &Path) -> Result<String, String> {
         fs::read_to_string(path).map_err(|error| error.to_string())
     }
+
+    fn read_bytes(&mut self, path: &Path) -> Result<Vec<u8>, String> {
+        fs::read(path).map_err(|error| error.to_string())
+    }
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct MemorySources {
     files: BTreeMap<PathBuf, String>,
+    binaries: BTreeMap<PathBuf, Vec<u8>>,
 }
 
 impl MemorySources {
@@ -26,11 +38,24 @@ impl MemorySources {
         self.files.insert(normalize(&path.into()), text.into());
         self
     }
+
+    #[must_use]
+    pub fn with_bytes(mut self, path: impl Into<PathBuf>, bytes: impl Into<Vec<u8>>) -> Self {
+        self.binaries.insert(normalize(&path.into()), bytes.into());
+        self
+    }
 }
 
 impl Sources for MemorySources {
     fn read(&mut self, path: &Path) -> Result<String, String> {
         self.files
+            .get(path)
+            .cloned()
+            .ok_or_else(|| "no such file".to_owned())
+    }
+
+    fn read_bytes(&mut self, path: &Path) -> Result<Vec<u8>, String> {
+        self.binaries
             .get(path)
             .cloned()
             .ok_or_else(|| "no such file".to_owned())

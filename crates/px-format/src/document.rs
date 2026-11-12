@@ -1,20 +1,21 @@
 use std::collections::BTreeMap;
-use std::collections::btree_map::Entry;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use kdl::KdlNode;
 use px_director::Sequence;
-use px_engine::Scene;
+use px_engine::{Detail, Scene};
 
 use crate::diagnostic::{Diagnostic, Diagnostics, LoadError, Severity};
+use crate::expand::MotifSignature;
 use crate::font::{self, DEFAULT_FONT, Fonts};
 use crate::library::Library;
-use crate::palette::{self, NamedPalette};
+use crate::palette::NamedPalette;
 use crate::scene::Overrides;
 use crate::source_map::{Origin, PaintNames};
 use crate::sources::{FsSources, MemorySources, SourceFile, Sources};
 use crate::timeline::Timeline;
-use crate::{scene, sequence, suggest};
+use crate::{expand, palettes, scene, sequence, suggest};
 
 const MEMORY_FILE: &str = "scene.kdl";
 
@@ -26,11 +27,14 @@ pub struct Loaded {
     pub timeline: Timeline,
     pub origins: Vec<Origin>,
     pub paint_names: PaintNames,
+    pub motifs: Vec<MotifSignature>,
+    pub assets: Vec<PathBuf>,
 }
 
 #[derive(Debug)]
 pub struct LoadedSequence {
     pub sequence: Sequence,
+    pub frame_budget: Option<Duration>,
     pub warnings: Vec<Diagnostic>,
     pub files: Vec<SourceFile>,
 }
@@ -45,6 +49,7 @@ pub enum Work {
 pub struct LoadOptions<'a> {
     pub scene: Option<&'a str>,
     pub params: &'a [(String, String)],
+    pub detail: Detail,
 }
 
 pub fn load_file(path: &Path, options: LoadOptions<'_>) -> Result<Loaded, LoadError> {
@@ -90,7 +95,12 @@ pub fn load_work(
     let built = catalog
         .select(options.scene, &mut diags)
         .and_then(|target| build(target, &catalog, options, &mut diags));
-    let files = library.files;
+    let Library {
+        files,
+        motifs,
+        assets,
+        ..
+    } = library;
     match (diags.finish(), built) {
         (Ok(warnings), Some(Built::Scene(built))) => Ok(Work::Scene(Box::new(Loaded {
             scene: built.scene,
@@ -99,9 +109,12 @@ pub fn load_work(
             timeline: built.timeline,
             origins: built.origins,
             paint_names: built.paint_names,
+            motifs,
+            assets,
         }))),
-        (Ok(warnings), Some(Built::Sequence(sequence))) => Ok(Work::Sequence(LoadedSequence {
-            sequence,
+        (Ok(warnings), Some(Built::Sequence(parsed))) => Ok(Work::Sequence(LoadedSequence {
+            sequence: parsed.sequence,
+            frame_budget: parsed.frame_budget,
             warnings,
             files,
         })),
@@ -111,7 +124,7 @@ pub fn load_work(
 
 enum Built {
     Scene(Box<BuiltScene>),
-    Sequence(Sequence),
+    Sequence(sequence::Parsed),
 }
 
 struct BuiltScene {
@@ -133,6 +146,7 @@ fn build(
             let overrides = Overrides::Cli(options.params);
             let parsed = scene::parse(node, catalog, overrides, diags)?;
             let scene = Scene::new(parsed.spec)
+                .and_then(|scene| scene.with_detail(options.detail))
                 .map_err(|error| diags.error(node.span().offset(), error.to_string()))
                 .ok()?;
             Some(Built::Scene(Box::new(BuiltScene {
@@ -150,7 +164,13 @@ fn build(
                     "params are set per shot in a sequence; --param is ignored",
                 );
             }
-            sequence::parse(node, file, catalog, diags).map(Built::Sequence)
+            let parsed = sequence::parse(node, file, catalog, diags)?;
+            parsed
+                .sequence
+                .with_detail(options.detail)
+                .map_err(|error| diags.error(node.span().offset(), error.to_string()))
+                .ok()
+                .map(|sequence| Built::Sequence(sequence::Parsed { sequence, ..parsed }))
         }
     }
 }
@@ -163,6 +183,7 @@ enum Target<'l> {
 
 pub(crate) struct Catalog<'l> {
     pub(crate) palettes: BTreeMap<String, NamedPalette>,
+    palette_nodes: Vec<(usize, &'l KdlNode)>,
     pub(crate) fonts: Fonts,
     pub(crate) scenes: BTreeMap<&'l str, (usize, &'l KdlNode)>,
     sequences: BTreeMap<&'l str, (usize, &'l KdlNode)>,
@@ -173,6 +194,7 @@ impl<'l> Catalog<'l> {
     fn index(library: &'l Library, diags: &mut Diagnostics) -> Self {
         let mut catalog = Self {
             palettes: BTreeMap::new(),
+            palette_nodes: Vec::new(),
             fonts: Fonts::new(),
             scenes: BTreeMap::new(),
             sequences: BTreeMap::new(),
@@ -185,6 +207,7 @@ impl<'l> Catalog<'l> {
             }
             diags.in_file(previous);
         }
+        catalog.palettes = palettes::build(&catalog.palette_nodes, diags);
         if !catalog.fonts.contains_key(DEFAULT_FONT)
             && let Some(font) = font::default_font()
         {
@@ -197,19 +220,7 @@ impl<'l> Catalog<'l> {
         let offset = node.span().offset();
         match node.name().value() {
             "use" => {}
-            "palette" => {
-                if let Some((name, palette)) = palette::parse(node, diags) {
-                    match self.palettes.entry(name) {
-                        Entry::Vacant(slot) => {
-                            slot.insert(palette);
-                        }
-                        Entry::Occupied(slot) => diags.error(
-                            offset,
-                            format!("palette \"{}\" is defined twice", slot.key()),
-                        ),
-                    }
-                }
-            }
+            "palette" => self.palette_nodes.push((file, node)),
             "font" => {
                 if let Some((name, font)) = font::parse(node, diags)
                     && self.fonts.insert(name.clone(), font).is_some()
@@ -221,8 +232,8 @@ impl<'l> Catalog<'l> {
             other => diags.error(
                 offset,
                 format!(
-                    "unknown top-level node `{other}` (expected `use`, `palette`, `font`, `scene` or `sequence`).{}",
-                    suggest::did_you_mean(other, ["use", "palette", "font", "scene", "sequence"])
+                    "unknown top-level node `{other}` (expected `use`, `palette`, `font`, `motif`, `part`, `scene` or `sequence`).{}",
+                    suggest::did_you_mean(other, ["use", "palette", "font", "motif", "part", "scene", "sequence"])
                 ),
             ),
         }
@@ -241,7 +252,7 @@ impl<'l> Catalog<'l> {
             (&mut self.scenes, Target::Scene(file, node))
         };
         map.insert(name, (file, node));
-        if file == 0 {
+        if file == 0 && !expand::is_part(node) {
             self.roots.push(target);
         }
     }

@@ -1,0 +1,27 @@
+// One half of a quote, drawn over whatever scene places it: two lines type in, a small bridge
+// follows, and the verdict gathers from scattered pixels in the accent color before the whole
+// verse blows away.
+
+use "../trailer/studio-palette.kdl"
+
+scene verse palette=studio width=320 height=180 fps=12 duration="8s" seed=21 background=ink.deep {
+    param opening "FIRST LINE"
+    param closing "SECOND LINE"
+    param bridge "bridge"
+    param verdict "VERDICT"
+    param accent "rose"
+    param verdict-size 4
+
+    group land "=min(1, max(0, t - 4.2) / 0.9)"
+    group leave "=max(0, t - 7.3) / 0.7"
+
+    text "$opening" 161 13 size=2 align=center paint=ink.deep emissive=#true reveal="=(t - 0.4) * 14" scatter="=@leave.x * @leave.x * 120"
+    text "$opening" 160 12 size=2 align=center paint=paper.hi emissive=#true reveal="=(t - 0.4) * 14" scatter="=@leave.x * @leave.x * 120"
+    text "$closing" 161 33 size=2 align=center paint=ink.deep emissive=#true reveal="=(t - 1.5) * 14" scatter="=@leave.x * @leave.x * 120"
+    text "$closing" 160 32 size=2 align=center paint=paper.hi emissive=#true reveal="=(t - 1.5) * 14" scatter="=@leave.x * @leave.x * 120"
+    text "$bridge" 160 56 align=center paint=$accent.lit emissive=#true reveal="=(t - 3.1) * 10" scatter="=@leave.x * 60"
+
+    group verdict-scatter "=(1 - @land.x) * (1 - @land.x) * 130 + @leave.x * @leave.x * 160"
+    text "$verdict" "=160 + $verdict-size / 2" "=84 - $verdict-size * 3" size="=$verdict-size" align=center paint=$accent.deep emissive=#true visible="=t > 4.2" scatter="=@verdict-scatter.x * 1.15"
+    text "$verdict" 160 "=84 - $verdict-size * 3.5" size="=$verdict-size" align=center paint=$accent.hi gradient=down gradient-steps=-2 emissive=#true visible="=t > 4.2" scatter="=@verdict-scatter.x"
+}

@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use kdl::{KdlDocument, KdlNode};
-use px_core::{COORD_LIMIT, MAX_CANVAS_SIDE, MAX_FRAMES, Paint};
+use px_core::{COORD_LIMIT, MAX_CANVAS_SIDE, MAX_FRAMES, Paint, Rgb};
 use px_engine::Cel;
 
 use crate::diagnostic::Diagnostics;
@@ -10,7 +10,11 @@ use crate::props::Props;
 use crate::suggest;
 use crate::values;
 
+mod image;
+mod inline;
 mod write;
+
+pub(crate) use inline::inline;
 
 pub use write::write_pixels;
 
@@ -88,7 +92,10 @@ impl Legend {
                 .args()
                 .next()
                 .and_then(|value| values::string(value, diags))
-                .and_then(|text| names.paint(text, offset, diags));
+                .and_then(|text| match Rgb::parse_hex(text) {
+                    Ok(rgb) => names.paint_of_color(rgb, offset, diags),
+                    Err(_) => names.paint(text, offset, diags),
+                });
             props.finish(diags);
             if let Some(paint) = paint
                 && self.codes.insert(code.to_owned(), paint).is_some()

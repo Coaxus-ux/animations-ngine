@@ -5,6 +5,7 @@ use px_expr::Env;
 
 use crate::assemble::{Output, Request, Scope};
 use crate::diagnostic::Diagnostics;
+use crate::expand;
 use crate::scene::{self, Builder, Overrides};
 use crate::schema::Kind;
 use crate::suggest;
@@ -26,14 +27,13 @@ pub(crate) fn expand(
     let host_file = diags.in_file(file);
     let header = scene::header(node, builder.catalog, diags);
     diags.in_file(host_file);
-    if header
-        .palette_name
-        .is_some_and(|palette| palette != builder.palette_name)
-    {
+    if header.palette_name.is_some_and(|palette| {
+        palette != builder.palette_name && !builder.palette.includes(palette)
+    }) {
         diags.error(
             request.offset,
             format!(
-                "\"{name}\" uses another palette; a placed scene must use \"{}\"",
+                "\"{name}\" uses another palette; a placed scene must use \"{}\" or a palette it includes",
                 builder.palette_name
             ),
         );
@@ -51,18 +51,19 @@ pub(crate) fn expand(
     let first = copies.window(&request.params, 0);
     check_seam(request, first, looping.then_some(duration), diags);
     let tracking = builder.tracking;
-    out.tracks.extend(tracking.then(|| Track {
-        scene: name.to_owned(),
-        id: request.id.clone(),
-        depth: builder.stack.len() - 1,
-        count: copies.count,
-        start: first.start,
-        end: first.end,
-        offset: first.offset,
-        speed: first.speed,
-        duration,
-        looping,
-    }));
+    out.tracks
+        .extend((tracking && !expand::is_part(node)).then(|| Track {
+            scene: name.to_owned(),
+            id: request.id.clone(),
+            depth: builder.stack.len() - 1,
+            count: copies.count,
+            start: first.start,
+            end: first.end,
+            offset: first.offset,
+            speed: first.speed,
+            duration,
+            looping,
+        }));
     builder.stack.push(name.to_owned());
     let first_instance = out.world.instances.len();
     for index in 0..copies.count {

@@ -1,0 +1,34 @@
+// A street at night built only from the town kit: atoms make molecules, molecules make blocks, and
+// the scene places blocks.
+
+use "kit/sky.kdl"
+use "kit/town.kdl"
+
+scene kit-street palette=kit-town width=192 height=108 fps=12 duration="4s" loop=#true seed=5 background=night.shade {
+    ambient darkness=1 occlusion=1
+    wind strength=1 gust=0.4 speed=6
+
+    layer sky parallax=0 {
+        rect 0 0 "100%" 90 paint=night.base gradient=down gradient-steps=2 emissive=#true
+        scatter 46 seed=2 x="0..191" y="0..56" tone="base|base|lit|hi" { kit-star $x $y paint=star.$tone }
+        scatter 7 seed=4 x="0..191" y="0..44" period="2|4" { kit-twinkle $x $y $period paint=star.hi }
+        ellipse 145 13 16 16 paint=moon.lit emissive=#true shading=dome
+        ellipse 149 17 4 3 paint=moon.base emissive=#true
+        ellipse 155 23 3 2 paint=moon.base emissive=#true
+        blob 0 78 circles="10,0,22 50,6,26 96,2,24 140,8,28 186,0,24" smooth=6 paint=hill.base emissive=#true
+    }
+    layer far parallax=0.5 fog=0.6 fog-paint=night.base {
+        rect 0 76 "100%" 14 paint=hill.lit emissive=#true
+        kit-house "=70 + $k*66" 80 scale=0.7 repeat=2
+    }
+    layer street {
+        rect 0 88 "100%" 20 paint=street.base texture=0.25 texture-scale=4
+        rect 0 88 "100%" 3 paint=stone.base texture=0.3 texture-scale=2
+        rect 0 88 "100%" 1 paint=stone.lit
+        scatter 30 seed=7 x="0..190" y="93..106" w="2|3|4" { rect $x $y $w 1 paint=street.shade }
+        kit-block 38 88
+        kit-block 104 88 wall=brick { kit-chimney -7 -3 height=5 smoke=0 }
+        kit-block 172 88 flip=#true
+        kit-tree 72 88 height=12 crown=1.2
+    }
+}

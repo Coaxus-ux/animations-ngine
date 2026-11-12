@@ -123,6 +123,16 @@ impl SceneParams {
         Ok(())
     }
 
+    pub(crate) fn value(&self, name: &str) -> Result<&ParamValue, String> {
+        self.params
+            .get(name)
+            .map(|param| &param.value)
+            .ok_or_else(|| {
+                let hint = suggest::hint(name, self.params.keys().map(String::as_str));
+                format!("unknown param `${name}`.{hint}")
+            })
+    }
+
     pub(crate) fn text(&self, name: &str) -> Result<&str, String> {
         match self.params.get(name).map(|param| &param.value) {
             Some(ParamValue::Text(text)) => Ok(text),

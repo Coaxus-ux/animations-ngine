@@ -173,3 +173,33 @@ fn torn_off_panels_come_back_with_the_layout() {
     let requests = restored.take_requests();
     assert!(requests.iter().any(|request| matches!(request, px_editor::app::Request::Open { title, .. } if title.starts_with("Palette"))));
 }
+
+#[test]
+fn art_loaded_from_an_image_is_not_painted_over() {
+    let mut files = common::MemoryFiles::default();
+    files.files.insert(
+        Path::new("art.kdl").to_path_buf(),
+        "palette \"p\" { ramp \"ink\" \"000000 ffffff\" }\nscene \"s\" palette=\"p\" width=4 height=4 fps=1 duration=\"1f\" background=\"ink\" {\n    layer \"art\" {\n        pixels \"art-art\" src=\"art.png\"\n    }\n}\n".to_owned(),
+    );
+    let mut bytes = Vec::new();
+    let mut encoder = png::Encoder::new(&mut bytes, 1, 1);
+    encoder.set_color(png::ColorType::Rgb);
+    let mut writer = encoder.write_header().unwrap();
+    writer.write_image_data(&[255, 255, 255]).unwrap();
+    writer.finish().unwrap();
+    files
+        .bytes
+        .insert(Path::new("art.png").to_path_buf(), bytes);
+    let mut app = App::new(ThemeChoice::Dark).unwrap();
+    app.open(Path::new("art.kdl"), None, &mut files).unwrap();
+    let main = app.window_ids().next().unwrap();
+    app.frame(main, &Input::default(), common::SIZE, &mut files);
+    let original = app.document().unwrap().text().to_owned();
+    let art = layer(&app, "art");
+    app.dispatch(Intent::SelectLayer(art), main, &mut files);
+    app.dispatch(Intent::Tool(ToolKind::Pencil), main, &mut files);
+    stroke(&mut app, &mut files, main, &[(2, 2)]);
+    assert_eq!(app.document().unwrap().text(), original);
+    let status = &app.editing().status.text;
+    assert!(status.contains("comes from art.png"), "{status}");
+}

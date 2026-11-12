@@ -1,5 +1,5 @@
-use kdl::{KdlEntry, KdlValue};
-use px_format::edit::NodePath;
+use kdl::{KdlNode, KdlValue};
+use px_format::edit::{NodePath, coordinates_of, id_of};
 use px_ui::{Area, Id, ROW, Rect, Ui, label, rect, scroll_area, text_field, toggle_icon};
 
 use super::{Context, unavailable};
@@ -27,47 +27,77 @@ pub(super) fn inspector(ui: &mut Ui<'_>, context: &mut Context<'_>, area: Rect) 
         return;
     };
     let (title, rest) = area.take_top(ROW + 2);
-    let id_text = node
-        .entries()
-        .first()
-        .filter(|entry| entry.name().is_none())
-        .and_then(|entry| entry.value().as_string())
-        .map_or_else(String::new, |id| format!(" \"{id}\""));
+    let id_text = id_of(node).map_or_else(String::new, |id| format!(" \"{id}\""));
     label(
         ui,
         title,
         &format!(" {}{id_text}", node.name().value()),
         roles.ink,
     );
-    let entries: Vec<&KdlEntry> = node
-        .entries()
-        .iter()
-        .filter(|entry| entry.name().is_some())
-        .collect();
+    let rows = rows(document, node);
     let id = Id::new("inspector").with_name(&path.to_string());
-    let total_height = i32::try_from(entries.len()).unwrap_or(0) * (ROW + 1);
+    let total_height = i32::try_from(rows.len()).unwrap_or(0) * (ROW + 1);
     let (view, offset) = scroll_area(ui, id, rest, total_height);
     let clip = ui.canvas.clip_to(view);
-    for (slot, entry) in (0i32..).zip(entries) {
-        let Some(key) = entry.name().map(|name| name.value().to_owned()) else {
-            continue;
-        };
+    for (slot, item) in (0i32..).zip(rows) {
         let row = rect(view.x, view.y + slot * (ROW + 1) - offset, view.width, ROW);
         let (caption, field) = row.take_left(KEY);
-        label(ui, caption, &format!(" {key}"), roles.ink_dim);
+        label(ui, caption, &format!(" {}", item.label), roles.ink_dim);
         if ui.hovering(caption) {
-            ui.tooltip(&key);
+            ui.tooltip(&item.label);
         }
-        property(
-            ui,
-            context,
-            id.with_name(&key),
-            field,
-            (&path, &key),
-            entry.value(),
-        );
+        property(ui, context, id.with_name(&item.label), field, &path, &item);
     }
     ui.canvas.restore_clip(clip);
+}
+
+#[derive(Clone, Copy)]
+enum Write {
+    Property,
+    Argument(usize),
+}
+
+struct Row<'n> {
+    label: String,
+    write: Write,
+    value: &'n KdlValue,
+}
+
+fn rows<'n>(document: &Document, node: &'n KdlNode) -> Vec<Row<'n>> {
+    let name = node.name().value();
+    let coordinates = coordinates_of(name);
+    let (skipped, labels): (usize, Vec<String>) = if coordinates.is_empty() {
+        let motif = document
+            .loaded()
+            .and_then(|loaded| loaded.motifs.iter().find(|motif| motif.name == name));
+        let labels = motif.map_or_else(Vec::new, |motif| {
+            motif.positional().map(str::to_owned).collect()
+        });
+        (0, labels)
+    } else {
+        let labels = coordinates.iter().map(|slot| (*slot).to_owned()).collect();
+        (usize::from(id_of(node).is_some()), labels)
+    };
+    let arguments = node
+        .entries()
+        .iter()
+        .filter(|entry| entry.name().is_none())
+        .enumerate()
+        .skip(skipped)
+        .zip(labels)
+        .map(|((index, entry), label)| Row {
+            label,
+            write: Write::Argument(index),
+            value: entry.value(),
+        });
+    let properties = node.entries().iter().filter_map(|entry| {
+        Some(Row {
+            label: entry.name()?.value().to_owned(),
+            write: Write::Property,
+            value: entry.value(),
+        })
+    });
+    arguments.chain(properties).collect()
 }
 
 fn target(
@@ -91,20 +121,16 @@ fn property(
     context: &mut Context<'_>,
     id: Id,
     area: Rect,
-    (path, key): (&NodePath, &str),
-    value: &KdlValue,
+    path: &NodePath,
+    row: &Row<'_>,
 ) {
-    if let Some(on) = value.as_bool() {
+    if let Some(on) = row.value.as_bool() {
         if toggle_icon(ui, id, area.take_left(ROW).0, on, ("eye", "eye-off"), "") {
-            context.intents.push(Intent::SetProperty {
-                path: path.clone(),
-                key: key.to_owned(),
-                value: KdlValue::Bool(!on),
-            });
+            context.intents.push(submit(path, row, !on));
         }
         return;
     }
-    let shown = match value {
+    let shown = match row.value {
         KdlValue::String(text) => text.clone(),
         other => other.to_string(),
     };
@@ -120,12 +146,38 @@ fn property(
     if response.submitted {
         context.fields.remove(&id);
         if text != shown {
-            context.intents.push(Intent::SetProperty {
-                path: path.clone(),
-                key: key.to_owned(),
-                value: parse(&text, value),
-            });
+            context.intents.push(typed(path, row, text));
         }
+    }
+}
+
+fn submit(path: &NodePath, row: &Row<'_>, on: bool) -> Intent {
+    match row.write {
+        Write::Argument(index) => Intent::SetArgument {
+            path: path.clone(),
+            index,
+            text: if on { "#true" } else { "#false" }.to_owned(),
+        },
+        Write::Property => Intent::SetProperty {
+            path: path.clone(),
+            key: row.label.clone(),
+            value: KdlValue::Bool(on),
+        },
+    }
+}
+
+fn typed(path: &NodePath, row: &Row<'_>, text: String) -> Intent {
+    match row.write {
+        Write::Argument(index) => Intent::SetArgument {
+            path: path.clone(),
+            index,
+            text,
+        },
+        Write::Property => Intent::SetProperty {
+            path: path.clone(),
+            key: row.label.clone(),
+            value: parse(&text, row.value),
+        },
     }
 }
 

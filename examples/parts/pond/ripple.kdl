@@ -1,15 +1,18 @@
-// A ring spreading on the water from (0, 0), with a fainter one behind it: a fish kissing
-// the surface or a petal landing. It brightens the water it passes over. Repeats every 2 s.
+// A ring spreading on the water from (0, 0), with a fainter one behind it: a fish kissing the
+// surface or a petal landing.
 
 use "pond-palette.kdl"
 
-scene "ripple" palette="pond" width=40 height=40 fps=12 duration="2s" loop=#true background="water.base" {
-    camera x=-20 y=-20
+motif pond-ring r when {
+    shade "=-$r" "=-$r" "=2 * $r" "=2 * $r" steps=1 round=#true visible=$when
+    shade "=1 - $r" "=1 - $r" "=2 * $r - 2" "=2 * $r - 2" round=#true visible=$when
+}
 
-    group "outer" x="=2 + 16 * ease('ease-out', t / 2)"
-    group "inner" x="=max(0, @outer.x - 6)"
-    shade x="=-@outer.x" y="=-@outer.x" width="=2 * @outer.x" height="=2 * @outer.x" steps=1 round=#true visible="=t < 1.7"
-    shade x="=1 - @outer.x" y="=1 - @outer.x" width="=2 * @outer.x - 2" height="=2 * @outer.x - 2" steps=-1 round=#true visible="=t < 1.7"
-    shade x="=-@inner.x" y="=-@inner.x" width="=2 * @inner.x" height="=2 * @inner.x" steps=1 round=#true visible="=t > 0.4 && t < 1.4"
-    shade x="=1 - @inner.x" y="=1 - @inner.x" width="=2 * @inner.x - 2" height="=2 * @inner.x - 2" steps=-1 round=#true visible="=t > 0.4 && t < 1.4"
+scene ripple palette=pond width=40 height=40 fps=12 duration="2s" loop=#true background=water.base {
+    camera -20 -20
+
+    group outer "=2 + 16 * ease('ease-out', t / 2)"
+    group inner "=max(0, @outer.x - 6)"
+    pond-ring "=@outer.x" "=t < 1.7"
+    pond-ring "=@inner.x" "=t > 0.4 && t < 1.4"
 }

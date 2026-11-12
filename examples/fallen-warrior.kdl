@@ -1,0 +1,20 @@
+// A fallen warrior curled up in a nest of roots, a sword beside the body.
+
+use "parts/fallen/fallen-palette.kdl"
+use "parts/fallen/roots.kdl"
+use "parts/fallen/sword.kdl"
+use "parts/fallen/body.kdl"
+use "parts/fallen/hair.kdl"
+
+scene fallen-warrior palette=fallen width=256 height=170 fps=12 duration="6s" loop=#true seed=13 background=night.2 {
+    ambient darkness=2
+
+    rect 0 0 "100%" "100%" paint=night.2
+    use-scene fallen-roots
+    use-scene fallen-sword
+    use-scene fallen-body
+    use-scene fallen-hair
+
+    light-point "=120 + wiggle(10, 0.4)" "=78 + wiggle(6, 0.3)" reach=150 intensity="=2.3 + wiggle(0.25, 1) + wiggle(0.3, 7)"
+    light-point "=232 + wiggle(3, 0.5)" 60 reach=36 intensity="=0.8 + osc(3s, -0.4, 0.4)"
+}

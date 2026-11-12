@@ -1,111 +1,93 @@
-// A campfire in a pine forest at night. The fire flickers and lights the clearing warm,
-// everything around it casts shadows, sparks and smoke rise, and fireflies drift.
-// Shows: ambient darkness, a flickering warm light with cast shadows, twins, emissive blobs,
-// polygons with dome shading, layers with fog, particles, textures. Loops every 2 seconds.
+// A campfire in a pine forest at night.
 
-palette "campfire" {
-    ramp "sky"        "#0b1020" "#121a33" "#1b2747" "#27375c" "#364a73"
-    ramp "moon"       "#9fb3d1" "#d9e4f2" "#ffffff"
-    ramp "pine"       "#0a1612" "#10221b" "#173025" "#214232" "#2e5642"
-    ramp "pine-warm"  "#1c140c" "#33220f" "#4d3414" "#6e4b1c" "#946828"
-    ramp "ground"     "#0d1410" "#142019" "#1c2c22" "#263a2c" "#33493a"
-    ramp "ground-warm" "#1f150d" "#362412" "#523718" "#74501f" "#9a6e2a"
-    ramp "rock"       "#15161c" "#22232b" "#32343e" "#474a55" "#60636e"
-    ramp "rock-warm"  "#24170f" "#3d2717" "#5c3d22" "#80572f" "#a87542"
-    ramp "wood"       "#170d08" "#2a170c" "#3f2412" "#573419" "#714624"
-    ramp "wood-warm"  "#2a1206" "#4a210a" "#6e3410" "#964c17" "#c06a20"
-    ramp "tent"       "#1d1a2a" "#2c2840" "#3d3858" "#514b72" "#686190"
-    ramp "tent-warm"  "#2e1a16" "#4b2b20" "#6e402c" "#93593a" "#bb764a"
-    ramp "cloak"      "#14201f" "#1d2f2d" "#28403c" "#36544e" "#476a62"
-    ramp "cloak-warm" "#26180e" "#3f2814" "#5d3c1c" "#805427" "#a87036"
-    ramp "skin"       "#4a2c22" "#6e4433" "#946049" "#b87e60" "#d9a07c"
-    ramp "skin-warm"  "#5a2c18" "#844126" "#ad5c36" "#d27c48" "#f0a060"
-    ramp "fire"       "#7a2e0e" "#c8521a" "#f08a24" "#ffc65a" "#fff1b8"
-    ramp "smoke"      "#2a2c36" "#3c3f4a" "#50545f"
-    twin "pine" warm="pine-warm"
-    twin "ground" warm="ground-warm"
-    twin "rock" warm="rock-warm"
-    twin "wood" warm="wood-warm"
-    twin "tent" warm="tent-warm"
-    twin "cloak" warm="cloak-warm"
-    twin "skin" warm="skin-warm"
+use "kit/sky.kdl"
+
+palette campfire {
+    ramp sky "0b1020 121a33 1b2747 27375c 364a73"
+    ramp moon "9fb3d1 d9e4f2 ffffff"
+    ramp pine "0a1612 10221b 173025 214232 2e5642"
+    ramp pine-warm "1c140c 33220f 4d3414 6e4b1c 946828"
+    ramp ground "0d1410 142019 1c2c22 263a2c 33493a"
+    ramp ground-warm "1f150d 362412 523718 74501f 9a6e2a"
+    ramp rock "15161c 22232b 32343e 474a55 60636e"
+    ramp rock-warm "24170f 3d2717 5c3d22 80572f a87542"
+    ramp wood "170d08 2a170c 3f2412 573419 714624"
+    ramp wood-warm "2a1206 4a210a 6e3410 964c17 c06a20"
+    ramp tent "1d1a2a 2c2840 3d3858 514b72 686190"
+    ramp tent-warm "2e1a16 4b2b20 6e402c 93593a bb764a"
+    ramp cloak "14201f 1d2f2d 28403c 36544e 476a62"
+    ramp cloak-warm "26180e 3f2814 5d3c1c 805427 a87036"
+    ramp skin "4a2c22 6e4433 946049 b87e60 d9a07c"
+    ramp skin-warm "5a2c18 844126 ad5c36 d27c48 f0a060"
+    ramp fire "7a2e0e c8521a f08a24 ffc65a fff1b8"
+    ramp smoke "2a2c36 3c3f4a 50545f"
+    twin pine warm=pine-warm
+    twin ground warm=ground-warm
+    twin rock warm=rock-warm
+    twin wood warm=wood-warm
+    twin tent warm=tent-warm
+    twin cloak warm=cloak-warm
+    twin skin warm=skin-warm
 }
 
-scene "campfire-forest" palette="campfire" width=192 height=128 fps=12 duration="2s" loop=#true seed=21 background="sky.shade" {
+scene campfire-forest palette=campfire width=192 height=128 fps=12 duration="2s" loop=#true seed=21 background=sky.shade {
     param flame 1 min=0.3 max=1.5
     ambient darkness=2 occlusion=1 key-light=250
     wind strength=1 gust=0.7 speed=8
 
-    // Night sky: a banded gradient, the moon and a few twinkling stars
-    layer "sky" parallax=0 {
-        rect x=0 y=0 width="100%" height=90 paint="sky.deep" gradient="down" gradient-steps=3
-        ellipse x=150 y=10 width=13 height=13 paint="moon.lit" emissive=#true
-        ellipse x=154 y=13 width=3 height=3 paint="moon.base" emissive=#true
-        rect "star" x=12 y=8 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.85, mod(floor(t * 4), 8))"
-        rect x=31 y=22 width=1 height=1 paint="moon.base" emissive=#true visible="=chance(0.8, mod(floor(t * 4), 8) + 1)"
-        rect x=52 y=6 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.9, mod(floor(t * 4), 8) + 2)"
-        rect x=74 y=17 width=1 height=1 paint="moon.base" emissive=#true visible="=chance(0.8, mod(floor(t * 4), 8) + 3)"
-        rect x=96 y=4 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.85, mod(floor(t * 4), 8) + 4)"
-        rect x=118 y=25 width=1 height=1 paint="moon.base" emissive=#true visible="=chance(0.8, mod(floor(t * 4), 8) + 5)"
-        rect x=131 y=9 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.9, mod(floor(t * 4), 8) + 6)"
-        rect x=176 y=30 width=1 height=1 paint="moon.base" emissive=#true visible="=chance(0.8, mod(floor(t * 4), 8) + 7)"
-        rect x=184 y=7 width=1 height=1 paint="moon.hi" emissive=#true visible="=chance(0.85, mod(floor(t * 4), 8))"
-        rect x=6 y=34 width=1 height=1 paint="moon.base" emissive=#true
-        rect x=88 y=33 width=1 height=1 paint="moon.base" emissive=#true
+    layer sky parallax=0 {
+        rect 0 0 "100%" 90 paint=sky.deep gradient=down gradient-steps=3
+        ellipse 150 10 13 13 paint=moon.lit emissive=#true
+        ellipse 154 13 3 3 paint=moon.base emissive=#true
+        rect "star" 12 8 1 1 paint=moon.hi emissive=#true visible="=chance(0.85, mod(floor(t * 4), 8))"
+        scatter 8 seed=1 x="24..190" y="4..30" tone="base|hi" odds="0.8|0.85|0.9" { kit-flicker $x $y paint=moon.$tone odds=$odds salt="=mod($k + 1, 8)" }
+        rect 6 34 1 1 paint=moon.base emissive=#true
+        rect 88 33 1 1 paint=moon.base emissive=#true
     }
 
-    // Distant ridge and a wall of pine silhouettes, faded by fog
-    layer "far" parallax=0.3 fog="30%" fog-paint="sky.shade" {
-        polygon x=0 y=40 points="0,40 22,18 40,26 64,8 92,24 118,12 146,28 170,14 192,22 192,50 0,50" paint="pine.shade"
-        polygon x=0 y=58 points="0,8 4,0 8,8 11,2 15,8 19,1 23,8 27,3 31,8 35,0 39,8 43,2 47,8 51,1 55,8 59,3 63,8 67,0 71,8 75,2 79,8 83,1 87,8 91,3 95,8 99,0 103,8 107,2 111,8 115,1 119,8 123,3 127,8 131,0 135,8 139,2 143,8 147,1 151,8 155,3 159,8 163,0 167,8 171,2 175,8 179,1 183,8 187,3 192,8 192,32 0,32" paint="pine.deep"
+    layer far parallax=0.3 fog="30%" fog-paint=sky.shade {
+        polygon 0 40 points="0,40 22,18 40,26 64,8 92,24 118,12 146,28 170,14 192,22 192,50 0,50" paint=pine.shade
+        polygon 0 58 points="0,8 4,0 8,8 11,2 15,8 19,1 23,8 27,3 31,8 35,0 39,8 43,2 47,8 51,1 55,8 59,3 63,8 67,0 71,8 75,2 79,8 83,1 87,8 91,3 95,8 99,0 103,8 107,2 111,8 115,1 119,8 123,3 127,8 131,0 135,8 139,2 143,8 147,1 151,8 155,3 159,8 163,0 167,8 171,2 175,8 179,1 183,8 187,3 192,8 192,32 0,32" paint=pine.deep
     }
 
-    // The clearing: textured ground, darker toward the bottom
-    rect x=0 y=84 width="100%" height=44 paint="ground.base" texture=0.25 texture-scale=4 gradient="down" gradient-steps=-2
+    rect 0 84 "100%" 44 paint=ground.base texture=0.25 texture-scale=4 gradient=down gradient-steps=-2
 
-    // Pines around the clearing: jagged polygons with dome shading that block the fire light
-    polygon "pine-a" x=2 y=30 points="14,0 19,12 16,12 23,26 18,26 27,42 21,42 30,58 -2,58 7,42 1,42 10,26 5,26 12,12 9,12" paint="pine.base" shading="dome" outline="selective" casts-shadow=#true
-    rect x=13 y=88 width=4 height=8 paint="wood.shade" casts-shadow=#true contact-shadow=1
-    polygon "pine-b" x=36 y=46 points="10,0 14,9 12,9 17,19 14,19 21,32 -1,32 6,19 3,19 8,9 6,9" paint="pine.lit" shading="dome" outline="selective" casts-shadow=#true
-    rect x=45 y=78 width=3 height=8 paint="wood.shade" casts-shadow=#true contact-shadow=1
-    polygon "pine-c" x=150 y=26 points="16,0 21,13 18,13 26,28 21,28 31,45 24,45 34,62 -2,62 8,45 1,45 11,28 6,28 14,13 11,13" paint="pine.base" shading="dome" outline="selective" casts-shadow=#true
-    rect x=164 y=88 width=5 height=9 paint="wood.shade" casts-shadow=#true contact-shadow=1
-    polygon "pine-d" x=178 y=50 points="9,0 13,10 11,10 16,22 13,22 19,34 -1,34 5,22 2,22 7,10 5,10" paint="pine.shade" shading="dome" casts-shadow=#true
+    polygon "pine-a" 2 30 points="14,0 19,12 16,12 23,26 18,26 27,42 21,42 30,58 -2,58 7,42 1,42 10,26 5,26 12,12 9,12" paint=pine.base shading=dome outline=selective casts-shadow=#true
+    rect 13 88 4 8 paint=wood.shade casts-shadow=#true contact-shadow=1
+    polygon "pine-b" 36 46 points="10,0 14,9 12,9 17,19 14,19 21,32 -1,32 6,19 3,19 8,9 6,9" paint=pine.lit shading=dome outline=selective casts-shadow=#true
+    rect 45 78 3 8 paint=wood.shade casts-shadow=#true contact-shadow=1
+    polygon "pine-c" 150 26 points="16,0 21,13 18,13 26,28 21,28 31,45 24,45 34,62 -2,62 8,45 1,45 11,28 6,28 14,13 11,13" paint=pine.base shading=dome outline=selective casts-shadow=#true
+    rect 164 88 5 9 paint=wood.shade casts-shadow=#true contact-shadow=1
+    polygon "pine-d" 178 50 points="9,0 13,10 11,10 16,22 13,22 19,34 -1,34 5,22 2,22 7,10 5,10" paint=pine.shade shading=dome casts-shadow=#true
 
-    // A tent with its flap open
-    polygon "tent" x=22 y=70 points="18,0 40,30 -4,30" paint="tent.base" shading="dome" outline="selective" casts-shadow=#true contact-shadow=1
-    polygon x=22 y=70 points="18,6 25,30 11,30" paint="tent.deep"
-    line x1=40 y1=70 x2=36 y2=66 paint="wood.lit"
-    rope x1=58 y1=100 x2=62 y2=101 sag=0 paint="tent.shade"
+    polygon "tent" 22 70 points="18,0 40,30 -4,30" paint=tent.base shading=dome outline=selective casts-shadow=#true contact-shadow=1
+    polygon 22 70 points="18,6 25,30 11,30" paint=tent.deep
+    line 40 70 36 66 paint=wood.lit
+    rope 58 100 62 101 paint=tent.shade
 
-    // Firewood stacked by the tent
-    capsule x1=62 y1=98 x2=76 y2=98 radius=2 paint="wood.base" shading="dome" outline="selective" casts-shadow=#true
-    capsule x1=64 y1=94 x2=74 y2=94 radius=2 paint="wood.lit" shading="dome" outline="selective" casts-shadow=#true
+    capsule 62 98 76 98 paint=wood.base shading=dome outline=selective casts-shadow=#true
+    capsule 64 94 74 94 paint=wood.lit shading=dome outline=selective casts-shadow=#true
 
-    // The camper on a log, leaning toward the fire
-    capsule x1=124 y1=103 x2=148 y2=103 radius=3 paint="wood.base" shading="dome" outline="selective" casts-shadow=#true contact-shadow=1
-    rounded-rect "cloak" x=129 y=84 width=12 height=18 radius=4 paint="cloak.base" shading="dome" outline="selective" casts-shadow=#true
-    ellipse "head" x=128 y=75 width=9 height=9 paint="cloak.lit" shading="dome" outline="selective" casts-shadow=#true
-    ellipse x=128 y=78 width=4 height=5 paint="skin.base" shading="dome"
-    capsule x1=130 y1=90 x2="=121 + wiggle(0.6, 0.5)" y2=93 radius=1.5 paint="cloak.lit"
-    capsule x1=126 y1=101 x2=120 y2=106 radius=2 paint="cloak.shade" shading="dome"
+    capsule 124 103 148 103 radius=3 paint=wood.base shading=dome outline=selective casts-shadow=#true contact-shadow=1
+    rounded-rect "cloak" 129 84 12 18 radius=4 paint=cloak.base shading=dome outline=selective casts-shadow=#true
+    ellipse "head" 128 75 9 9 paint=cloak.lit shading=dome outline=selective casts-shadow=#true
+    ellipse 128 78 4 5 paint=skin.base shading=dome
+    capsule 130 90 "=121 + wiggle(0.6, 0.5)" 93 radius=1.5 paint=cloak.lit
+    capsule 126 101 120 106 paint=cloak.shade shading=dome
 
-    // Fire pit: a ring of stones around crossed logs
-    blob x=88 y=104 circles="0,0,4 7,1,3 14,0,4 21,1,3 28,0,4" smooth=2 paint="rock.base" shading="dome" outline="selective" casts-shadow=#true contact-shadow=1
-    capsule x1=92 y1=100 x2=112 y2=96 radius=2 paint="wood.shade" shading="dome" outline="selective"
-    capsule x1=94 y1=96 x2=112 y2=101 radius=2 paint="wood.base" shading="dome" outline="selective"
+    blob 88 104 circles="0,0,4 7,1,3 14,0,4 21,1,3 28,0,4" smooth=2 paint=rock.base shading=dome outline=selective casts-shadow=#true contact-shadow=1
+    capsule 92 100 112 96 paint=wood.shade shading=dome outline=selective
+    capsule 94 96 112 101 paint=wood.base shading=dome outline=selective
 
-    // Flames: three layered blobs that dance on their own wiggles
-    blob "flame" x="=102 + wiggle(1, 3)" y=94 circles="0,0,6 -3,-5,4 2,-9,3 -1,-14,2" smooth=3 paint="fire.lit" emissive=#true {
+    blob "flame" "=102 + wiggle(1, 3)" 94 circles="0,0,6 -3,-5,4 2,-9,3 -1,-14,2" paint=fire.lit emissive=#true {
         anim smooth loop="pingpong" { k "0s" 3; k "0.5s" 4 interp="smooth" }
     }
-    blob x="=102 + wiggle(1.5, 4)" y=95 circles="0,0,4 1,-5,3 -1,-9,2" smooth=2 paint="fire.hi" emissive=#true tone-shift="=round(wiggle(0.6, 5))"
-    blob x="=@flame.x + 4" y="=90 + wiggle(1, 3)" circles="0,0,2 0,-3,1.5" smooth=1 paint="fire.base" emissive=#true
-    blob x="=@flame.x - 4" y="=91 + wiggle(1, 2.5)" circles="0,0,2 0,-3,1.5" smooth=1 paint="fire.base" emissive=#true
-    light-point x=102 y=90 reach=95 intensity="=$flame * (3.2 + wiggle(0.4, 4))" color="warm" shadows=#true
+    blob "=102 + wiggle(1.5, 4)" 95 circles="0,0,4 1,-5,3 -1,-9,2" smooth=2 paint=fire.hi emissive=#true tone-shift="=round(wiggle(0.6, 5))"
+    blob "=@flame.x + 4" "=90 + wiggle(1, 3)" circles="0,0,2 0,-3,1.5" smooth=1 paint=fire.base emissive=#true
+    blob "=@flame.x - 4" "=91 + wiggle(1, 2.5)" circles="0,0,2 0,-3,1.5" smooth=1 paint=fire.base emissive=#true
+    light-point 102 90 reach=95 intensity="=$flame * (3.2 + wiggle(0.4, 4))" color=warm shadows=#true
 
-    // Sparks, smoke and fireflies
-    particles x=96 y=82 width=12 height=6 count=14 vx=0 vy=-22 gravity=4 life="1s" size=1 wind=3 paint="fire.hi" emissive=#true fade=#true
-    particles x=97 y=64 width=10 height=18 count=12 vx=2 vy=-10 life="2s" size=2 wind=6 paint="smoke.base" opacity=0.5 fade=#true
-    particles x=0 y=70 width="100%" height=40 count=10 vx=1 vy=-3 life="2s" size=1 wind=5 paint="fire.lit" emissive=#true fade=#true
+    particles 96 82 12 6 count=14 vy=-22 gravity=4 life="1s" wind=3 paint=fire.hi emissive=#true fade=#true
+    particles 97 64 10 18 count=12 vx=2 vy=-10 life="2s" size=2 wind=6 paint=smoke.base opacity=0.5 fade=#true
+    particles 0 70 "100%" 40 count=10 vx=1 vy=-3 life="2s" wind=5 paint=fire.lit emissive=#true fade=#true
 }

@@ -60,7 +60,7 @@ fn adding_a_ramp_inserts_one_line_in_the_palette_node() {
     let after = text(&app);
     assert_eq!(after.lines().count(), before.lines().count() + 1);
     let (added, removed) = changed_lines(&before, &after);
-    assert_eq!(added, vec!["    ramp \"sky\" \"#102030\"".to_owned()]);
+    assert_eq!(added, vec!["    ramp \"sky\" \"102030\"".to_owned()]);
     assert!(removed.is_empty(), "{removed:?}");
     assert_eq!(ramp_colors(&app, "sky"), vec![SKY]);
     assert_eq!(app.editing().status.text, "Done: add ramp");
@@ -107,7 +107,7 @@ fn adding_and_removing_a_tone_rewrites_only_that_ramp_line() {
     let (added, removed) = changed_lines(&before, &grown);
     assert_eq!(
         added,
-        vec!["    ramp \"eye\" \"#2f6b3a\" \"#7fd36b\" \"#102030\"".to_owned()]
+        vec!["    ramp \"eye\" \"2f6b3a 7fd36b 102030\"".to_owned()]
     );
     assert_eq!(removed.len(), 1);
     assert!(removed[0].contains("ramp \"eye\""), "{removed:?}");
@@ -123,10 +123,7 @@ fn adding_and_removing_a_tone_rewrites_only_that_ramp_line() {
         &mut files,
     );
     let (added, removed) = changed_lines(&grown, &text(&app));
-    assert_eq!(
-        added,
-        vec!["    ramp \"eye\" \"#2f6b3a\" \"#7fd36b\"".to_owned()]
-    );
+    assert_eq!(added, vec!["    ramp \"eye\" \"2f6b3a 7fd36b\"".to_owned()]);
     assert_eq!(removed.len(), 1);
     assert_eq!(ramp_colors(&app, "eye").len(), 2);
 }

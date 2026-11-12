@@ -6,6 +6,7 @@ mod compiler;
 mod diagnostic;
 mod document;
 pub mod edit;
+mod expand;
 mod extras;
 mod font;
 mod geometry;
@@ -16,6 +17,7 @@ mod markup;
 mod names;
 mod objects;
 mod palette;
+mod palettes;
 mod params;
 mod pixels;
 mod props;
@@ -36,8 +38,9 @@ pub use document::{
     LoadOptions, Loaded, LoadedSequence, Work, load, load_file, load_scene, load_work,
     load_work_file,
 };
+pub use expand::MotifSignature;
 pub use font::{Font, Glyph};
 pub use pixels::write_pixels;
 pub use source_map::{Origin, PaintNames};
 pub use sources::{FsSources, MemorySources, SourceFile, Sources};
-pub use timeline::{Marker, Timeline, Track};
+pub use timeline::{Keyed, Marker, Timeline, Track};

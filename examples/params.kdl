@@ -1,24 +1,21 @@
 // M1 slice 2: units, seeded ranges, params and references.
-// Try: pxe export examples/params.kdl --param wind=0.9
 
-palette "dusk" {
-    ramp "sky"   "#2a1b3d" "#44275a" "#6b3f7c" "#a35d8a" "#e08e79"
-    ramp "hill"  "#14101f" "#211a30" "#2f2542"
-    ramp "sun"   "#e8a964" "#ffd9a0"
-    ramp "kite"  "#7a2e2e" "#c0533a" "#f08a5d"
+palette dusk {
+    ramp sky "2a1b3d 44275a 6b3f7c a35d8a e08e79"
+    ramp hill "14101f 211a30 2f2542"
+    ramp sun "e8a964 ffd9a0"
+    ramp kite "7a2e2e c0533a f08a5d"
 }
 
-scene "params" palette="dusk" width=96 height=64 fps=12 duration="4s" loop=#true seed=7 background="sky.lit" {
+scene params palette=dusk width=96 height=64 fps=12 duration="4s" loop=#true seed=7 background=sky.lit {
     param wind 0.4 min=0 max=1
 
-    ellipse "sun" x="60%" y="15%" width=14 height=14 paint="sun.hi"
-    rect "ground" x=0 y="75%" width="100%" height="25%" paint="hill.base"
+    ellipse "sun" "60%" "15%" 14 14 paint=sun.hi
+    rect "ground" 0 "75%" "100%" "25%" paint=hill.base
 
-    // The kite drifts with the wind; its string starts at a fixed point on the ground.
-    ellipse "kite" x="=30 + wiggle(10 * $wind, 0.5)" y="=14 + wiggle(4, 0.7)" width=7 height=9 paint="kite.lit"
-    line x1=20 y1="=@ground.y" x2="=@kite.x + 3" y2="=@kite.y + 8" paint="hill.hi"
+    ellipse "kite" "=30 + wiggle(10 * $wind, 0.5)" "=14 + wiggle(4, 0.7)" 7 9 paint=kite.lit
+    line 20 "=@ground.y" "=@kite.x + 3" "=@kite.y + 8" paint=hill.hi
 
-    // Each bush gets its own stable size and position from its seed.
-    ellipse x="5..25" y=44 width="8..14" height=6 paint="hill.deep"
-    ellipse x="60..80" y=45 width="8..14" height=6 paint="hill.deep"
+    ellipse x="5..25" y=44 width="8..14" height=6 paint=hill.deep
+    ellipse x="60..80" y=45 width="8..14" height=6 paint=hill.deep
 }

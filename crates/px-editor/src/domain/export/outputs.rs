@@ -16,7 +16,9 @@ pub(super) fn encode(
     target: &Target,
     scale: Scale,
 ) -> Result<Vec<Output>, String> {
-    let scene = visible_scene_without(document, &target.hidden)?;
+    let scene = visible_scene_without(document, &target.hidden)?
+        .with_detail(job.detail)
+        .map_err(message)?;
     match job.kind {
         ExportKind::Gif => Ok(vec![Output {
             path: target.out.clone(),

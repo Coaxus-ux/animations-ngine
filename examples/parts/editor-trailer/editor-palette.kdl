@@ -1,0 +1,21 @@
+// The colors of `pxe edit`'s dark theme (crates/px-editor/assets/theme-dark.kdl), one tone per ramp
+// so a host's ambient darkness and lights leave the UI alone, plus a sample ramp that the swatch
+// rows show when they are previewed on their own.
+
+palette editor {
+    ramp ui-window "0e0d16"
+    ramp ui-bar "14131f"
+    ramp ui-panel "1f1d2e"
+    ramp ui-raised "2b2940"
+    ramp ui-title "262438"
+    ramp ui-field "0a0a12"
+    ramp ui-ink "9491ab"
+    ramp ui-ink-hi "e6e3f5"
+    ramp ui-accent "3859db"
+    ramp ui-accent-hi "8fa8ff"
+    ramp ui-warning "f36a20"
+    ramp ui-grid "3c3a52"
+    ramp ui-disabled "4a4860"
+    ramp ui-backdrop "07060c"
+    ramp ui-sample "1b1530 3a2456 6a3270 a04478 d0646c ee9064 f8c47a fff2b8"
+}

@@ -1,120 +1,71 @@
-// A winter night under the northern lights. Two aurora curtains (one green, one violet)
-// ripple across the sky, each made of dozens of copies of one glowing band whose time is
-// shifted copy by copy, so the waves travel along them. Snowy pines stand in three depths, a
-// frozen lake mirrors the sky, snow falls in two layers, and a cabin's window and lantern
-// warm the snow around it. A star falls at the "wish" marker; then the camera drifts in
-// to the window, where someone reads by the fire, and back out.
-//
-// Shows: `count` + `offset` building a large animated structure from one small scene,
-// copies scaled per index, parallax layers with fog, a reflection limited to the ice,
-// colored light twins, clip groups, particles at two depths, keyframes on markers, zoom.
-// Loops every 12 seconds.
+// A winter night under the northern lights.
 
 use "parts/cabin/cabin-palette.kdl"
 use "parts/cabin/aurora-band.kdl"
 use "parts/cabin/snowy-pine.kdl"
 use "parts/cabin/cabin.kdl"
+use "kit/sky.kdl"
 
-scene "aurora-cabin" palette="aurora" width=320 height=180 fps=12 duration="12s" loop=#true seed=12 background="sky.base" {
+
+scene aurora-cabin palette=aurora width=320 height=180 fps=12 duration="12s" loop=#true seed=12 background=sky.base {
     ambient darkness=1 occlusion=1 key-light=240
     wind strength=1.2 gust=0.6 speed=3
 
     timeline {
-        marker "wish" at="1.5s"
-        marker "approach" at="4s"
-        marker "inside" at="6s"
-        marker "away" at="9s"
-        marker "wide" at="11s"
+        marker wish at="1.5s"
+        marker approach at="4s"
+        marker inside at="6s"
+        marker away at="9s"
+        marker wide at="11s"
     }
 
-    group "focus" {
+    group focus {
         anim x {
             k "approach" 0
-            k "inside" 1 interp="ease-in-out"
+            k "inside" 1 interp=ease-in-out
             k "away" 1
-            k "wide" 0 interp="ease-in-out"
+            k "wide" 0 interp=ease-in-out
         }
     }
-    camera x="=osc(12s, 0, 24) * (1 - @focus.x) + (172 - 160) * @focus.x" y="=(126 - 90) * @focus.x" zoom="=1 + 2 * @focus.x"
+    camera "=osc(12s, 0, 24) * (1 - @focus.x) + (172 - 160) * @focus.x" "=(126 - 90) * @focus.x" zoom="=1 + 2 * @focus.x"
 
-    layer "sky" parallax=0 {
-        rect x=-60 y=-60 width=440 height=200 paint="sky.deep" gradient="down" gradient-steps=3
-        rect x=91 y=55 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=279 y=40 width=1 height=1 paint="star.base" emissive=#true
-        rect x=280 y=-19 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=102 y=50 width=1 height=1 paint="star.lit" emissive=#true visible="=1 - pulse(6s, 0.2)"
-        rect x=297 y=90 width=1 height=1 paint="star.hi" emissive=#true visible="=1 - pulse(3s, 0.2)"
-        rect x=-23 y=65 width=1 height=1 paint="star.base" emissive=#true
-        rect x=272 y=-15 width=1 height=1 paint="star.lit" emissive=#true visible="=1 - pulse(2s, 0.2)"
-        rect x=274 y=72 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=335 y=80 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=342 y=82 width=1 height=1 paint="star.base" emissive=#true
-        rect x=157 y=-8 width=1 height=1 paint="star.lit" emissive=#true visible="=1 - pulse(6s, 0.1)"
-        rect x=314 y=35 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=185 y=44 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=149 y=48 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=88 y=23 width=1 height=1 paint="star.base" emissive=#true
-        rect x=113 y=57 width=1 height=1 paint="star.base" emissive=#true
-        rect x=327 y=90 width=1 height=1 paint="star.hi" emissive=#true visible="=1 - pulse(2s, 0.1)"
-        rect x=263 y=14 width=1 height=1 paint="star.hi" emissive=#true visible="=1 - pulse(2s, 0.2)"
-        rect x=217 y=-9 width=1 height=1 paint="star.base" emissive=#true visible="=1 - pulse(2s, 0.2)"
-        rect x=-20 y=17 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=30 y=-15 width=1 height=1 paint="star.base" emissive=#true
-        rect x=163 y=71 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=112 y=44 width=1 height=1 paint="star.base" emissive=#true visible="=1 - pulse(2s, 0.2)"
-        rect x=9 y=-7 width=1 height=1 paint="star.base" emissive=#true
-        rect x=71 y=32 width=1 height=1 paint="star.hi" emissive=#true visible="=1 - pulse(4s, 0.1)"
-        rect x=-9 y=23 width=1 height=1 paint="star.lit" emissive=#true visible="=1 - pulse(3s, 0.2)"
-        rect x=205 y=46 width=1 height=1 paint="star.lit" emissive=#true visible="=1 - pulse(2s, 0.2)"
-        rect x=294 y=72 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=193 y=13 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=143 y=-19 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=131 y=-18 width=1 height=1 paint="star.hi" emissive=#true visible="=1 - pulse(3s, 0.1)"
-        rect x=291 y=22 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=150 y=57 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=220 y=-18 width=1 height=1 paint="star.hi" emissive=#true
-        rect x=-20 y=27 width=1 height=1 paint="star.hi" emissive=#true visible="=1 - pulse(6s, 0.2)"
-        rect x=277 y=20 width=1 height=1 paint="star.lit" emissive=#true visible="=1 - pulse(3s, 0.2)"
-        rect x=274 y=13 width=1 height=1 paint="star.base" emissive=#true visible="=1 - pulse(6s, 0.1)"
-        rect x=261 y=67 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=226 y=8 width=1 height=1 paint="star.lit" emissive=#true
-        rect x=92 y=21 width=1 height=1 paint="star.base" emissive=#true visible="=1 - pulse(6s, 0.1)"
-        line x1="=30 + 260 * (t - 1.5)" y1="=10 + 90 * (t - 1.5)" x2="=@self.x1 - 10" y2="=@self.y1 - 3.5" paint="star.hi" emissive=#true visible="=t >= 1.5 && t < 2"
+    layer sky parallax=0 {
+        rect -60 -60 440 200 paint=sky.deep gradient=down gradient-steps=3
+        scatter 26 seed=1 x="-23..342" y="-19..82" tone="base|lit|hi" { kit-star $x $y paint=star.$tone }
+        scatter 16 seed=2 x="-20..327" y="-18..90" tone="base|lit|hi" period="2s|3s|4s|6s" duty="0.1|0.2" { kit-twinkle $x $y $period paint=star.$tone duty=$duty }
+        line "=30 + 260 * (t - 1.5)" "=10 + 90 * (t - 1.5)" "=@self.x1 - 10" "=@self.y1 - 3.5" paint=star.hi emissive=#true visible="=t >= 1.5 && t < 2"
     }
-    layer "aurora" parallax=0.1 {
-        use-scene "aurora-band" count=30 x="=-40 + i * 13" y="=70 - 10 * cos(i * 0.4)" offset="=3 + i * 0.2" scale=0.8 color="aurora-violet"
-        use-scene "aurora-band" count=56 x="=-60 + i * 7" y="=92 - 14 * sin(i * 0.28)" offset="=i * 0.14" scale="=0.9 + 0.2 * sin(i * 0.5)"
+    layer aurora parallax=0.1 {
+        use-scene aurora-band "=-40 + i * 13" "=70 - 10 * cos(i * 0.4)" count=30 offset="=3 + i * 0.2" scale=0.8 color=aurora-violet
+        use-scene aurora-band "=-60 + i * 7" "=92 - 14 * sin(i * 0.28)" count=56 offset="=i * 0.14" scale="=0.9 + 0.2 * sin(i * 0.5)"
     }
-    layer "mountains" parallax=0.25 fog="30%" fog-paint="sky.lit" {
-        polygon x=-80 y=78 points="0,52 40,24 70,34 120,6 170,30 210,14 260,32 320,0 380,28 440,18 480,40 480,64 0,64" paint="snow.shade" shading="dome" outline="selective"
-        polygon x=-80 y=78 points="120,6 132,16 124,18 112,13" paint="snow.lit"
-        polygon x=-80 y=78 points="320,0 334,12 326,14 312,8" paint="snow.lit"
+    layer mountains parallax=0.25 fog="30%" fog-paint=sky.lit {
+        polygon -80 78 points="0,52 40,24 70,34 120,6 170,30 210,14 260,32 320,0 380,28 440,18 480,40 480,64 0,64" paint=snow.shade shading=dome outline=selective
+        polygon -80 78 points="120,6 132,16 124,18 112,13" paint=snow.lit
+        polygon -80 78 points="320,0 334,12 326,14 312,8" paint=snow.lit
     }
-    layer "far-pines" parallax=0.5 fog="35%" fog-paint="sky.lit" {
-        rect x=-80 y=122 width=480 height=12 paint="snow.shade"
-        use-scene "snowy-pine" count=24 x="=-60 + i * 19 + 5 * sin(i * 2.1)" y=126 scale="=0.35 + 0.08 * (i % 4)"
+    layer far-pines parallax=0.5 fog="35%" fog-paint=sky.lit {
+        rect -80 122 480 12 paint=snow.shade
+        use-scene snowy-pine "=-60 + i * 19 + 5 * sin(i * 2.1)" 126 count=24 scale="=0.35 + 0.08 * (i % 4)"
     }
 
-    // The frozen lake mirrors the sky above it
-    rect x=-80 y=130 width=480 height=16 paint="ice.base" gradient="down" gradient-steps=-1
-    rect x="=40 + osc(6s, -4, 4)" y=134 width=30 height=1 paint="ice.hi"
-    rect x="=210 + osc(6s, 3, -3)" y=139 width=22 height=1 paint="ice.lit"
-    reflection x=-80 y=130 width=480 height=16 axis=130 ripple=0 speed=0 tone-shift=-1 opacity=0.8 on="ice"
+    rect -80 130 480 16 paint=ice.base gradient=down gradient-steps=-1
+    rect "=40 + osc(6s, -4, 4)" 134 30 1 paint=ice.hi
+    rect "=210 + osc(6s, 3, -3)" 139 22 1 paint=ice.lit
+    reflection -80 130 480 16 axis=130 ripple=0 speed=0 opacity=0.8 on=ice
 
-    // Snowy ground, drifts and the cabin
-    rect x=-80 y=144 width=480 height=50 paint="snow.base" gradient="down" gradient-steps=-2 texture=0.25 texture-scale=3
-    blob x=40 y=150 circles="0,0,8 12,-2,10 26,0,7" smooth=5 paint="snow.lit" shading="dome"
-    blob x=250 y=152 circles="0,0,9 14,-3,11 30,1,8" smooth=5 paint="snow.lit" shading="dome"
-    use-scene "snowy-pine" x=128 y=148 scale=0.9
-    use-scene "snowy-pine" x=238 y=150 scale=1.1
-    use-scene "cabin" x=150 y=148
-    polygon x=150 y=146 points="0,2 72,2 80,6 -6,6" paint="snow.lit"
+    rect -80 144 480 50 paint=snow.base gradient=down gradient-steps=-2 texture=0.25 texture-scale=3
+    blob 40 150 circles="0,0,8 12,-2,10 26,0,7" smooth=5 paint=snow.lit shading=dome
+    blob 250 152 circles="0,0,9 14,-3,11 30,1,8" smooth=5 paint=snow.lit shading=dome
+    use-scene snowy-pine 128 148 scale=0.9
+    use-scene snowy-pine 238 150 scale=1.1
+    use-scene cabin 150 148
+    polygon 150 146 points="0,2 72,2 80,6 -6,6" paint=snow.lit
 
-    // Snow falling: fine and slow far away, larger and faster close by
-    particles x=-40 y=-20 width=400 height=20 count=90 vx=-3 vy=14 life="12s" size=1 wind=5 paint="snow.hi"
-    layer "near" parallax=1.4 {
-        use-scene "snowy-pine" x=-6 y=196 scale=1.9
-        use-scene "snowy-pine" x=318 y=200 scale=2.2
-        particles x=-40 y=-20 width=400 height=20 count=30 vx=-5 vy=30 life="6s" size=2 wind=8 paint="snow.hi"
+    particles -40 -20 400 20 count=90 vx=-3 vy=14 life="12s" wind=5 paint=snow.hi
+    layer near parallax=1.4 {
+        use-scene snowy-pine -6 196 scale=1.9
+        use-scene snowy-pine 318 200 scale=2.2
+        particles -40 -20 400 20 count=30 vx=-5 vy=30 life="6s" size=2 wind=8 paint=snow.hi
     }
 }

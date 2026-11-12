@@ -1,0 +1,9 @@
+// The sword: the blade by the feet, its edge behind the body and the hilt past the head.
+
+use "fallen-palette.kdl"
+
+scene fallen-sword palette=fallen width=256 height=170 fps=12 duration="1f" background=night.2 {
+    layer sword {
+        pixels src="sword.png"
+    }
+}

@@ -456,6 +456,8 @@ Sub-pixel values never accumulate between frames, because each frame is computed
 
 ## 10. Structure nodes: group, repeat, scatter, clone
 
+Draft. Today `repeat=`, `scatter`, `motif` and moving groups ([SHORTHAND.md](SHORTHAND.md)) do this work.
+
 ### 10.1 `group`
 A container with its own transform, seed and visibility. It has no visuals of its own.
 ```kdl
@@ -511,6 +513,8 @@ clone "@hero" id="hero-2" x=120 seed=99 materials cloth-a="cloth-blue"
 ---
 
 ## 11. Prefabs, sockets and placement
+
+Draft. Today `motif` and `part` ([SHORTHAND.md](SHORTHAND.md)) reuse blocks of nodes; a `part` has its own origin, `slot` and `anchor`s.
 
 ### 11.1 Declaring a prefab
 ```kdl
@@ -763,7 +767,7 @@ scene "street" view="perspective" palette="neon-night" warmup="2s" loop-blend="6
 
 ## Appendix A. What the loader accepts today
 
-The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes. The editor writes only these nodes: its palette editor writes `ramp` lines and saves standalone palette files (a file holding one `palette` node, as in `examples/parts/pond/pond-palette.kdl`), and its per-element code editor replaces one node's text in place.
+The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes. Bare coordinates, `repeat=`, `motif` and `part` shorten all of this, and `part` is how small pieces are built into big ones: see [SHORTHAND.md](SHORTHAND.md). The editor writes only these nodes: its palette editor writes `ramp` lines and saves standalone palette files (a file holding one `palette` node, as in `examples/parts/pond/pond-palette.kdl`), and its per-element code editor replaces one node's text in place.
 
 ### A.1 Scene children
 
@@ -774,7 +778,7 @@ The sections above describe the full format. This appendix lists the subset `px-
 | `ambient` | `darkness` 0 | `occlusion` 0..4, `key-light` 225 (degrees) | Darkness lowers every non-emissive pixel by tone steps; occlusion darkens pixels next to closer shapes; `key-light` is the direction dome shading is lit from |
 | `camera` | `x` 0, `y` 0, `zoom` 1 | | Multi-property keys: `camera { k "0s" x=0; k "4s" x=24 zoom=2 }`. `zoom` scales about the canvas center and can be any value: shapes are drawn again at the new size every frame (never resampled), outlines stay 1 px and textures stay anchored to the shapes |
 | `layer "name"` | `fog` 0 | `parallax` 1, `fog-paint` | Children are drawn in this layer; layers can't nest. Fog moves tones into the fog paint's ramp, toward its tone |
-| `group "name"` | `x y width height` 0 | `clip`, `round` | With `clip=#true`, children are clipped to the box (an ellipse if `round`). Clips nest up to 8 deep. A group can hold `anim` blocks, so an empty group works as a named, keyframed value others read with `@group.x` |
+| `group "name"` | `x y width height` 0 | `clip`, `round` | With `clip=#true`, children are clipped to the box (an ellipse if `round`) and stay in scene coordinates. Clips nest up to 8 deep. Without `clip`, a group given `x` or `y` moves its children with it (SHORTHAND §7). A group can hold `anim` blocks, so an empty group works as a named, keyframed value others read with `@group.x` |
 | `use-scene "scene"` | `x y` 0, `scale` 1 | `id`, `flip`, `count`, `seed`, `start`, `end`, `offset`, `speed`, `loop`, params | Places another scene (A.6) |
 | `timeline` | | `marker "name" at="2s"` children | Named times; any time value can name a marker (A.6) |
 | `light-point` | `x y` (required), `reach` 40, `intensity` 1 | `color`, `shadows` | `intensity` is in tone steps at the center, falling off linearly to `reach` |
@@ -817,14 +821,23 @@ Every shape takes `paint` (`"ramp"` or `"ramp.tone"`), except `shade`, and the s
 ### A.4 Palette twins
 
 ```kdl
-palette "night" {
-    ramp "wall"      "#0d0b16" "#1b1828" "#2c2840"
-    ramp "wall-warm" "#160c0d" "#2e1814" "#4f2c1e"
-    twin "wall" warm="wall-warm"   // declares the light color `warm`
+palette night {
+    ramp wall "0d0b16 1b1828 2c2840"
+    ramp wall-warm "160c0d 2e1814 4f2c1e"
+    twin wall warm=wall-warm   // declares the light color `warm`
 }
 ```
 
-A twin must have as many tones as its base ramp. Up to 8 light colors per palette.
+A ramp's colors are hex, `#` optional, as one string of space-separated colors or one argument each (`ramp wall "#0d0b16" "#1b1828"`); the editor writes the single string. A twin must have as many tones as its base ramp. Up to 8 light colors per palette.
+
+**Including palettes.** `include "name"` copies another palette's ramps (with their names, in order) and twins into this one, at that spot among its own `ramp` lines; included light colors with the same name become one. A ramp name defined twice is an error, and so are palettes that include each other. A scene of an included palette can be placed in a scene of the including one (A.6), so a host can show a scene in its own colors next to its own:
+
+```kdl
+palette "fuji-in-editor" {
+    include "fuji"     // the scene's colors, twins included
+    include "editor"   // the host's own
+}
+```
 
 ### A.5 Keyframes
 
@@ -862,7 +875,7 @@ scene "street" palette="festival" width=320 height=180 duration="12s" loop=#true
 
 `count`, `seed`, `flip`, `start`, `end`, `offset` and `speed` are read once per copy when the file loads: they can use `i`, `n` and `$params`, not `t`.
 
-- The placed scene must use the host's palette. A scene can't place itself, and scenes nest at most 8 deep.
+- The placed scene must use the host's palette or one the host's palette includes (A.4); its paints are looked up by name in the host's palette. A scene can't place itself, and scenes nest at most 8 deep.
 - Its layers become host layers. Its objects outside layers go into the layer the `use-scene` is in, inside the host's clip groups.
 - The host owns `camera`, `ambient` and `wind`; a placed scene's own are only used when it is previewed alone (which is how a part file is developed: `pxe watch parts/walker.kdl`).
 - In a looping host, a looping placed scene that plays through the whole loop must fit a whole number of its loops into it (`speed × host duration` a multiple of its duration). Otherwise the load warns that the loop will show a seam.
@@ -877,6 +890,8 @@ light-point attach="hero.carried" y=7 reach=40 intensity=2 color="warm"   // a l
 An object can only attach to something written before it, and not to a `use-scene` that places several copies.
 
 **Text params in paints.** `paint="$coat"` or `paint="$coat.lit"` uses a text param as the ramp name, so one scene can be placed with different colors (`coat="coat-red"`). Works in every paint prop (`outline-paint`, `fog-paint` too).
+
+**Passing params on.** A param value written `"$name"` on a `use-scene` passes the host's param `name` on to the placed scene (`use-scene "card" title="$title"`), so a scene can wrap another one and keep its params.
 
 `pxe timeline <file>` prints the markers and every placed scene on a time ruler (CLI.md §3.11).
 
@@ -929,6 +944,7 @@ sequence "trailer" {
 
 | Node | Props |
 |---|---|
+| `sequence "name"` | `frame-budget` (a time, e.g. `"70ms"`): the slowest frame `pxe bench` allows for it; without it, the bench's default |
 | `shot "scene"` | `duration` (required), `from` (scene time or one of the scene's markers; 0), `speed` 1; any other prop sets the scene's param of that name |
 | `transition "kind"` | `duration` (required except for `cut`); `from` `left` \| `right` \| `top` \| `bottom` for `wipe` |
 
@@ -940,28 +956,4 @@ sequence "trailer" {
 
 ### A.9 Pixel layers (`pixels`)
 
-Hand-painted pixels, usually one per `layer`, drawn alongside shapes and lit like them (D-013). The editor (`pxe edit`, [EDITOR.md](EDITOR.md)) writes these nodes; they are also plain text to edit by hand.
-
-```kdl
-layer "cat" {
-    pixels "cat-art" x=12 y=17 {
-        legend { a "fur.1"; b "fur.2"; e "eye.1" }
-        cel frame=0 """
-        a....a
-        abbbba
-        bebbeb
-        """
-        cel frame=9 x=0 y=2 "bbbbbb"
-    }
-}
-```
-
-| Node | Props |
-|---|---|
-| `pixels "id"` | `x`, `y` (the layer's origin, animatable; 0), `paint` (outline and fallback color; the palette's darkest), every style prop (A.3) |
-| `legend { code "paint" … }` | each code names a paint; codes are 1 or 2 characters, all the same length, never `.` |
-| `cel` | the rows as a string, one code per pixel, `.` (or `..`) for transparent; `frame` (0), `x`, `y` (offset from the layer's origin; 0) |
-
-- A cel shows from its `frame` until the next cel's; in a looping scene the frames wrap with the loop.
-- The editor generates the legend (letters, then two-letter codes past 52 paints) and crops each cel to its painted pixels, so diffs stay small.
-- A layer with a single cel at frame 0 never changes, so the renderer draws it once and copies it (D-011).
+Hand-painted pixels, typed as text grids or loaded from a PNG with `src=`: see [PIXELS.md](PIXELS.md).

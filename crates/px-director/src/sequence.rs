@@ -1,5 +1,5 @@
 use px_core::{Frame, FrameCount, FrameRate, Size};
-use px_engine::{Looping, Scene};
+use px_engine::{Detail, Looping, ModelError, Scene};
 
 use crate::error::SequenceError;
 
@@ -112,6 +112,20 @@ impl Sequence {
             starts,
             duration,
         })
+    }
+
+    pub fn with_detail(mut self, detail: Detail) -> Result<Self, ModelError> {
+        self.shots = self
+            .shots
+            .into_iter()
+            .map(|shot| {
+                Ok(Shot {
+                    scene: shot.scene.with_detail(detail)?,
+                    ..shot
+                })
+            })
+            .collect::<Result<_, ModelError>>()?;
+        Ok(self)
     }
 
     #[must_use]

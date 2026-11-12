@@ -1,88 +1,9 @@
-use std::collections::BTreeSet;
-
-use px_core::{Frame, Paint, Palette};
-use px_engine::{FrameBuffer, Scene};
+use px_core::{Paint, Palette};
 use px_ui::{Rect, Roles, fill, pack};
 
-use crate::app::{DocumentId, ViewState};
-use crate::domain::visibility::with_hidden_layers;
-use crate::domain::{Document, Selection};
-
-pub struct RenderCache {
-    key: (Option<DocumentId>, u64, u32, BTreeSet<String>),
-    scene: Option<Scene>,
-    buffer: Option<FrameBuffer>,
-}
-
-impl RenderCache {
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            key: (None, u64::MAX, 0, BTreeSet::new()),
-            scene: None,
-            buffer: None,
-        }
-    }
-
-    pub fn update(&mut self, id: DocumentId, document: &Document, view: &ViewState) {
-        let key = (
-            Some(id),
-            document.revision(),
-            view.frame,
-            view.hidden.clone(),
-        );
-        if key == self.key {
-            return;
-        }
-        self.key = key;
-        let Some(scene) = document.scene() else {
-            return;
-        };
-        let scene =
-            with_hidden_layers(document, scene, &view.hidden).unwrap_or_else(|| scene.clone());
-        let duration = scene.timing().duration.get().max(1);
-        let mut buffer = FrameBuffer::new(&scene);
-        if buffer
-            .render(&scene, Frame::new(view.frame % duration))
-            .is_err()
-        {
-            return;
-        }
-        self.scene = Some(scene);
-        self.buffer = Some(buffer);
-    }
-
-    #[must_use]
-    pub fn image(&self) -> Option<(i32, i32, &[Paint], &Palette)> {
-        let scene = self.scene.as_ref()?;
-        let buffer = self.buffer.as_ref()?;
-        let size = scene.size();
-        Some((
-            i32::from(size.width()),
-            i32::from(size.height()),
-            buffer.cells(),
-            scene.palette(),
-        ))
-    }
-
-    #[must_use]
-    pub fn shape_at(&self, x: i32, y: i32) -> Option<usize> {
-        self.buffer.as_ref()?.shape_at(x, y)
-    }
-
-    #[must_use]
-    pub fn paint_at(&self, x: i32, y: i32) -> Option<Paint> {
-        let (width, height, cells, _) = self.image()?;
-        (x >= 0 && y >= 0 && x < width && y < height)
-            .then(|| cells[usize::try_from(y * width + x).unwrap_or(0)])
-    }
-}
-
-impl Default for RenderCache {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+use super::render_cache::RenderCache;
+use crate::app::ViewState;
+use crate::domain::Selection;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Placement {
@@ -180,20 +101,91 @@ pub fn draw_document(
     theme: (&Palette, &Roles),
 ) {
     let (palette, roles) = theme;
-    target.rect(
-        target.clip,
-        pack(palette.resolve(roles.window).unwrap_or_default()),
-    );
-    let Some((width, height, cells, doc_palette)) = cache.image() else {
+    let background = pack(palette.resolve(roles.window).unwrap_or_default());
+    let Some(image) = cache.image() else {
+        target.rect(target.clip, background);
         return;
     };
-    for y in 0..height {
-        for x in 0..width {
-            let paint = cells[usize::try_from(y * width + x).unwrap_or(0)];
-            let color = pack(doc_palette.resolve(paint).unwrap_or_default());
-            target.block(placement, (x, y), color, false);
-        }
+    let shown = Rect {
+        x: placement.origin.0,
+        y: placement.origin.1,
+        width: image.canvas.0 * placement.zoom,
+        height: image.canvas.1 * placement.zoom,
+    };
+    for band in around(target.clip, shown) {
+        target.rect(band, background);
     }
+    let visible = clip(shown, target.clip);
+    if visible.width <= 0 || visible.height <= 0 {
+        return;
+    }
+    let source = |at: i32, origin: i32, shown: i32, size: i32| {
+        let offset = i64::from(at - origin) * i64::from(size) / i64::from(shown.max(1));
+        usize::try_from(offset).unwrap_or(0)
+    };
+    let columns: Vec<usize> = (visible.x..visible.x + visible.width)
+        .map(|x| source(x, shown.x, shown.width, image.size.0))
+        .collect();
+    let stride = usize::try_from(image.size.0).unwrap_or(0);
+    let left = usize::try_from(visible.x).unwrap_or(0);
+    let mut drawn: Option<(usize, usize)> = None;
+    for y in visible.y..visible.y + visible.height {
+        let row = source(y, shown.y, shown.height, image.size.1);
+        let start = usize::try_from(y).unwrap_or(0) * target.width + left;
+        if start + columns.len() > target.out.len() {
+            continue;
+        }
+        if let Some((_, from)) = drawn.filter(|(previous, _)| *previous == row) {
+            target.out.copy_within(from..from + columns.len(), start);
+            continue;
+        }
+        let out = &mut target.out[start..start + columns.len()];
+        let cells = image
+            .cells
+            .get(row * stride..(row + 1) * stride)
+            .unwrap_or(&[]);
+        let mut last: Option<(Paint, u32)> = None;
+        for (pixel, column) in out.iter_mut().zip(&columns) {
+            let Some(paint) = cells.get(*column).copied() else {
+                continue;
+            };
+            let color = match last {
+                Some((seen, color)) if seen == paint => color,
+                _ => pack(image.palette.resolve(paint).unwrap_or_default()),
+            };
+            last = Some((paint, color));
+            *pixel = color;
+        }
+        drawn = Some((row, start));
+    }
+}
+
+fn around(area: Rect, hole: Rect) -> [Rect; 4] {
+    let hole = clip(hole, area);
+    let bottom = hole.y + hole.height;
+    [
+        Rect {
+            height: hole.y - area.y,
+            ..area
+        },
+        Rect {
+            y: bottom,
+            height: area.y + area.height - bottom,
+            ..area
+        },
+        Rect {
+            y: hole.y,
+            width: hole.x - area.x,
+            height: hole.height,
+            ..area
+        },
+        Rect {
+            x: hole.x + hole.width,
+            y: hole.y,
+            width: area.x + area.width - hole.x - hole.width,
+            height: hole.height,
+        },
+    ]
 }
 
 pub fn draw_grid(

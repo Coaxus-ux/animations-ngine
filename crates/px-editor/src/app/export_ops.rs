@@ -168,6 +168,7 @@ fn fill_form(form: &mut Form, job: &ExportJob) {
     *form.number(keys::SHAPE, 0) = i64::from(padding.shape);
     *form.flag(keys::JSON, true) = json;
     *form.number(keys::SCALE, 1) = i64::from(job.scale);
+    *form.number(keys::DETAIL, 1) = i64::from(job.detail.grain());
     *form.flag(keys::TRANSPARENT, true) = job.transparent;
     *form.flag(keys::TRIM, false) = job.trim;
     *form.flag(keys::SPLIT_LAYERS, false) = job.split_layers;

@@ -28,6 +28,12 @@ enum Failure {
 
 type Key = (usize, usize);
 
+pub(crate) struct KeyTimes {
+    pub(crate) object: usize,
+    pub(crate) property: &'static str,
+    pub(crate) times: Vec<f64>,
+}
+
 pub(crate) struct Compiler<'a, 'd> {
     drafts: &'a [Draft<'a>],
     seeds: Vec<u64>,
@@ -35,6 +41,7 @@ pub(crate) struct Compiler<'a, 'd> {
     measure: Measure<'a>,
     states: Vec<Vec<State>>,
     chain: Vec<Key>,
+    keyed: Vec<KeyTimes>,
     diags: &'d mut Diagnostics,
 }
 
@@ -70,11 +77,12 @@ impl<'a, 'd> Compiler<'a, 'd> {
             measure,
             states,
             chain: Vec::new(),
+            keyed: Vec::new(),
             diags,
         }
     }
 
-    pub(crate) fn compile_all(mut self) -> Option<Vec<Vec<Param>>> {
+    pub(crate) fn compile_all(mut self) -> (Option<Vec<Vec<Param>>>, Vec<KeyTimes>) {
         let mut all = Vec::with_capacity(self.drafts.len());
         let mut complete = true;
         for (object, draft) in self.drafts.iter().enumerate() {
@@ -84,7 +92,7 @@ impl<'a, 'd> Compiler<'a, 'd> {
             complete &= params.iter().all(Option::is_some);
             all.push(params.into_iter().flatten().collect());
         }
-        complete.then_some(all)
+        (complete.then_some(all), self.keyed)
     }
 
     fn property(&mut self, key: Key) -> Result<Param, Failure> {
@@ -122,6 +130,13 @@ impl<'a, 'd> Compiler<'a, 'd> {
             )?),
             None => None,
         };
+        if let Some(animated) = &animated {
+            self.keyed.push(KeyTimes {
+                object: key.0,
+                property: prop.name,
+                times: animated.times.clone(),
+            });
+        }
         let base = match draft.entries[key.1] {
             Some(entry) => Some(self.base(key, entry, prop)?),
             None => prop.default.map(Param::Fixed),

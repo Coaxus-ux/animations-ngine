@@ -1,0 +1,8 @@
+// A two-spoke wheel turning on its axle at (x, y); spin is in turns per second.
+
+motif train-wheel x y radius=2 spin=2 ramp=iron {
+    ellipse "=$x-$radius-1" "=$y-$radius-1" "=2*$radius+2" "=2*$radius+2" paint=$ramp.base shading=dome outline=full outline-paint=ink
+    ellipse "=$x-$radius" "=$y-$radius" "=2*$radius" "=2*$radius" paint=$ramp.shade
+    line "=$x + $radius * cos($k*1.5708 - tau * $spin * t)" "=$y + $radius * sin($k*1.5708 - tau * $spin * t)" "=$x - $radius * cos($k*1.5708 - tau * $spin * t)" "=$y - $radius * sin($k*1.5708 - tau * $spin * t)" paint=$ramp.lit repeat=2
+    rect $x $y 1 1 paint=brass.lit
+}

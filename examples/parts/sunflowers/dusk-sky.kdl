@@ -1,0 +1,8 @@
+// One 6-pixel band of the dusk sky, its top left corner at (0, 0).
+
+use "sunflower-palette.kdl"
+
+scene dusk-band palette=sunflower width=176 height=6 fps=12 duration="16s" loop=#true background=sky.0 {
+    rect 0 0 176 6 paint=sky.0 tone-shift="=floor(i / 4)" emissive=#true
+    rect 0 0 176 6 paint=sky.0 tone-shift="=min(7, floor(i / 4) + 1)" emissive=#true opacity="=(i % 4) / 4" visible="=i % 4 > 0"
+}

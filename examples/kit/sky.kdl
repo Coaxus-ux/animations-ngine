@@ -1,0 +1,5 @@
+// Small lights any scene can scatter over its sky; ramps differ per palette, so paint is always named.
+
+motif kit-star x y paint visible=1 { rect $x $y 1 1 paint=$paint emissive=#true visible=$visible }
+motif kit-twinkle x y period paint duty=0.15 { kit-star $x $y paint=$paint visible="=1 - pulse($period, $duty)" }
+motif kit-flicker x y paint odds=0.85 rate=4 cycle=8 salt=0 { kit-star $x $y paint=$paint visible="=chance($odds, mod(floor(t * $rate), $cycle) + $salt)" }

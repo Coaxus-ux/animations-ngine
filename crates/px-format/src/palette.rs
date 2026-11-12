@@ -1,7 +1,7 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use kdl::{KdlDocument, KdlNode};
-use px_core::{LightColor, MAX_LIGHT_COLORS, Paint, Palette, RampId, Rgb, Tone, ToneName};
+use px_core::{LightColor, MAX_LIGHT_COLORS, Paint, Palette, Ramp, RampId, Rgb, Tone, ToneName};
 
 use crate::diagnostic::Diagnostics;
 use crate::props::Props;
@@ -13,9 +13,23 @@ pub(crate) struct NamedPalette {
     pub(crate) palette: Palette,
     ramps: BTreeMap<String, RampId>,
     light_colors: BTreeMap<String, LightColor>,
+    included: BTreeSet<String>,
 }
 
-pub(crate) fn parse(node: &KdlNode, diags: &mut Diagnostics) -> Option<(String, NamedPalette)> {
+pub(crate) trait Includes {
+    fn included(
+        &mut self,
+        name: &str,
+        offset: usize,
+        diags: &mut Diagnostics,
+    ) -> Option<NamedPalette>;
+}
+
+pub(crate) fn parse(
+    node: &KdlNode,
+    includes: &mut dyn Includes,
+    diags: &mut Diagnostics,
+) -> Option<(String, NamedPalette)> {
     let props = Props::new(node);
     let name = props.name_arg(diags)?;
     let mut named = NamedPalette::default();
@@ -23,12 +37,13 @@ pub(crate) fn parse(node: &KdlNode, diags: &mut Diagnostics) -> Option<(String, 
     for child in children {
         match child.name().value() {
             "ramp" => named.add_ramp(child, diags),
+            "include" => named.include(child, includes, diags),
             "twin" => {}
             other => diags.error(
                 child.span().offset(),
                 format!(
-                    "unknown node `{other}` in palette (expected `ramp` or `twin`).{}",
-                    suggest::did_you_mean(other, ["ramp", "twin"])
+                    "unknown node `{other}` in palette (expected `ramp`, `include` or `twin`).{}",
+                    suggest::did_you_mean(other, ["ramp", "include", "twin"])
                 ),
             ),
         }
@@ -56,16 +71,20 @@ impl NamedPalette {
         let Some(name) = args.next().and_then(|entry| values::string(entry, diags)) else {
             return;
         };
-        let colors: Vec<Rgb> = args
-            .filter_map(|entry| {
-                let text = values::string(entry, diags)?;
-                Rgb::parse_hex(text)
-                    .map_err(|error| {
+        let mut colors: Vec<Rgb> = Vec::new();
+        for entry in args {
+            let Some(text) = values::string(entry, diags) else {
+                continue;
+            };
+            for color in Rgb::parse_list(text) {
+                match color {
+                    Ok(color) => colors.push(color),
+                    Err(error) => {
                         diags.error(entry.span().offset(), format!("color \"{text}\": {error}"));
-                    })
-                    .ok()
-            })
-            .collect();
+                    }
+                }
+            }
+        }
         props.finish(diags);
         if self.ramps.contains_key(name) {
             diags.error(
@@ -80,6 +99,65 @@ impl NamedPalette {
             }
             Err(error) => diags.error(node.span().offset(), format!("ramp \"{name}\": {error}")),
         }
+    }
+
+    fn include(&mut self, node: &KdlNode, includes: &mut dyn Includes, diags: &mut Diagnostics) {
+        let props = Props::new(node);
+        let Some(name) = props.name_arg(diags) else {
+            return;
+        };
+        props.finish(diags);
+        let offset = node.span().offset();
+        let Some(other) = includes.included(name, offset, diags) else {
+            return;
+        };
+        let mut moved = BTreeMap::new();
+        let mut ramps: Vec<(&String, RampId)> =
+            other.ramps.iter().map(|(ramp, id)| (ramp, *id)).collect();
+        ramps.sort_by_key(|(_, id)| *id);
+        for (ramp, old) in ramps {
+            if self.ramps.contains_key(ramp) {
+                diags.error(
+                    offset,
+                    format!("ramp \"{ramp}\" of palette \"{name}\" is already defined here"),
+                );
+                continue;
+            }
+            let colors = other
+                .palette
+                .ramp(old)
+                .map(Ramp::colors)
+                .unwrap_or_default();
+            match self.palette.push_ramp(colors) {
+                Ok(id) => {
+                    self.ramps.insert(ramp.clone(), id);
+                    moved.insert(old, id);
+                }
+                Err(error) => diags.error(offset, format!("palette \"{name}\": {error}")),
+            }
+        }
+        for (color_name, old_color) in &other.light_colors {
+            let Some(color) = self.register_color(color_name, offset, diags) else {
+                continue;
+            };
+            for (old, new) in &moved {
+                let twin = other
+                    .palette
+                    .twin(*old, *old_color)
+                    .and_then(|twin| moved.get(&twin));
+                if let Some(twin) = twin
+                    && let Err(error) = self.palette.set_twin(*new, color, *twin)
+                {
+                    diags.error(offset, format!("palette \"{name}\": {error}"));
+                }
+            }
+        }
+        self.included.insert(name.to_owned());
+        self.included.extend(other.included);
+    }
+
+    pub(crate) fn includes(&self, name: &str) -> bool {
+        self.included.contains(name)
     }
 
     pub(crate) fn paint(
@@ -102,6 +180,40 @@ impl NamedPalette {
             );
         }
         paint
+    }
+
+    pub(crate) fn paint_of_color(
+        &self,
+        rgb: Rgb,
+        offset: usize,
+        diags: &mut Diagnostics,
+    ) -> Option<Paint> {
+        let mut found = Vec::new();
+        for (name, id) in &self.ramps {
+            let colors = self.palette.ramp(*id).map(Ramp::colors).unwrap_or_default();
+            for (tone, color) in colors.iter().enumerate() {
+                if let Ok(tone) = u8::try_from(tone)
+                    && *color == rgb
+                {
+                    found.push((
+                        format!("{name}.{tone}"),
+                        Paint {
+                            ramp: *id,
+                            tone: Tone::new(tone),
+                        },
+                    ));
+                }
+            }
+        }
+        match found.as_slice() {
+            [(_, paint)] => return Some(*paint),
+            [] => diags.error(offset, format!("color {rgb} is not in the palette")),
+            [(first, _), (second, _), ..] => diags.error(
+                offset,
+                format!("color {rgb} is both {first} and {second}; choose one in the legend: legend {{ \"{rgb}\" {first} }}"),
+            ),
+        }
+        None
     }
 
     fn add_twins(&mut self, node: &KdlNode, diags: &mut Diagnostics) {

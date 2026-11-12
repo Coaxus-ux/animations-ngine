@@ -2,6 +2,8 @@ use std::fmt;
 
 use kdl::{KdlDocument, KdlNode};
 
+use crate::schema::Kind;
+
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NodePath(Vec<Step>);
 
@@ -77,6 +79,14 @@ pub fn id_of(node: &KdlNode) -> Option<&str> {
         .first()
         .filter(|entry| entry.name().is_none())
         .and_then(|entry| entry.value().as_string())
+        .filter(|text| {
+            !Kind::parse(node.name().value()).is_some_and(|kind| kind.leading_is_coordinate(text))
+        })
+}
+
+#[must_use]
+pub fn coordinates_of(name: &str) -> Vec<&'static str> {
+    Kind::parse(name).map_or_else(Vec::new, |kind| kind.coordinates().collect())
 }
 
 #[must_use]

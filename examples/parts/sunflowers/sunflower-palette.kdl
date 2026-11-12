@@ -1,0 +1,13 @@
+// A summer dusk over a sunflower field: an indigo sky that pales toward a peach horizon, plum clouds
+// lit gold from below, teal leaves, golden petals and maroon seed discs.
+
+palette sunflower {
+    ramp sky "241d3a 2d2a4a 383a5a 45506c 56667f 6e8198 93a2b4 c2cbd2"
+    ramp dawn "b8483a d8664a ec8c5c f4b078 f8d29c fbe8c4"
+    ramp cloud "2a1e3c 4a2a48 66334f 843f53 a44e54 c96a52 e6984e f8d070"
+    ramp tree "1a1222 24182a 331e30 462636"
+    ramp leaf "121a24 16242c 1b3034 203c3c 284c46 305c50 3c705c 4c8468"
+    ramp petal "5a3412 80501a a8721e cc9424 e2b42e f2d04a fbe88a"
+    ramp seed "1e0c14 32121a 4a1c1e 662822 843e2a"
+    ramp ink "120e1c"
+}

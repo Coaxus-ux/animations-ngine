@@ -88,6 +88,7 @@ fn kind_of(node: &KdlNode) -> ElementKind {
         "pixels" => ElementKind::Pixels,
         "use" => ElementKind::Use,
         "use-scene" => ElementKind::UseScene,
+        "motif" | "scatter" => ElementKind::Other,
         _ if SHAPE_NAMES.contains(&name) || has_property(node, "paint") => ElementKind::Shape,
         _ => ElementKind::Other,
     }

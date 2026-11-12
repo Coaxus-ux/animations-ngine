@@ -6,7 +6,7 @@ use super::{Context, canvas, home, menus, tools};
 use crate::app::{CodeMode, Intent, MIN_COLUMN, PanelKind, Side, WindowKind};
 
 const SIDE: (i32, i32) = (104, 150);
-const TIMELINE: i32 = 70;
+const TIMELINE: i32 = 96;
 const ROOM_FOR_INSPECTOR: i32 = 600;
 const MENU_BAR: i32 = ROW + 3;
 const TAB_STRIP: i32 = ROW + 3;

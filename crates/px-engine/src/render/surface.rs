@@ -3,6 +3,7 @@ use px_raster::Rect;
 
 use super::mask::Mask;
 use super::placement::Placed;
+use super::shadow::Memo;
 
 pub(crate) const EMISSIVE: u8 = 1;
 pub(crate) const CASTS_SHADOW: u8 = 2;
@@ -53,4 +54,5 @@ pub(crate) struct Target<'b, 'c> {
     pub(crate) surface: &'b mut Surface<'c>,
     pub(crate) mask: &'b mut Mask<'c>,
     pub(crate) placed: &'b mut [Placed],
+    pub(crate) memo: &'b mut [Memo],
 }

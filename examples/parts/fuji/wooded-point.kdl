@@ -1,0 +1,131 @@
+// A wooded point running out into the lake, in host canvas coordinates: a dark shoreline, a canopy
+// of rounded treetops with cherry trees in bloom among them, and the pagoda standing in the trees,
+// its base hidden by the front row.
+
+use "fuji-palette.kdl"
+use "pagoda.kdl"
+
+motif fuji-treetop x y crown spread side paint { blob $x $y circles="0,0,$crown -$spread,1,$side $spread,1,$side" smooth=1.5 paint=$paint texture=0.5 texture-scale=1 shading=dome }
+motif fuji-tree x y crown side tone { fuji-treetop $x $y $crown $side $side paint=forest.$tone }
+motif fuji-cherry x y crown spread side tone top=3 {
+    fuji-treetop $x $y $crown $spread $side paint=sakura.$tone
+    rect $x "=$y-$top" 2 1 paint=sakura.7
+}
+
+scene wooded-point palette=fuji width=480 height=180 fps=12 duration="16s" background=sky-day.5 {
+    polygon points="-80,180 -80,108 -20,104 40,104 90,107 130,110 170,112 196,116 214,122 228,130 232,134 214,140 170,148 110,156 40,164 -80,170" paint=forest.2 texture=0.45 texture-scale=2 shading=soft
+    polygon points="232,134 214,140 170,148 110,156 40,164 -80,170 -80,174 40,168 112,160 172,152 216,143 234,136" paint=forest.0
+    fuji-tree -80 105 4 3 3
+    fuji-tree -73 104 4.5 3.5 3
+    fuji-tree -64 104 3 2 3
+    fuji-cherry -54 105 3.5 3 2.5 4
+    fuji-tree -47 102 3 2 4
+    fuji-tree -40 104 3.5 2.5 4
+    fuji-tree -33 103 3.5 2.5 4
+    fuji-tree -26 100 3 2 3
+    fuji-cherry -16 102 2.5 2 1.5 5
+    fuji-cherry -9 102 2 1.5 1 5 top=2
+    fuji-tree -1 102 3.5 2.5 3
+    fuji-tree 7 101 3 2 4
+    fuji-cherry 15 101 3.5 3 2.5 4
+    fuji-cherry 23 100 2 1.5 1 5 top=2
+    fuji-cherry 31 102 2 1.5 1 5 top=2
+    fuji-cherry 41 102 2.5 2 1.5 5
+    fuji-tree 48 102 3 2 3
+    fuji-cherry 57 102 3.5 3 2.5 5
+    fuji-cherry 64 102 3 2.5 2 4
+    fuji-tree 72 102 4 3 3
+    fuji-tree 81 104 3 2 3
+    fuji-tree 88 104 4.5 3.5 3
+    fuji-cherry 95 104 2.5 2 1.5 5
+    fuji-cherry 104 106 3 2.5 2 5
+    fuji-cherry 112 106 3 2.5 2 4
+    fuji-tree 121 108 3 2 3
+    fuji-tree 128 106 3.5 2.5 4
+    fuji-tree 135 109 4 3 4
+    fuji-tree 144 107 3 2 4
+    fuji-cherry 151 107 3.5 3 2.5 5
+    fuji-tree 161 109 3.5 2.5 4
+    fuji-tree 171 109 3 2 3
+    fuji-cherry 179 111 2 1.5 1 4 top=2
+    fuji-tree 186 111 4.5 3.5 4
+    fuji-tree 193 112 4.5 3.5 4
+    fuji-tree 200 116 3 2 4
+    fuji-tree 209 117 3 2 4
+    fuji-cherry 216 121 2.5 2 1.5 5
+    use-scene pagoda 176 116 id=pagoda scale=0.8 lights-on=11
+    fuji-tree -80 110 4.5 3.5 3
+    fuji-tree -74 110 3 2 3
+    fuji-tree -67 109 4.5 3.5 2
+    fuji-tree -61 109 4.5 3.5 2
+    fuji-cherry -55 107 2.5 2 1.5 4
+    fuji-cherry -47 108 3.5 3 2.5 4
+    fuji-cherry -39 106 3 2.5 2 5
+    fuji-tree -32 108 4.5 3.5 2
+    fuji-tree -24 107 4.5 3.5 2
+    fuji-cherry -17 105 2 1.5 1 5 top=2
+    fuji-tree -11 106 3 2 3
+    fuji-cherry -4 106 2 1.5 1 5 top=2
+    fuji-tree 3 105 4 3 2
+    fuji-cherry 9 106 3.5 3 2.5 5
+    fuji-tree 18 107 3.5 2.5 3
+    fuji-tree 26 105 3 2 3
+    fuji-tree 35 107 4 3 2
+    fuji-tree 41 106 3.5 2.5 3
+    fuji-tree 50 107 4.5 3.5 2
+    fuji-tree 58 106 4.5 3.5 3
+    fuji-tree 67 107 3.5 2.5 2
+    fuji-tree 75 107 4 3 2
+    fuji-tree 82 109 3.5 2.5 2
+    fuji-cherry 90 110 3.5 3 2.5 5
+    fuji-tree 98 108 4.5 3.5 3
+    fuji-tree 106 111 3 2 2
+    fuji-cherry 114 112 2.5 2 1.5 4
+    fuji-tree 122 110 3.5 2.5 3
+    fuji-tree 128 112 4.5 3.5 3
+    fuji-tree 137 114 3.5 2.5 3
+    fuji-tree 145 114 3.5 2.5 3
+    fuji-tree 152 114 3.5 2.5 2
+    fuji-cherry 160 114 2 1.5 1 5 top=2
+    fuji-cherry 169 115 2 1.5 1 4 top=2
+    fuji-cherry 178 115 2.5 2 1.5 4
+    fuji-tree 186 117 3 2 3
+    fuji-tree 192 118 3 2 3
+    fuji-tree 199 120 3.5 2.5 2
+    fuji-cherry 206 122 3.5 3 2.5 5
+    fuji-tree 212 125 4 3 2
+    fuji-tree 220 128 4.5 3.5 3
+    fuji-tree -80 117 3.5 2.5 2
+    fuji-tree -70 116 3.5 2.5 3
+    fuji-tree -61 117 3 2 3
+    fuji-cherry -51 116 2.5 2 1.5 5
+    fuji-tree -42 115 4 3 2
+    fuji-cherry -32 113 2 1.5 1 4 top=2
+    fuji-tree -21 113 3 2 2
+    fuji-tree -12 113 4.5 3.5 3
+    fuji-tree -3 114 3 2 2
+    fuji-tree 6 112 4.5 3.5 3
+    fuji-tree 14 113 4.5 3.5 2
+    fuji-tree 24 113 4 3 2
+    fuji-tree 32 113 4.5 3.5 2
+    fuji-tree 41 114 3.5 2.5 2
+    fuji-cherry 51 113 2.5 2 1.5 5
+    fuji-tree 62 116 4 3 2
+    fuji-tree 72 115 3.5 2.5 2
+    fuji-cherry 81 116 2.5 2 1.5 4
+    fuji-tree 89 115 4.5 3.5 3
+    fuji-tree 97 115 4.5 3.5 2
+    fuji-tree 105 116 3.5 2.5 2
+    fuji-tree 115 118 3.5 2.5 2
+    fuji-tree 126 117 4 3 2
+    fuji-tree 136 119 4.5 3.5 2
+    fuji-tree 144 121 3.5 2.5 2
+    fuji-tree 155 120 4.5 3.5 3
+    fuji-tree 164 119 3 2 3
+    fuji-tree 174 121 3 2 2
+    fuji-tree 185 123 3.5 2.5 2
+    fuji-tree 194 125 3.5 2.5 2
+    fuji-tree 202 127 3 2 3
+    fuji-tree 210 129 4 3 2
+    fuji-cherry 218 133 3 2.5 2 5
+}

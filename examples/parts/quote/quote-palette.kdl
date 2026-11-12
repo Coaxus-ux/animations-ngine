@@ -1,0 +1,13 @@
+// A rainy night that turns into dawn, plus the studio inks the verses are written in.
+
+palette quote {
+    include studio
+    ramp night "04050c 0a0d1e 131935 202950 344178"
+    ramp dawn "3a1838 6e2a4a b04a52 e8845a ffc27a"
+    ramp sun "c8501e f08a32 ffb84e ffe08a fff6d0"
+    ramp earth "06060b 0d0e17 171926 252a3b 394056"
+    ramp coat "05060c 0c0f1e 171c34 252d50 394572"
+    ramp cloth "2a2c3a 4a4e62 767c92 a8aec0 d8dce8"
+    ramp skin "3a2220 6a3e34 a0624c d09070 f0c0a0"
+    ramp rain "1c2440 303c66 4c5c90 7888b8 a8b8e0"
+}

@@ -1,7 +1,8 @@
 use std::fmt;
 
-use px_core::{FrameCount, FrameRate, Paint, Palette, PaletteError, Size};
+use px_core::{FrameCount, FrameRate, MAX_CANVAS_SIDE, Paint, Palette, PaletteError, Size};
 
+use super::detail::Detail;
 use super::pixels::Cel;
 use super::shape::{Geometry, Outline, Shape};
 use super::world::Environment;
@@ -44,6 +45,8 @@ pub struct SceneSpec {
 #[derive(Clone, Debug)]
 pub struct Scene {
     spec: SceneSpec,
+    detail: Detail,
+    size: Size,
     stamps: Stamps,
 }
 
@@ -71,6 +74,9 @@ pub enum ModelError {
     },
     InvalidCel {
         shape: usize,
+    },
+    TooLarge {
+        detail: Detail,
     },
 }
 
@@ -106,12 +112,27 @@ impl Scene {
             validate_shape(&spec, index, shape)?;
         }
         validate_instances(world)?;
+        let size = spec.size;
         let mut scene = Self {
             spec,
+            detail: Detail::NATIVE,
+            size,
             stamps: Stamps::default(),
         };
         scene.stamps = FrameBuffer::capture(&scene);
         Ok(scene)
+    }
+
+    pub fn with_detail(mut self, detail: Detail) -> Result<Self, ModelError> {
+        if detail == self.detail {
+            return Ok(self);
+        }
+        self.size = detail
+            .scale(self.spec.size)
+            .ok_or(ModelError::TooLarge { detail })?;
+        self.detail = detail;
+        self.stamps = FrameBuffer::capture(&self);
+        Ok(self)
     }
 
     #[must_use]
@@ -131,7 +152,7 @@ impl Scene {
             instances: world.instances.len(),
             lights: world.lights.len(),
             layers: world.layers.len().max(1),
-            pixels: self.spec.size.cell_count(),
+            pixels: self.size.cell_count(),
         }
     }
 
@@ -142,7 +163,12 @@ impl Scene {
 
     #[must_use]
     pub const fn size(&self) -> Size {
-        self.spec.size
+        self.size
+    }
+
+    #[must_use]
+    pub const fn detail(&self) -> Detail {
+        self.detail
     }
 
     #[must_use]
@@ -313,6 +339,10 @@ impl fmt::Display for ModelError {
                     "shape #{shape} has a cel whose pixels don't fill its box"
                 )
             }
+            Self::TooLarge { detail } => write!(
+                f,
+                "at detail {detail} the canvas would exceed {MAX_CANVAS_SIDE} pixels a side"
+            ),
         }
     }
 }

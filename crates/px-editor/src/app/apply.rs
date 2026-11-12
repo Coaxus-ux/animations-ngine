@@ -181,6 +181,7 @@ impl App {
             Intent::TogglePlay => self.editing.playing = !self.editing.playing,
             Intent::ToggleOnion => self.view_mut(canvas, |view| view.onion = !view.onion),
             Intent::ToggleGrid => self.view_mut(canvas, |view| view.grid = !view.grid),
+            Intent::SetDetail(detail) => self.view_mut(canvas, |view| view.detail = detail),
             Intent::NewCel => self.new_cel(canvas, store),
             Intent::DeleteCel => self.delete_cel(canvas, store),
             Intent::AddFrame => self.resize_timeline(1, store),

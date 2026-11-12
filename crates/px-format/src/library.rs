@@ -3,11 +3,15 @@ use std::path::{Path, PathBuf};
 use kdl::{KdlDocument, KdlError, KdlNode};
 
 use crate::diagnostic::Diagnostics;
+use crate::expand::{self, MotifSignature};
+use crate::pixels;
 use crate::sources::{self, SourceFile, Sources};
 use crate::values;
 
 pub(crate) struct Library {
     pub(crate) files: Vec<SourceFile>,
+    pub(crate) motifs: Vec<MotifSignature>,
+    pub(crate) assets: Vec<PathBuf>,
     documents: Vec<Option<KdlDocument>>,
 }
 
@@ -15,6 +19,8 @@ impl Library {
     pub(crate) fn load(root: &Path, sources: &mut dyn Sources, diags: &mut Diagnostics) -> Self {
         let mut library = Self {
             files: Vec::new(),
+            motifs: Vec::new(),
+            assets: Vec::new(),
             documents: Vec::new(),
         };
         let mut loader = Loader {
@@ -22,6 +28,13 @@ impl Library {
             stack: Vec::new(),
         };
         loader.visit(&mut library, &sources::normalize(root), None, diags);
+        library.assets = pixels::inline(
+            &mut library.documents,
+            &library.files,
+            loader.sources,
+            diags,
+        );
+        library.motifs = expand::run(&mut library.documents, &library.files, diags);
         library
     }
 

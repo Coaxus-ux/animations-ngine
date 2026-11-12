@@ -1,0 +1,28 @@
+// Lakeside buildings, each standing on the shore at (0, 0); odd copies are wider.
+
+use "fuji-palette.kdl"
+
+scene house palette=fuji width=24 height=16 fps=12 duration="16s" background=sky-day.5 {
+    param lights-on 10
+    camera -12 -12
+
+    rect 0 -3 "=6 + 2 * (i % 2)" 3 paint=plaster.2 shading=soft
+    polygon 0 -3 points="-1,0 1,-2 5,-2 7,0" paint=tile.1 visible="=i % 2 == 0"
+    polygon 0 -3 points="-1,0 1,-2 7,-2 9,0" paint=tile.1 visible="=i % 2 == 1"
+    rect 1 -2 1 1 paint=lamp.3 emissive=#true visible="=t > $lights-on + 2.5 * rand(1)"
+    rect 3 -2 1 1 paint=lamp.2 emissive=#true visible="=t > $lights-on + 2.5 * rand(2)"
+    rect 5 -2 1 1 paint=lamp.3 emissive=#true visible="=i % 2 == 1 && t > $lights-on + 2.5 * rand(3)"
+}
+
+scene stone-lantern palette=fuji width=16 height=24 fps=12 duration="16s" background=sky-day.5 {
+    param lights-on 10
+    camera -8 -20
+
+    rect -1 -8 3 8 paint=plaster.1 shading=soft
+    rect -3 -1 7 1 paint=plaster.0
+    rect -3 -10 7 2 paint=plaster.2
+    rect -2 -14 5 4 paint=plaster.1
+    rect -1 -13 3 2 paint=lamp.3 emissive=#true visible="=t > $lights-on"
+    polygon 0 -14 points="-5,0 -1,-3 2,-3 6,0" paint=plaster.2 shading=soft
+    rect 0 -18 1 2 paint=plaster.2
+}

@@ -5,7 +5,7 @@ use px_engine::{
     Reflection, Shading, Shape, Style,
 };
 
-use crate::attach::Targets;
+use crate::attach::{self, Targets};
 use crate::diagnostic::Diagnostics;
 use crate::extras::{Extras, Placement};
 use crate::geometry::{Next, geometry};
@@ -58,6 +58,7 @@ pub(crate) fn assemble(
     }
     let mut layers = vec![scope.layer];
     let mut clip_ids = vec![None; tree.drafts.len()];
+    let mut frames: Vec<Option<Anchor>> = vec![None; tree.drafts.len()];
     let mut shape_index = 0;
     for (index, (draft, params)) in tree.drafts.into_iter().zip(params).enumerate() {
         let own_layer = layers.get(draft.layer).copied().unwrap_or(scope.layer);
@@ -69,7 +70,11 @@ pub(crate) fn assemble(
                 .ok()
         });
         let layer = attached.as_ref().map_or(own_layer, |(_, layer)| *layer);
-        let anchor = attached.map(|(anchor, _)| anchor);
+        let frame = draft.frame.and_then(|group| frames[group].clone());
+        let anchor = attached.map(|(anchor, _)| anchor).or(frame);
+        if draft.kind == Kind::Group {
+            frames[index] = attach::origin(scope.instance, draft.kind, &params, anchor.as_ref());
+        }
         if let Some(id) = draft.id.filter(|_| draft.kind != Kind::UseScene) {
             out.targets.point(
                 scope.instance,

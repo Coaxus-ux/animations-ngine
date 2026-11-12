@@ -138,7 +138,7 @@ pub(crate) fn parse(
                 palette.ramp(name, entry.span().offset(), diags)
             }),
         },
-        Kind::UseScene => placement(props, diags),
+        Kind::UseScene => placement(props, palette, diags),
         _ => Extras::None,
     }
 }
@@ -267,13 +267,35 @@ pub(crate) fn overrides(props: &mut Props<'_>, diags: &mut Diagnostics) -> Vec<O
         .collect()
 }
 
-fn placement(props: &mut Props<'_>, diags: &mut Diagnostics) -> Extras {
+fn forwarded(item: Override, names: &Names<'_>, diags: &mut Diagnostics) -> Option<Override> {
+    let ParamValue::Text(text) = &item.value else {
+        return Some(item);
+    };
+    let Some(name) = text.strip_prefix('$') else {
+        return Some(item);
+    };
+    match names.params.value(name) {
+        Ok(value) => Some(Override {
+            value: value.clone(),
+            ..item
+        }),
+        Err(message) => {
+            diags.error(item.offset, message);
+            None
+        }
+    }
+}
+
+fn placement(props: &mut Props<'_>, names: &Names<'_>, diags: &mut Diagnostics) -> Extras {
     let scene = props.name_arg(diags).unwrap_or_default().to_owned();
     props.get("id");
     let looping = props
         .get("loop")
         .and_then(|entry| values::boolean(entry, diags));
-    let overrides = overrides(props, diags);
+    let overrides = overrides(props, diags)
+        .into_iter()
+        .filter_map(|item| forwarded(item, names, diags))
+        .collect();
     Extras::Instance(Box::new(Placement {
         scene,
         looping,

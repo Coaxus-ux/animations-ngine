@@ -109,3 +109,16 @@ fn parse_hex_accepts_both_cases_and_reports_errors() {
     assert!(Rgb::parse_hex("#0aff1").is_err());
     assert!(Rgb::parse_hex("#0aff1g").is_err());
 }
+
+#[test]
+fn packed_paints_unpack_to_the_same_paint() {
+    let mut palette = Palette::new();
+    let full = grays(u8::try_from(MAX_TONES).unwrap());
+    for _ in 0..MAX_RAMPS {
+        let ramp = palette.push_ramp(&full).unwrap();
+        for tone in 0..u8::try_from(MAX_TONES).unwrap() {
+            let paint = palette.paint(ramp, Tone::new(tone)).unwrap();
+            assert_eq!(Paint::unpacked(paint.packed()), paint);
+        }
+    }
+}

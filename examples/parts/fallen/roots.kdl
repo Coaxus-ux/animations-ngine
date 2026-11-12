@@ -1,0 +1,10 @@
+// The nest of roots the warrior lies in: wide root masses first, then the gaps of night between
+// them.
+
+use "fallen-palette.kdl"
+
+scene fallen-roots palette=fallen width=256 height=170 fps=12 duration="1f" background=night.2 {
+    layer roots {
+        pixels src="roots.png"
+    }
+}

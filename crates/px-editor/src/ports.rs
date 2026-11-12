@@ -8,6 +8,13 @@ pub trait FileStore {
 
     fn stamp(&mut self, path: &Path) -> Option<u64>;
 
+    fn read_bytes(&mut self, path: &Path) -> Result<Vec<u8>, String> {
+        Err(format!(
+            "{}: binary files can't be read here",
+            path.display()
+        ))
+    }
+
     fn write_bytes(&mut self, path: &Path, bytes: &[u8]) -> Result<(), String> {
         let _ = bytes;
         Err(format!(
@@ -60,6 +67,13 @@ impl FileStore for MemoryFiles {
         self.writes += 1;
         self.files.insert(path.to_path_buf(), text.to_owned());
         Ok(())
+    }
+
+    fn read_bytes(&mut self, path: &Path) -> Result<Vec<u8>, String> {
+        self.bytes
+            .get(path)
+            .cloned()
+            .ok_or_else(|| format!("{}: no such file", path.display()))
     }
 
     fn write_bytes(&mut self, path: &Path, bytes: &[u8]) -> Result<(), String> {

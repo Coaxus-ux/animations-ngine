@@ -1,0 +1,9 @@
+// The dark, matted hair falling over the face.
+
+use "fallen-palette.kdl"
+
+scene fallen-hair palette=fallen width=256 height=170 fps=12 duration="1f" background=night.2 {
+    layer hair {
+        pixels src="hair.png"
+    }
+}

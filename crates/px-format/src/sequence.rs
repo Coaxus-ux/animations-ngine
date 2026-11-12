@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use kdl::{KdlDocument, KdlEntry, KdlNode};
 use px_core::{Frame, FrameCount, FrameRate};
 use px_director::{Edge, Sequence, Shot, Transition, TransitionKind};
@@ -14,14 +16,20 @@ use crate::{suggest, units, values};
 const KINDS: [&str; 5] = ["cut", "dither", "black", "white", "wipe"];
 const EDGES: [&str; 4] = ["left", "right", "top", "bottom"];
 
+pub(crate) struct Parsed {
+    pub(crate) sequence: Sequence,
+    pub(crate) frame_budget: Option<Duration>,
+}
+
 pub(crate) fn parse(
     node: &KdlNode,
     file: usize,
     catalog: &Catalog<'_>,
     diags: &mut Diagnostics,
-) -> Option<Sequence> {
-    let props = Props::new(node);
+) -> Option<Parsed> {
+    let mut props = Props::new(node);
     let name = props.name_arg(diags)?;
+    let budget = props.get("frame-budget");
     props.finish(diags);
     let mut shots = Vec::new();
     let mut transitions = Vec::new();
@@ -61,12 +69,35 @@ pub(crate) fn parse(
             "a sequence ends with a `shot`, not a transition",
         );
     }
+    let fps = shots.first().map(|shot: &Shot| shot.scene.timing().fps);
+    let frame_budget = budget
+        .zip(fps)
+        .and_then(|(entry, fps)| frame_budget(entry, fps, diags));
     if diags.has_errors() {
         return None;
     }
-    Sequence::new(name.to_owned(), shots, transitions)
+    let sequence = Sequence::new(name.to_owned(), shots, transitions)
         .map_err(|error| diags.error(node.span().offset(), error.to_string()))
-        .ok()
+        .ok()?;
+    Some(Parsed {
+        sequence,
+        frame_budget,
+    })
+}
+
+fn frame_budget(entry: &KdlEntry, fps: FrameRate, diags: &mut Diagnostics) -> Option<Duration> {
+    let text = values::string(entry, diags)?;
+    let budget = units::literal(text)
+        .and_then(|literal| literal.seconds(fps))
+        .filter(|seconds| seconds.is_finite() && *seconds > 0.0)
+        .and_then(|seconds| Duration::try_from_secs_f64(seconds).ok());
+    if budget.is_none() {
+        diags.error(
+            entry.span().offset(),
+            format!("invalid frame budget \"{text}\": use a time above zero, like \"70ms\""),
+        );
+    }
+    budget
 }
 
 fn shot(

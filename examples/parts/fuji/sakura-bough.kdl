@@ -1,0 +1,177 @@
+// A blossoming cherry bough close to the camera, reaching left and down from (0, 0) at the top of a
+// frame, grown and flowered like "sakura-tree".
+
+use "fuji-palette.kdl"
+use "clump.kdl"
+
+scene sakura-bough palette=fuji width=180 height=70 fps=12 duration="16s" background=sky-day.5 {
+    camera -170 -8
+
+    group sway "=round(wind(0) * 1.5)"
+    fuji-back45 -85 23 paint=forest.4
+    fuji-back50 -94 27
+    fuji-back30 -99 30
+    fuji-back30 -113 44
+    fuji-back35 -116 41
+    fuji-back30 -115 50
+    fuji-back45 -123 60
+    fuji-back50 -123 66
+    fuji-back35 -129 66
+    fuji-back45 -114 44
+    fuji-back55 -124 46 paint=forest.4
+    fuji-back45 -130 46
+    fuji-back35 -136 39
+    fuji-back50 -131 53
+    fuji-back45 -119 26
+    fuji-back50 -127 28
+    fuji-back45 -135 31 paint=forest.4
+    fuji-back35 -138 38
+    fuji-back35 -140 36
+    fuji-back45 -113 16
+    fuji-back30 -123 14 paint=forest.4
+    fuji-back35 -125 15
+    fuji-back45 -131 16
+    fuji-back40 -141 15
+    fuji-back40 -135 11 paint=forest.4
+    fuji-back35 -131 14
+    fuji-back45 -130 9
+    fuji-back30 -147 15
+    fuji-back40 -68 41
+    fuji-back40 -71 46
+    fuji-back40 -74 53
+    fuji-back30 -58 28
+    fuji-back50 -68 36
+    fuji-back45 -71 38 paint=forest.4
+    fuji-back55 -83 50 paint=forest.4
+    fuji-back30 -84 44
+    fuji-back50 -80 41 paint=forest.4
+    fuji-back50 -85 49
+    fuji-back55 -12 9 paint=forest.4
+    fuji-back50 -37 16
+    fuji-back35 -39 22
+    fuji-back45 -47 27
+    fuji-back40 -39 33
+    fuji-back40 -44 25 paint=forest.4
+    fuji-back40 -61 18
+    fuji-back40 -67 24
+    fuji-limb 20 -4 -40 10 3.2
+    fuji-limb -40 10 -82 23 2.4
+    fuji-twig -82 23 -108 41 1.5
+    fuji-twig -108 41 -121 59 0.9
+    fuji-twig -121 59 -126 74 0.6
+    fuji-twig -121 59 -134 64 0.6
+    fuji-twig -121 59 -126 73 0.6
+    fuji-twig -108 41 -128 48 0.9
+    fuji-twig -128 48 -138 57 0.6
+    fuji-twig -128 48 -144 44 0.6
+    fuji-twig -128 48 -139 57 0.6
+    fuji-twig -82 23 -111 22 1.5
+    fuji-twig -111 22 -128 30 0.9
+    fuji-twig -128 30 -137 38 0.6
+    fuji-twig -128 30 -141 31 0.6
+    fuji-twig -128 30 -137 39 0.6
+    fuji-twig -111 22 -131 15 0.9
+    fuji-twig -131 15 -145 15 0.6
+    fuji-twig -131 15 -141 3 0.6
+    fuji-twig -131 15 -146 17 0.6
+    fuji-twig -40 10 -60 32 1.8
+    fuji-twig -60 32 -69 50 1.1
+    fuji-twig -69 50 -68 63 0.7
+    fuji-twig -69 50 -81 56 0.7
+    fuji-twig -69 50 -71 62 0.7
+    fuji-twig -60 32 -79 41 1.1
+    fuji-twig -79 41 -88 54 0.7
+    fuji-twig -79 41 -92 42 0.7
+    fuji-twig -79 41 -88 52 0.7
+    fuji-twig -10 4 -34 18 1.6
+    fuji-twig -34 18 -43 33 1.0
+    fuji-twig -43 33 -44 44 0.6
+    fuji-twig -43 33 -53 42 0.6
+    fuji-twig -43 33 -44 44 0.6
+    fuji-twig -34 18 -54 23 1.0
+    fuji-twig -54 23 -65 34 0.6
+    fuji-twig -54 23 -68 18 0.6
+    fuji-twig -54 23 -66 31 0.6
+    fuji-clump50 -135 2 5
+    fuji-clump40 -135 3 4
+    fuji-clump30 -20 3 5
+    fuji-clump45 -21 8 5
+    fuji-clump35 -131 10 5
+    fuji-clump35 -28 10 5
+    fuji-clump45 -19 10 4
+    fuji-clump35 -19 11 5
+    fuji-clump35 -136 13 4
+    fuji-clump50 -136 14 6
+    fuji-clump50 -145 15 6 opacity=0.65
+    fuji-clump30 -43 15 5
+    fuji-clump35 -63 15 5
+    fuji-clump45 -107 16 5
+    fuji-clump50 -147 16 5 opacity=0.65
+    fuji-clump50 -28 17 6
+    fuji-clump45 -40 19 5
+    fuji-clump50 -57 19 5
+    fuji-clump35 -123 20 6
+    fuji-clump55 -118 20 6
+    fuji-clump50 -61 20 5
+    fuji-clump55 -45 22 4
+    fuji-clump35 -45 22 5
+    fuji-clump50 -82 24 4
+    fuji-clump55 -91 26 5
+    fuji-clump55 -120 26 5
+    fuji-clump50 -54 26 5
+    fuji-clump50 -60 26 6
+    fuji-clump55 -60 28 4
+    fuji-clump45 -122 29 5
+    fuji-clump50 -60 29 4
+    fuji-clump30 -137 30 6
+    fuji-clump55 -40 30 4
+    fuji-clump30 -61 32 5
+    fuji-clump50 -100 33 5
+    fuji-clump45 -67 33 4
+    fuji-clump30 -135 35 5
+    fuji-clump30 -100 36 6
+    fuji-clump30 -61 36 6
+    fuji-clump45 -77 36 5
+    fuji-clump40 -45 37 5
+    fuji-clump40 -49 37 6
+    fuji-clump30 -44 37 4
+    fuji-clump55 -67 38 4
+    fuji-clump35 -73 38 5
+    fuji-clump35 -86 39 4
+    fuji-clump55 -109 40 4
+    fuji-clump30 -114 40 5
+    fuji-clump55 -54 40 5
+    fuji-clump50 -143 41 6 opacity=0.65
+    fuji-clump40 -60 41 5
+    fuji-clump50 -40 41 6
+    fuji-clump35 -132 43 5
+    fuji-clump30 -110 44 6
+    fuji-clump45 -64 45 5
+    fuji-clump35 -86 45 6
+    fuji-clump45 -118 46 5
+    fuji-clump45 -134 46 6
+    fuji-clump45 -87 46 5
+    fuji-clump30 -130 47 5
+    fuji-clump30 -116 48 4
+    fuji-clump35 -89 48 5
+    fuji-clump35 -128 49 4 opacity=0.65
+    fuji-clump30 -84 49 5 opacity=0.65
+    fuji-clump35 -135 50 4 opacity=0.65
+    fuji-clump45 -69 51 4 opacity=0.65
+    fuji-clump40 -119 52 4 opacity=0.65
+    fuji-clump30 -137 52 4 opacity=0.65
+    fuji-clump30 -131 52 5 opacity=0.65
+    fuji-clump50 -73 52 5 opacity=0.65
+    fuji-clump35 -69 53 5 opacity=0.65
+    fuji-clump30 -141 54 4 opacity=0.65
+    fuji-clump45 -87 54 4 opacity=0.65
+    fuji-clump35 -114 56 5 opacity=0.65
+    fuji-clump45 -135 57 5 opacity=0.65
+    fuji-clump35 -119 59 6 opacity=0.65
+    fuji-clump55 -129 61 4 opacity=0.65
+    fuji-clump55 -126 61 5 opacity=0.65
+    fuji-clump40 -118 66 5 opacity=0.65
+    fuji-clump45 -126 67 5 opacity=0.65
+    fuji-clump50 -119 67 5 opacity=0.65
+    fuji-clump40 -129 69 5 opacity=0.65
+}

@@ -1,0 +1,172 @@
+// The sunflower field open in the editor with the code beside it (View > Split, F2): the pointer
+// clicks after the "sky" layer, types `ambient darkness=2` into the scene's KDL and, 300 ms after
+// the last key, the scene reloads and dusk deepens over the field while it keeps swaying; then the
+// camera dives into the canvas.
+
+use "../../sunflower-field.kdl"
+use "chrome.kdl"
+use "swatches.kdl"
+
+motif ed-code-below y x words paint=ui-ink-hi { text $words $x "=$y + 11 * step(1.3, t)" paint=$paint }
+motif ed-use-row y name at tail {
+    ed-code-below $y 347 "use-scene "
+    ed-code-below $y 404 "\"$name\"" paint=ui-accent-hi
+    ed-code-below $y $at $tail
+}
+
+palette sunflowers-in-editor {
+    include sunflower
+    include editor
+}
+
+scene in-editor-sunflowers palette=sunflowers-in-editor width=640 height=360 fps=12 duration="10s" seed=11 background=ui-bar {
+    timeline {
+        marker click at="1s"
+        marker enter at="1.3s"
+        marker typing at="1.45s"
+        marker typed at="2.672s"
+        marker load at="2.97s"
+        marker dive at="6.6s"
+        marker full at="7.9s"
+    }
+    group mouse {
+        anim x {
+            k "0s" 230
+            k "click" 337 interp=ease-in-out
+            k "2.6s" 337
+            k "3.6s" 236 interp=ease-in-out
+        }
+        anim y {
+            k "0s" 210
+            k "click" 127 interp=ease-in-out
+            k "2.6s" 127
+            k "3.6s" 168 interp=ease-in-out
+        }
+    }
+    group caret {
+        anim x {
+            k "click" 336
+            k "1.29s" 336
+            k "1.3s" 315
+            k "typing" 315
+            k "1.506s" 319
+            k "1.561s" 323
+            k "1.617s" 327
+            k "1.672s" 331
+            k "1.728s" 337
+            k "1.783s" 343
+            k "1.839s" 349
+            k "1.894s" 351
+            k "1.950s" 357
+            k "2.006s" 363
+            k "2.061s" 368
+            k "2.117s" 372
+            k "2.172s" 378
+            k "2.228s" 384
+            k "2.283s" 390
+            k "2.339s" 395
+            k "2.394s" 401
+            k "2.450s" 407
+            k "2.506s" 413
+            k "2.561s" 419
+            k "2.617s" 425
+            k "typed" 431
+        }
+        anim y {
+            k "click" 122
+            k "1.29s" 122
+            k "1.3s" 133
+        }
+    }
+    ed-dive
+    ambient {
+        anim darkness {
+            k "0s" 0
+            k "2.96s" 0
+            k "load" 2
+        }
+    }
+
+    use-scene editor-chrome file=sunflower-field.kdl tab=118 status="160x224 | zoom 100% | color sky.7" help=226
+
+    text "sky\ndawn\ncloud\ntree\nleaf\npetal\nseed\nink" 2 72 paint=ui-ink
+    ed-ramp 36 72 8 sky
+    ed-ramp 36 83 6 dawn
+    ed-ramp 36 94 8 cloud
+    ed-ramp 36 105 4 tree
+    ed-ramp 36 116 8 leaf
+    ed-ramp 36 127 7 petal
+    ed-ramp 36 138 5 seed
+    ed-ramp 36 149 1 ink
+    rect 105 71 11 11 paint=ui-accent-hi
+    rect 106 72 9 9 paint=sky.7 emissive=#true
+    ed-colors paint=sky.7
+
+    group 131 45 160 207 clip=#true {
+        use-scene sunflower-field 131 37
+    }
+    rect 291 45 2 207 paint=ui-bar
+    rect 293 45 20 207 paint=ui-bar
+    rect 313 45 170 207 paint=ui-field
+    group 293 45 190 207 clip=#true {
+        text "15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32" 294 46 paint=ui-ink
+        ed-text "scene " 315 46
+        text "\"sunflower-field\"" 349 46 paint=ui-accent-hi
+        ed-text " palette=" 434 46
+        text "\"sunflower\"" 481 46 paint=ui-accent-hi
+        ed-text "layer " 331 57
+        text "\"sky\"" 362 57 paint=ui-accent-hi
+        ed-text " {" 387 57
+        ed-text "use-scene " 347 68
+        text "\"dusk-band\"" 404 68 paint=ui-accent-hi
+        ed-text " count=29 x=-8 y=" 464 68
+        ed-text "ellipse x=-50 y=118 width=260 height=48 paint=" 347 79
+        ed-text "ellipse x=-30 y=130 width=220 height=30 paint=" 347 90
+        ed-text "ellipse x=-10 y=139 width=180 height=16 paint=" 347 101
+        ed-text "rect x=0 y=145 width=160 height=4 paint=" 347 112
+        ed-text "}" 331 123
+        ed-code-below 134 331 "layer "
+        ed-code-below 134 362 "\"clouds\"" paint=ui-accent-hi
+        ed-code-below 134 403 " {"
+        ed-use-row 145 cloud-bank 467 " x="
+        ed-code-below 145 483 "\"=-24 + osc(16s, -3, 3)\"" paint=ui-accent-hi
+        ed-use-row 156 cloud-heap 468 " flip=#true x="
+        ed-use-row 167 cloud-wisp 464 " x="
+        ed-code-below 167 480 "\"=56 + osc(16s, -2, 2)\"" paint=ui-accent-hi
+        ed-use-row 178 cloud-bank 467 " flip=#true x="
+        ed-use-row 189 cloud-wisp 464 " x="
+        ed-code-below 189 480 "\"=-6 + osc(16s, 2, -2)\"" paint=ui-accent-hi
+        ed-use-row 200 cloud-streak 478 " x="
+        ed-use-row 211 cloud-streak 478 " x="
+        ed-use-row 222 cloud-heap 468 " x="
+        ed-code-below 222 484 "\"=92 + osc(16s, -2, 2)\"" paint=ui-accent-hi
+        ed-code-below 233 331 "}"
+        text "ambient darkness=2" 331 134 paint=ui-ink-hi reveal="=(t - 1.45) * 18 - 4"
+        rect "=@caret.x" "=@caret.y" 1 11 paint=ui-accent-hi visible="=t >= 1 && t < 6.6 && (t < 2.9 || mod(floor(t * 2), 2) < 1)"
+    }
+
+    group 487 45 121 300 clip=#true {
+        use-scene eye 489 "=58 + 11 * i" count=5
+        text "air (shapes)\nnear-field (shapes)\nfar-field (shapes)\nhorizon (shapes)\nclouds (shapes)" 514 58 paint=ui-ink
+        rect 488 158 118 11 paint=ui-accent
+        use-scene file-icon 489 159
+        ed-text "scene \"sunflower-field\"" 502 159
+        use-scene eye 495 170
+        ed-text "layer \"sky\"" 508 170
+        use-scene file-icon 501 181
+        ed-text "use-scene \"dusk-band\"" 514 181
+        ed-text "* ellipse\n* ellipse\n* ellipse\n* rect" 503 192
+        ed-text "scene \"sunflower-field\"" 492 261
+        use-scene inspector-field 546 "=272 + 12 * i" count=6
+        ed-fields "palette\nwidth\nheight\nfps\nduration\nloop" "sunflower\n160\n224\n12\n16s\nyes"
+    }
+
+    use-scene ruler 132 278
+    rect "=177 + 4 * floor(mod(t * 12, 72))" 288 4 58 paint=ui-raised
+    rect "=177 + 4 * floor(mod(t * 12, 72))" 278 1 10 paint=ui-accent
+
+    use-scene click 337 127 start=click end="1.25s"
+    use-scene pointer "=@mouse.x" "=@mouse.y" end=dive
+
+    camera "=(211 - 320) * @dive.x" "=(148.5 - 180) * @dive.x" zoom="=1 + 0.74 * @dive.x"
+}

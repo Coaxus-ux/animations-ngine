@@ -2,6 +2,7 @@ use px_ui::{Input, Ui, present, present_top};
 
 use super::window::WindowKind;
 use super::{App, WindowId, shortcuts};
+use crate::domain::Document;
 use crate::ports::FileStore;
 use crate::views::{self, Context};
 
@@ -25,6 +26,7 @@ impl App {
         let tabs = (self.documents.active_index(), self.documents.len());
         shortcuts::collect(input, (typing, navigating), modal, tabs, &mut intents);
         self.tick(input.time_ms);
+        self.forget_stale_pick();
         if kind == WindowKind::Main
             && input.time_ms % DISK_CHECK_MS < 20
             && let Some(document) = self.document_mut()
@@ -49,7 +51,7 @@ impl App {
         };
         let mut cache = self.caches.remove(&id).unwrap_or_default();
         if let Some(slot) = self.documents.active() {
-            cache.update(slot.id, &slot.document, &view);
+            cache.update(slot.id, &slot.document, &view, self.editing.playing);
         }
         self.draw_window(&mut window, &view, &cache, input, size, &mut intents);
         self.caches.insert(id, cache);
@@ -87,8 +89,10 @@ impl App {
         let tabs = self.documents.tabs();
         window.ui.modal = window.dialog.is_some();
         window.canvas.reset(ui_width, ui_height, roles.window);
-        window.pixels.clear();
-        window.pixels.resize(width * height, 0);
+        if window.pixels.len() != width * height {
+            window.pixels.clear();
+            window.pixels.resize(width * height, 0);
+        }
         window.size = size;
 
         let (canvas_area, preview) = {
@@ -195,21 +199,30 @@ impl App {
     fn tick(&mut self, now: u64) {
         if !self.editing.playing {
             self.editing.played_at = now;
+            self.editing.played_frames = 0;
             return;
         }
         let Some(scene) = self.document().and_then(crate::domain::Document::scene) else {
             return;
         };
         let timing = scene.timing();
-        let step = 1000 / u64::from(timing.fps.get().max(1));
-        if now.saturating_sub(self.editing.played_at) < step {
+        let fps = u64::from(timing.fps.get().max(1));
+        let duration = timing.duration.get().max(1);
+        let due = now.saturating_sub(self.editing.played_at) * fps / 1000;
+        let behind = due.saturating_sub(self.editing.played_frames);
+        if behind == 0 {
             return;
         }
-        self.editing.played_at = now;
-        let duration = timing.duration.get().max(1);
+        if behind > u64::from(duration) {
+            self.editing.played_at = now;
+            self.editing.played_frames = 0;
+        } else {
+            self.editing.played_frames = due;
+        }
+        let advance = u32::try_from(behind % u64::from(duration)).unwrap_or(0);
         for window in &mut self.windows {
             if window.kind.has_canvas() {
-                window.view.frame = (window.view.frame + 1) % duration;
+                window.view.frame = (window.view.frame + advance) % duration;
             }
         }
     }
@@ -226,5 +239,20 @@ fn to_ui(input: &Input, scale: i32) -> Input {
             input.pointer_anywhere.1.div_euclid(scale),
         ),
         ..input.clone()
+    }
+}
+
+impl App {
+    fn forget_stale_pick(&mut self) {
+        let count = self
+            .document()
+            .and_then(Document::loaded)
+            .map(|loaded| loaded.origins.len());
+        if count.is_some() && count != self.editing.shape_count {
+            if self.editing.shape_count.is_some() {
+                self.editing.picked = None;
+            }
+            self.editing.shape_count = count;
+        }
     }
 }

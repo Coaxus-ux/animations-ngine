@@ -1,118 +1,104 @@
-// The festival's set, as two scenes so a host can put things between them: the sky with
-// mountains and a far town (parallax layers), and the street with its buildings, lantern
-// strings and lamps. Both reach past the 320 px frame so a zooming, panning camera never
-// runs out of set. Loop every 12 s.
+// The festival's set, as two scenes so a host can put things between them: the sky with mountains
+// and a far town (parallax layers), and the street with its buildings, lantern strings and lamps.
 
 use "festival-palette.kdl"
 use "paper-lantern.kdl"
 
-scene "festival-sky" palette="festival" width=320 height=180 fps=12 duration="12s" loop=#true background="sky.base" {
-    layer "sky" parallax=0 {
-        rect x=-100 y=-60 width=520 height=170 paint="sky.deep" gradient="down" gradient-steps=3
-        rect x=-100 y=96 width=520 height=40 paint="dusk.shade" gradient="down" gradient-steps=2
-        ellipse x=236 y=8 width=34 height=34 paint="sky.lit" emissive=#true
-        ellipse x=244 y=16 width=18 height=18 paint="moon.hi" emissive=#true
-        ellipse x=249 y=21 width=4 height=3 paint="moon.base" emissive=#true
-        ellipse x=255 y=27 width=3 height=3 paint="moon.base" emissive=#true
-        rect x=18 y=12 width=1 height=1 paint="moon.hi" emissive=#true
-        rect x=56 y=30 width=1 height=1 paint="moon.base" emissive=#true visible="=1 - pulse(2s, 0.15)"
-        rect x=92 y=8 width=1 height=1 paint="moon.hi" emissive=#true
-        rect x=128 y=24 width=1 height=1 paint="moon.base" emissive=#true
-        rect x=164 y=6 width=1 height=1 paint="moon.hi" emissive=#true visible="=1 - pulse(3s, 0.2)"
-        rect x=196 y=36 width=1 height=1 paint="moon.base" emissive=#true
-        rect x=214 y=14 width=1 height=1 paint="moon.base" emissive=#true
-        rect x=292 y=44 width=1 height=1 paint="moon.hi" emissive=#true visible="=1 - pulse(4s, 0.1)"
-        rect x=306 y=10 width=1 height=1 paint="moon.base" emissive=#true
+motif fest-glow x y w h tone visible=#true { rect $x $y $w $h paint=$tone emissive=#true visible=$visible }
+motif fest-street-lamp x {
+    capsule $x 150 $x 98 radius=1.5 paint=hair-black.lit shading=dome casts-shadow=#true contact-shadow=1
+    polygon "=$x - 6" 90 points="2,0 10,0 12,6 0,6" paint=hair-black.lit shading=dome outline=selective
+    ellipse "=$x - 4" 95 8 4 paint=window.hi emissive=#true
+    light-point $x 97 reach=70 intensity=2.2 color=warm
+}
+
+scene festival-sky palette=festival width=320 height=180 fps=12 duration="12s" loop=#true background=sky.base {
+    layer sky parallax=0 {
+        rect -100 -60 520 170 paint=sky.deep gradient=down gradient-steps=3
+        rect -100 96 520 40 paint=dusk.shade gradient=down gradient-steps=2
+        ellipse 236 8 34 34 paint=sky.lit emissive=#true
+        ellipse 244 16 18 18 paint=moon.hi emissive=#true
+        ellipse 249 21 4 3 paint=moon.base emissive=#true
+        ellipse 255 27 3 3 paint=moon.base emissive=#true
+        fest-glow 18 12 1 1 moon.hi
+        fest-glow 56 30 1 1 moon.base visible="=1 - pulse(2s, 0.15)"
+        fest-glow 92 8 1 1 moon.hi
+        fest-glow 128 24 1 1 moon.base
+        fest-glow 164 6 1 1 moon.hi visible="=1 - pulse(3s, 0.2)"
+        fest-glow 196 36 1 1 moon.base
+        fest-glow 214 14 1 1 moon.base
+        fest-glow 292 44 1 1 moon.hi visible="=1 - pulse(4s, 0.1)"
+        fest-glow 306 10 1 1 moon.base
     }
-    layer "mountains" parallax=0.15 fog="45%" fog-paint="dusk.base" {
-        polygon x=-100 y=70 points="0,50 60,22 110,40 170,8 230,34 290,14 360,38 420,18 520,46 520,70 0,70" paint="mountain.base" shading="dome"
+    layer mountains parallax=0.15 fog="45%" fog-paint=dusk.base {
+        polygon -100 70 points="0,50 60,22 110,40 170,8 230,34 290,14 360,38 420,18 520,46 520,70 0,70" paint=mountain.base shading=dome
     }
-    layer "far-town" parallax=0.35 fog="25%" fog-paint="dusk.shade" {
-        rect x=-60 y=104 width=480 height=40 paint="stone.deep"
-        rect x=40 y=96 width=26 height=20 paint="stone.shade"
-        polygon x=36 y=88 points="0,8 17,0 34,8" paint="roof.shade"
-        rect x=96 y=92 width=18 height=24 paint="stone.shade"
-        polygon x=92 y=84 points="0,8 13,0 26,8" paint="roof.base"
-        rect x=150 y=70 width=12 height=46 paint="stone.shade"
-        polygon x=144 y=64 points="0,7 12,0 24,7" paint="roof.base"
-        polygon x=146 y=80 points="0,5 10,0 20,5" paint="roof.base"
-        polygon x=146 y=92 points="0,5 10,0 20,5" paint="roof.base"
-        rect x=190 y=98 width=30 height=18 paint="stone.shade"
-        polygon x=186 y=90 points="0,8 19,0 38,8" paint="roof.shade"
-        rect x=44 y=102 width=2 height=2 paint="window.lit" emissive=#true
-        rect x=56 y=104 width=2 height=2 paint="window.base" emissive=#true
-        rect x=100 y=98 width=2 height=2 paint="window.lit" emissive=#true
-        rect x=154 y=74 width=2 height=3 paint="window.hi" emissive=#true
-        rect x=154 y=86 width=2 height=3 paint="window.lit" emissive=#true
-        rect x=154 y=98 width=2 height=3 paint="window.lit" emissive=#true
-        rect x=198 y=104 width=2 height=2 paint="window.base" emissive=#true visible="=1 - pulse(3s, 0.3)"
-        rect x=210 y=104 width=2 height=2 paint="window.lit" emissive=#true
+    layer far-town parallax=0.35 fog="25%" fog-paint=dusk.shade {
+        rect -60 104 480 40 paint=stone.deep
+        rect 40 96 26 20 paint=stone.shade
+        polygon 36 88 points="0,8 17,0 34,8" paint=roof.shade
+        rect 96 92 18 24 paint=stone.shade
+        polygon 92 84 points="0,8 13,0 26,8" paint=roof.base
+        rect 150 70 12 46 paint=stone.shade
+        polygon 144 64 points="0,7 12,0 24,7" paint=roof.base
+        polygon 146 "=80 + $k*12" points="0,5 10,0 20,5" paint=roof.base repeat=2
+        rect 190 98 30 18 paint=stone.shade
+        polygon 186 90 points="0,8 19,0 38,8" paint=roof.shade
+        fest-glow 44 102 2 2 window.lit
+        fest-glow 56 104 2 2 window.base
+        fest-glow 100 98 2 2 window.lit
+        fest-glow 154 74 2 3 window.hi
+        fest-glow 154 86 2 3 window.lit
+        fest-glow 154 98 2 3 window.lit
+        fest-glow 198 104 2 2 window.base visible="=1 - pulse(3s, 0.3)"
+        fest-glow 210 104 2 2 window.lit
     }
 }
 
-scene "festival-street" palette="festival" width=320 height=180 fps=12 duration="12s" loop=#true background="sky.base" {
-    // Left building: a tea house with a balcony and a sign
-    rect x=-100 y=36 width=172 height=114 paint="stone.base" texture=0.25 texture-scale=3 outline="selective" casts-shadow=#true
-    polygon x=-104 y=22 points="0,14 8,4 176,0 184,14" paint="roof.base" shading="dome" outline="selective"
-    rect x=-104 y=34 width=184 height=3 paint="roof.shade"
-    rect x=8 y=48 width=14 height=18 paint="window.lit" emissive=#true gradient="down" gradient-steps=-1
-    rect x=14 y=48 width=1 height=18 paint="wood.shade"
-    rect x=40 y=48 width=14 height=18 paint="window.base" emissive=#true visible="=1 - square(t / 6, 0.2)"
-    rect x=40 y=56 width=14 height=1 paint="wood.shade"
-    rect x=-2 y=74 width=66 height=3 paint="wood.lit" shading="dome" outline="selective" casts-shadow=#true
-    rect x=0 y=77 width=2 height=8 paint="wood.base"
-    rect x=20 y=77 width=2 height=8 paint="wood.base"
-    rect x=40 y=77 width=2 height=8 paint="wood.base"
-    rect x=60 y=77 width=2 height=8 paint="wood.base"
-    rect x=-2 y=84 width=66 height=2 paint="wood.base"
-    rounded-rect x=50 y=92 width=16 height=34 radius=2 paint="lantern" emissive=#true shading="dome" outline="full" outline-paint="lantern-gold.base"
-    rect x=56 y=98 width=4 height=3 paint="lantern-gold.hi" emissive=#true
-    rect x=56 y=105 width=4 height=3 paint="lantern-gold.hi" emissive=#true
-    rect x=56 y=112 width=4 height=3 paint="lantern-gold.hi" emissive=#true
-    rect x=8 y=110 width=20 height=40 paint="wood.shade" outline="full" outline-paint="roof.deep"
-    rect x=10 y=112 width=16 height=14 paint="window.base" emissive=#true gradient="down" gradient-steps=-2
+scene festival-street palette=festival width=320 height=180 fps=12 duration="12s" loop=#true background=sky.base {
+    rect -100 36 172 114 paint=stone.base texture=0.25 texture-scale=3 outline=selective casts-shadow=#true
+    polygon -104 22 points="0,14 8,4 176,0 184,14" paint=roof.base shading=dome outline=selective
+    rect -104 34 184 3 paint=roof.shade
+    rect 8 48 14 18 paint=window.lit emissive=#true gradient=down gradient-steps=-1
+    rect 14 48 1 18 paint=wood.shade
+    fest-glow 40 48 14 18 window.base visible="=1 - square(t / 6, 0.2)"
+    rect 40 56 14 1 paint=wood.shade
+    rect -2 74 66 3 paint=wood.lit shading=dome outline=selective casts-shadow=#true
+    rect "=$k*20" 77 2 8 paint=wood.base repeat=4
+    rect -2 84 66 2 paint=wood.base
+    rounded-rect 50 92 16 34 paint=lantern emissive=#true shading=dome outline=full outline-paint=lantern-gold.base
+    fest-glow 56 "=98 + $k*7" 4 3 lantern-gold.hi repeat=3
+    rect 8 110 20 40 paint=wood.shade outline=full outline-paint=roof.deep
+    rect 10 112 16 14 paint=window.base emissive=#true gradient=down gradient-steps=-2
 
-    // Right building: a shop with a round window and a striped awning
-    rect x=246 y=44 width=174 height=106 paint="stone.shade" texture=0.25 texture-scale=3 outline="selective" casts-shadow=#true
-    polygon x=240 y=30 points="0,14 10,2 180,0 186,14" paint="roof.shade" shading="dome" outline="selective"
-    ellipse x=268 y=58 width=18 height=18 paint="window.lit" emissive=#true outline="full" outline-paint="wood.shade"
-    line x1=277 y1=58 x2=277 y2=75 paint="wood.shade"
-    line x1=268 y1=67 x2=285 y2=67 paint="wood.shade"
-    rect x=300 y=56 width=14 height=20 paint="window.base" emissive=#true
-    polygon x=250 y=96 points="0,0 70,0 74,10 -4,10" paint="coat-red.base" shading="dome" outline="selective" casts-shadow=#true
-    rect x=258 y=96 width=6 height=10 paint="cloth.hi"
-    rect x=274 y=96 width=6 height=10 paint="cloth.hi"
-    rect x=290 y=96 width=6 height=10 paint="cloth.hi"
-    rect x=306 y=96 width=6 height=10 paint="cloth.hi"
-    rect x=256 y=110 width=56 height=40 paint="window.lit" emissive=#true gradient="down" gradient-steps=-1
-    rect x=256 y=128 width=56 height=3 paint="wood.base"
-    ellipse x=264 y=122 width=6 height=6 paint="lantern-gold.lit" emissive=#true
-    ellipse x=276 y=123 width=5 height=5 paint="coat-green.lit"
-    ellipse x=294 y=122 width=6 height=6 paint="lantern.lit"
+    rect 246 44 174 106 paint=stone.shade texture=0.25 texture-scale=3 outline=selective casts-shadow=#true
+    polygon 240 30 points="0,14 10,2 180,0 186,14" paint=roof.shade shading=dome outline=selective
+    ellipse 268 58 18 18 paint=window.lit emissive=#true outline=full outline-paint=wood.shade
+    line 277 58 277 75 paint=wood.shade
+    line 268 67 285 67 paint=wood.shade
+    fest-glow 300 56 14 20 window.base
+    polygon 250 96 points="0,0 70,0 74,10 -4,10" paint=coat-red.base shading=dome outline=selective casts-shadow=#true
+    rect "=258 + $k*16" 96 6 10 paint=cloth.hi repeat=4
+    rect 256 110 56 40 paint=window.lit emissive=#true gradient=down gradient-steps=-1
+    rect 256 128 56 3 paint=wood.base
+    ellipse 264 122 6 6 paint=lantern-gold.lit emissive=#true
+    ellipse 276 123 5 5 paint=coat-green.lit
+    ellipse 294 122 6 6 paint=lantern.lit
 
-    // Lantern strings across the street
-    rope x1=70 y1=40 x2=248 y2=46 sag=18 sway="=osc(3s, -1, 1)" paint="ink"
-    use-scene "paper-lantern" count=5 x="=70 + (2 * i + 0.5) * 178 / 9 + osc(3s, -0.5, 0.5)" y="=40 + 6 * (2 * i + 0.5) / 9 + 72 * (2 * i + 0.5) / 9 * (1 - (2 * i + 0.5) / 9)" offset="=i * 0.3"
-    use-scene "paper-lantern" count=4 x="=70 + (2 * i + 1.5) * 178 / 9 + osc(3s, -0.5, 0.5)" y="=40 + 6 * (2 * i + 1.5) / 9 + 72 * (2 * i + 1.5) / 9 * (1 - (2 * i + 1.5) / 9)" offset="=i * 0.4" color="lantern-gold"
-    rope x1=72 y1=60 x2=246 y2=64 sag=10 sway="=osc(3s, 1, -1)" paint="ink"
-    use-scene "paper-lantern" count=6 x="=72 + (i + 0.5) * 174 / 6 + osc(3s, 0.5, -0.5)" y="=60 + 4 * (i + 0.5) / 6 + 40 * (i + 0.5) / 6 * (1 - (i + 0.5) / 6)" offset="=i * 0.25" scale=0.8 color="lantern-gold"
+    rope 70 40 248 46 sag=18 sway="=osc(3s, -1, 1)" paint=ink
+    use-scene paper-lantern "=70 + (2 * i + 0.5) * 178 / 9 + osc(3s, -0.5, 0.5)" "=40 + 6 * (2 * i + 0.5) / 9 + 72 * (2 * i + 0.5) / 9 * (1 - (2 * i + 0.5) / 9)" count=5 offset="=i * 0.3"
+    use-scene paper-lantern "=70 + (2 * i + 1.5) * 178 / 9 + osc(3s, -0.5, 0.5)" "=40 + 6 * (2 * i + 1.5) / 9 + 72 * (2 * i + 1.5) / 9 * (1 - (2 * i + 1.5) / 9)" count=4 offset="=i * 0.4" color=lantern-gold
+    rope 72 60 246 64 sag=10 sway="=osc(3s, 1, -1)" paint=ink
+    use-scene paper-lantern "=72 + (i + 0.5) * 174 / 6 + osc(3s, 0.5, -0.5)" "=60 + 4 * (i + 0.5) / 6 + 40 * (i + 0.5) / 6 * (1 - (i + 0.5) / 6)" count=6 offset="=i * 0.25" scale=0.8 color=lantern-gold
 
-    // Street lamps
-    capsule x1=96 y1=150 x2=96 y2=98 radius=1.5 paint="hair-black.lit" shading="dome" casts-shadow=#true contact-shadow=1
-    polygon x=90 y=90 points="2,0 10,0 12,6 0,6" paint="hair-black.lit" shading="dome" outline="selective"
-    ellipse x=92 y=95 width=8 height=4 paint="window.hi" emissive=#true
-    light-point x=96 y=97 reach=70 intensity=2.2 color="warm"
-    capsule x1=226 y1=150 x2=226 y2=98 radius=1.5 paint="hair-black.lit" shading="dome" casts-shadow=#true contact-shadow=1
-    polygon x=220 y=90 points="2,0 10,0 12,6 0,6" paint="hair-black.lit" shading="dome" outline="selective"
-    ellipse x=222 y=95 width=8 height=4 paint="window.hi" emissive=#true
-    light-point x=226 y=97 reach=70 intensity=2.2 color="warm"
+    fest-street-lamp 96
+    fest-street-lamp 226
 
-    // The street
-    rect x=-100 y=146 width=520 height=3 paint="street.lit"
-    rect x=-100 y=149 width=520 height=40 paint="street.base" texture=0.25 texture-scale=2 gradient="down" gradient-steps=-1
-    rect x=20 y=158 width=8 height=1 paint="street.lit"
-    rect x=74 y=166 width=10 height=1 paint="street.lit"
-    rect x=140 y=160 width=7 height=1 paint="street.lit"
-    rect x=196 y=170 width=9 height=1 paint="street.lit"
-    rect x=262 y=162 width=8 height=1 paint="street.lit"
+    rect -100 146 520 3 paint=street.lit
+    rect -100 149 520 40 paint=street.base texture=0.25 texture-scale=2 gradient=down gradient-steps=-1
+    rect 20 158 8 1 paint=street.lit
+    rect 74 166 10 1 paint=street.lit
+    rect 140 160 7 1 paint=street.lit
+    rect 196 170 9 1 paint=street.lit
+    rect 262 162 8 1 paint=street.lit
 }

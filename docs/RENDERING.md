@@ -434,6 +434,8 @@ Limits:
 - Pieces are bitmaps. At `detail-scale` ≥ 1.5, a piece uses its `hd` variant if it has one ([PIECES.md](PIECES.md)); otherwise it stays at 1× and the validator reports it.
 - Text uses the font's size variants.
 
+> **Today (2026-11-01):** detail is a render setting, not yet a style setting: `--detail D` on the CLI, View > Detail and the Export dialog's Detail in the editor (D-025). `Scene::with_detail` keeps the scene's logical size in its spec and renders a canvas D times larger through the camera transform, so every shape, light reach and text size is redrawn at the new size, outlines stay 1 px and dither stays on the output grid. Pieces have no `hd` variants yet: pixel layers and font glyphs are drawn with each of their pixels covering D×D output pixels. Cast shadows are traced once per scene pixel (per block of ⌊D⌋×⌊D⌋ output pixels of equal depth) and reused inside it, so shadow edges follow the scene-pixel grid; at detail 1 every frame is bit-identical to before (golden hashes unchanged).
+
 ### 16.4 Rules
 1. **A style never changes content or layout.** Same objects, same positions (scaled), same animation timing.
 2. **Palettes and styles combine freely.** `one-bit` forces at most 2 colors, picking the darkest and lightest roles unless the palette declares a 2-color mapping.

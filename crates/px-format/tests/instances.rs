@@ -133,6 +133,30 @@ fn params_are_overridden_per_placement_and_can_name_paints() {
 }
 
 #[test]
+fn a_host_param_can_be_passed_on_to_a_placed_scene() {
+    let part = scene(
+        "tag",
+        "",
+        "param color \"ink\"\nparam width 2\nrect x=0 y=0 width=\"=$width\" height=1 paint=\"$color\"",
+    );
+    let host = scene(
+        "main",
+        "",
+        "param tint \"red\"\nparam span 3\nuse-scene \"tag\" color=\"$tint\" width=\"$span\"",
+    );
+    let cells = frame(&load(&format!("{PALETTE}\n{part}{host}")), 0);
+    let red = cells[0];
+    assert_eq!(&cells[..3], &[red; 3]);
+    assert_ne!(cells[3], red);
+    let unknown = format!("{PALETTE}\n{part}{}", host.replace("$tint", "$tnt"));
+    assert!(
+        errors(&unknown)[0].contains("unknown param `$tnt`"),
+        "{:?}",
+        errors(&unknown)
+    );
+}
+
+#[test]
 fn placements_play_only_inside_their_window() {
     let text = format!(
         "{PALETTE}\n{}{}",
@@ -211,6 +235,48 @@ fn markers_name_times_for_placements_and_keys() {
     assert_eq!(names, ["in", "out"]);
     assert_eq!(timeline.tracks.len(), 1);
     assert_eq!(timeline.tracks[0].id.as_deref(), Some("d"));
+}
+
+#[test]
+fn keys_are_reported_per_property_of_the_root_scene_only() {
+    let text = format!(
+        "{PALETTE}\n{}{}",
+        scene(
+            "dot",
+            "",
+            "rect x=0 y=0 width=1 height=1 paint=\"ink\" { anim x { k \"0s\" 0; k \"1s\" 2 } }"
+        ),
+        scene(
+            "main",
+            "",
+            "timeline { marker \"in\" at=\"0.5s\" }\nuse-scene \"dot\"\ncamera { k \"0s\" x=0 zoom=1; k \"in\" x=2 zoom=2 }\nrect \"box\" y=1 width=2 height=2 paint=\"ink\" { anim x { k \"0s\" 0; k \"+3f\" 4 } }"
+        )
+    );
+    let options = LoadOptions {
+        scene: Some("main"),
+        ..LoadOptions::default()
+    };
+    let keys = load_scene(&text, options).unwrap().timeline.keys;
+    let summary: Vec<(&str, &str, &[f64])> = keys
+        .iter()
+        .map(|keyed| {
+            (
+                keyed.object.as_str(),
+                keyed.property.as_str(),
+                keyed.times.as_slice(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        summary,
+        [
+            ("camera", "x", &[0.0, 0.5][..]),
+            ("camera", "zoom", &[0.0, 0.5][..]),
+            ("box", "x", &[0.0, 0.75][..]),
+        ]
+    );
+    assert_eq!(keys[0].origin, keys[1].origin);
+    assert_ne!(keys[0].origin, keys[2].origin);
 }
 
 #[test]

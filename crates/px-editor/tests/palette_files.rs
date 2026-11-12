@@ -137,7 +137,7 @@ fn a_preset_replaces_the_ramps_of_a_palette_nobody_paints_with() {
     );
     let text = text(&app);
     assert!(
-        text.starts_with("palette \"mine\" {\n    ramp \"green\" \"#0f380f\""),
+        text.starts_with("palette \"mine\" {\n    ramp \"green\" \"0f380f"),
         "{text}"
     );
     assert!(!text.contains("\"ink\""), "{text}");
@@ -277,7 +277,7 @@ fn a_preset_keeps_twins_and_comments() {
     let text = text(&app);
     assert!(
         text.starts_with(
-            "palette \"mine\" {\n    // evening mood\n    twin \"sky\" warm=\"sun\"\n    ramp \"sky\" \"#1a1430\""
+            "palette \"mine\" {\n    // evening mood\n    twin \"sky\" warm=\"sun\"\n    ramp \"sky\" \"1a1430"
         ),
         "{text}"
     );

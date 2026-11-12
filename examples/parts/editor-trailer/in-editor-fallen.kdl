@@ -1,0 +1,113 @@
+// The fallen warrior open in the editor: the pointer presses Play, then picks the scene's parts one
+// by one in Elements (roots, sword, body, hair) while the inspector follows and a selection box
+// frames each part on the canvas, and the camera dives into the canvas until the warrior fills the
+// frame.
+
+use "../../fallen-warrior.kdl"
+use "chrome.kdl"
+use "swatches.kdl"
+
+palette fallen-in-editor {
+    include fallen
+    include editor
+}
+
+scene in-editor-fallen palette=fallen-in-editor width=640 height=360 fps=12 duration="10s" seed=13 background=ui-bar {
+    timeline {
+        marker play at="0.7s"
+        marker roots at="1.9s"
+        marker sword at="3s"
+        marker body at="4.1s"
+        marker hair at="5.2s"
+        marker dive at="6.6s"
+        marker full at="7.9s"
+    }
+    group mouse {
+        anim x {
+            k "0s" 360
+            k "0.6s" 148 interp=ease-in-out
+            k "1.2s" 148
+            k "1.8s" 540 interp=ease-in-out
+            k "sword" 540
+            k "body" 546 interp=ease-in-out
+            k "hair" 552 interp=ease-in-out
+            k "6.2s" 470 interp=ease-in-out
+        }
+        anim y {
+            k "0s" 210
+            k "0.6s" 270 interp=ease-in-out
+            k "1.2s" 270
+            k "1.8s" 196 interp=ease-in-out
+            k "2.9s" 196
+            k "sword" 207 interp=ease-in-out
+            k "body" 218 interp=ease-in-out
+            k "hair" 229 interp=ease-in-out
+            k "6.2s" 300 interp=ease-in-out
+        }
+    }
+    ed-dive
+    ambient darkness=2
+
+    use-scene editor-chrome file=fallen-warrior.kdl tab=112 status="256x170 | zoom 100% | color night.3" help=226
+
+    text "night" 2 72 paint=ui-ink
+    text "root" 2 83 paint=ui-ink
+    text "skin" 2 94 paint=ui-ink
+    text "steel" 2 105 paint=ui-ink
+    text "cloth" 2 116 paint=ui-ink
+    text "blood" 2 127 paint=ui-ink
+    text "eye" 2 138 paint=ui-ink
+    ed-ramp 36 72 4 night
+    ed-ramp 36 83 4 root
+    ed-ramp 36 94 5 skin
+    ed-ramp 36 105 6 steel
+    ed-ramp 36 116 5 cloth
+    ed-ramp 36 127 5 blood
+    ed-ramp 36 138 1 eye
+    rect 65 71 11 11 paint=ui-accent-hi
+    rect 66 72 9 9 paint=night.3 emissive=#true
+    ed-colors paint=night.3
+
+    group 131 45 352 207 clip=#true {
+        use-scene fallen-warrior 179 63 speed=0 end=play
+        use-scene fallen-warrior 179 63 start=play
+        use-scene selection 189 63 width=245 height=170 start=roots end=sword
+        use-scene selection 187 109 width=243 height=107 start=sword end=body
+        use-scene selection 216 97 width=176 height=94 start=body end=hair
+        use-scene selection 343 93 width=42 height=50 start=hair end=dive
+    }
+
+    group 487 146 121 200 clip=#true {
+        use-scene file-icon 489 159
+        ed-text "scene \"fallen-warrior\"" 502 159
+        ed-text "<> ambient\n* rect" 495 170
+        rect 488 "=191 + 11 * min(3, max(0, floor((t - 1.9) / 1.1)))" 118 11 paint=ui-accent visible="=t >= 1.9 && t < 6.6"
+        use-scene file-icon 495 "=192 + 11 * i" count=4
+        ed-text "\"fallen-roots\"\n\"fallen-sword\"\n\"fallen-body\"\n\"fallen-hair\"" 508 192
+        ed-text "o light-point" 495 236
+
+        ed-text "scene \"fallen-warrior\"" 492 261 visible="=t < 1.9"
+        ed-text "use-scene \"fallen-roots\"" 490 261 visible="=t >= 1.9 && t < 3"
+        ed-text "use-scene \"fallen-sword\"" 490 261 visible="=t >= 3 && t < 4.1"
+        ed-text "use-scene \"fallen-body\"" 490 261 visible="=t >= 4.1 && t < 5.2"
+        ed-text "use-scene \"fallen-hair\"" 490 261 visible="=t >= 5.2"
+        use-scene inspector-field 546 "=272 + 12 * i" count=6
+        ed-fields "palette\nwidth\nheight\nfps\nduration\nseed" "fallen\n256\n170\n12\n6s\n13" visible="=t < 1.9"
+        ed-fields "x\ny\nscale\nspeed\noffset\nloop" "0\n0\n1\n1\n0\nyes" visible="=t >= 1.9"
+    }
+
+    use-scene ruler 132 278
+    rect "=177 + 4 * floor(mod(max(0, t - 0.7) * 12, 72))" 288 4 58 paint=ui-raised
+    rect "=177 + 4 * floor(mod(max(0, t - 0.7) * 12, 72))" 278 1 10 paint=ui-accent
+    rect 134 265 28 11 paint=ui-accent visible="=t >= 0.7 && t < 0.9"
+    ed-text "Play" 139 266 visible="=t >= 0.7 && t < 0.9"
+
+    use-scene click 148 270 start=play end="0.95s"
+    use-scene click 540 196 start=roots end="2.15s"
+    use-scene click 540 207 start=sword end="3.25s"
+    use-scene click 546 218 start=body end="4.35s"
+    use-scene click 552 229 start=hair end="5.45s"
+    use-scene pointer "=@mouse.x" "=@mouse.y" end=dive
+
+    camera "=(307 - 320) * @dive.x" "=(148 - 180) * @dive.x" zoom="=1 + 1.12 * @dive.x"
+}

@@ -3,18 +3,18 @@ use px_core::{FrameRate, MAX_CANVAS_SIDE, MAX_FPS, Paint, Size};
 use px_engine::{Looping, SceneSpec, Timing};
 
 use crate::assemble::{Output, Scope, assemble};
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, KeyTimes};
 use crate::diagnostic::Diagnostics;
 use crate::document::Catalog;
 use crate::extras::Override;
 use crate::instances;
 use crate::names::Names;
-use crate::objects;
+use crate::objects::{self, Draft};
 use crate::palette::NamedPalette;
 use crate::params::SceneParams;
 use crate::props::Props;
 use crate::source_map::{Origin, PaintNames};
-use crate::timeline::{Markers, Timeline};
+use crate::timeline::{Keyed, Markers, Timeline};
 use crate::units::Measure;
 use crate::{suggest, values};
 
@@ -122,15 +122,16 @@ pub(crate) fn parse(
         loop_period: looping.then(|| seconds(timing)),
         ..Scope::default()
     };
-    let markers = builder.build(node, canvas, &scope, overrides, &mut out, diags);
+    let built = builder.build(node, canvas, &scope, overrides, &mut out, diags);
     if diags.has_errors() {
         return None;
     }
     let timeline = Timeline {
         duration: seconds(timing),
         looping,
-        markers: markers.report(),
+        markers: built.markers.report(),
         tracks: out.tracks,
+        keys: built.keys,
     };
     let spec = SceneSpec {
         name: header.name?.to_owned(),
@@ -156,6 +157,11 @@ pub(crate) enum Overrides<'a> {
     Instance { list: &'a [Override], file: usize },
 }
 
+pub(crate) struct Built {
+    pub(crate) markers: Markers,
+    pub(crate) keys: Vec<Keyed>,
+}
+
 pub(crate) struct Builder<'c, 'l> {
     pub(crate) catalog: &'c Catalog<'l>,
     pub(crate) palette: &'c NamedPalette,
@@ -173,7 +179,7 @@ impl Builder<'_, '_> {
         overrides: Overrides<'_>,
         out: &mut Output,
         diags: &mut Diagnostics,
-    ) -> Markers {
+    ) -> Built {
         let markers = Markers::parse(node, canvas.fps, diags);
         let measure = Measure {
             canvas: canvas.size,
@@ -187,8 +193,9 @@ impl Builder<'_, '_> {
             fonts: &self.catalog.fonts,
         };
         let tree = objects::collect(node, &paints, diags);
-        let compiled =
+        let (compiled, key_times) =
             Compiler::new(&tree.drafts, &params, measure, scope.seed, diags).compile_all();
+        let keys = keyed(&tree.drafts, key_times, diags.file());
         if let Some(compiled) = compiled.filter(|_| !diags.has_errors()) {
             assemble(
                 tree,
@@ -201,8 +208,29 @@ impl Builder<'_, '_> {
                 },
             );
         }
-        markers
+        Built { markers, keys }
     }
+}
+
+fn keyed(drafts: &[Draft<'_>], key_times: Vec<KeyTimes>, file: usize) -> Vec<Keyed> {
+    key_times
+        .into_iter()
+        .map(|key| {
+            let draft = &drafts[key.object];
+            Keyed {
+                object: draft
+                    .id
+                    .unwrap_or_else(|| draft.node.name().value())
+                    .to_owned(),
+                property: key.property.to_owned(),
+                origin: Origin {
+                    file,
+                    offset: draft.node.span().offset(),
+                },
+                times: key.times,
+            }
+        })
+        .collect()
 }
 
 fn params(node: &KdlNode, overrides: Overrides<'_>, diags: &mut Diagnostics) -> SceneParams {

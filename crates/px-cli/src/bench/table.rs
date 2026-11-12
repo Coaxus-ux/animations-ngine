@@ -18,7 +18,6 @@ const COLUMNS: [(&str, usize); 10] = [
 
 pub(super) struct Table {
     label_width: usize,
-    budget: Duration,
     scenes: usize,
     frames: u64,
     total: Duration,
@@ -27,11 +26,10 @@ pub(super) struct Table {
 }
 
 impl Table {
-    pub(super) fn new<'a>(labels: impl Iterator<Item = &'a str>, budget: Duration) -> Self {
+    pub(super) fn new<'a>(labels: impl Iterator<Item = &'a str>) -> Self {
         let label_width = labels.map(str::len).chain([5]).max().unwrap_or(5);
         let table = Self {
             label_width,
-            budget,
             scenes: 0,
             frames: 0,
             total: Duration::ZERO,
@@ -44,8 +42,8 @@ impl Table {
         table
     }
 
-    pub(super) fn row(&mut self, label: &str, counts: &Counts, timing: &Timing) {
-        let late = timing.worst > self.budget;
+    pub(super) fn row(&mut self, label: &str, counts: &Counts, timing: &Timing, budget: Duration) {
+        let late = timing.worst > budget;
         let cells = [
             counts.size.clone(),
             counts.frames.to_string(),
@@ -58,7 +56,7 @@ impl Table {
             format!("{:.0}", 1.0 / timing.mean.as_secs_f64().max(f64::EPSILON)),
             format!(
                 "{:.0}%",
-                100.0 * timing.worst.as_secs_f64() / self.budget.as_secs_f64().max(f64::EPSILON)
+                100.0 * timing.worst.as_secs_f64() / budget.as_secs_f64().max(f64::EPSILON)
             ),
         ];
         self.line(label, &cells, if late { "  over budget" } else { "" });
@@ -87,11 +85,10 @@ impl Table {
             .map(|(worst, label)| format!("; slowest frame {} ms in {label}", milliseconds(*worst)))
             .unwrap_or_default();
         println!(
-            "{} scenes, {} frames, {:.2} s of frame time{slowest}; {over} over the {} ms budget",
+            "{} scenes, {} frames, {:.2} s of frame time{slowest}; {over} over budget",
             self.scenes,
             self.frames,
             self.total.as_secs_f64(),
-            milliseconds(self.budget),
         );
     }
 

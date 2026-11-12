@@ -1,5 +1,6 @@
 use kdl::KdlValue;
 use px_engine::Geometry;
+use px_format::edit::NodePath;
 
 use super::{App, WindowId};
 use crate::app::Status;
@@ -33,6 +34,15 @@ impl App {
             let name = loaded.paint_names.paint(paint)?;
             (!pixels).then(|| (document.source().path_at(origin.offset), name))
         });
+        if let Some(motif) = target
+            .as_ref()
+            .and_then(|(path, _)| self.motif_without_paint(path.as_ref()?))
+        {
+            self.editing.status = Status::problem(format!(
+                "`{motif}` sets its own colors: edit the motif or give it a `paint` param"
+            ));
+            return;
+        }
         if let Some((Some(path), name)) = target {
             let command = Command::SetProperty {
                 path,
@@ -45,6 +55,17 @@ impl App {
                 "Pick a shape first (pick tool, O); pixel layers keep their own colors",
             );
         }
+    }
+
+    fn motif_without_paint(&self, path: &NodePath) -> Option<String> {
+        let document = self.document()?;
+        let name = document.source().node(path)?.name().value();
+        document
+            .loaded()?
+            .motifs
+            .iter()
+            .find(|motif| motif.name == name && !motif.declares_paint())
+            .map(|motif| motif.name.clone())
     }
 
     pub(super) fn set_color(

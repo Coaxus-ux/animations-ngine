@@ -2,6 +2,7 @@ use std::fmt::Write as _;
 use std::path::PathBuf;
 
 use kdl::KdlNode;
+use px_engine::Detail;
 use px_export::Padding;
 
 use super::{ExportJob, ExportKind, FrameScope, layout_count, layout_from, layout_index};
@@ -21,7 +22,7 @@ impl ExportJob {
             _ => (layout_from(0, 1), Padding::default(), false),
         };
         let mut text = format!(
-            "    export kind={:?} layout={:?} count={} border={} shape={} json=#{} scale={} transparent=#{} trim=#{} split-layers=#{}",
+            "    export kind={:?} layout={:?} count={} border={} shape={} json=#{} scale={} detail={} transparent=#{} trim=#{} split-layers=#{}",
             KIND_NAMES[self.kind.index()],
             LAYOUT_NAMES[layout_index(layout)],
             layout_count(layout),
@@ -29,6 +30,7 @@ impl ExportJob {
             padding.shape,
             json,
             self.scale,
+            self.detail,
             self.transparent,
             self.trim,
             self.split_layers,
@@ -75,6 +77,11 @@ impl ExportJob {
             scale: integer("scale")
                 .and_then(|scale| u8::try_from(scale).ok())
                 .unwrap_or(1),
+            detail: node
+                .entry("detail")
+                .and_then(|entry| number(entry.value()))
+                .and_then(|factor| Detail::new(factor).ok())
+                .unwrap_or_default(),
             transparent: flag("transparent").unwrap_or(true),
             trim: flag("trim").unwrap_or(false),
             split_layers: flag("split-layers").unwrap_or(false),
@@ -82,6 +89,16 @@ impl ExportJob {
             out: PathBuf::from(string("out").unwrap_or_default()),
         })
     }
+}
+
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "a detail written as an integer is at most a few digits"
+)]
+fn number(value: &kdl::KdlValue) -> Option<f64> {
+    value
+        .as_float()
+        .or_else(|| value.as_integer().map(|integer| integer as f64))
 }
 
 #[cfg(test)]
@@ -114,6 +131,7 @@ mod tests {
                 json: false,
             },
             scale: 3,
+            detail: Detail::new(1.875).unwrap(),
             transparent: false,
             trim: true,
             split_layers: true,
@@ -128,6 +146,7 @@ mod tests {
         let job = ExportJob {
             kind: ExportKind::Gif,
             scale: 2,
+            detail: Detail::whole(3),
             transparent: true,
             trim: false,
             split_layers: false,

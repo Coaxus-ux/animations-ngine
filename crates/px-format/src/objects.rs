@@ -17,6 +17,7 @@ use crate::values;
 
 const STRUCTURE: [&str; 3] = ["param", "wind", "timeline"];
 const MAX_CLIP_NESTING: usize = 8;
+const FRAME_ORIGIN: [&str; 2] = ["x", "y"];
 
 pub(crate) struct Draft<'a> {
     pub(crate) node: &'a KdlNode,
@@ -29,7 +30,20 @@ pub(crate) struct Draft<'a> {
     pub(crate) extras: Extras,
     pub(crate) layer: usize,
     pub(crate) clips: Vec<usize>,
+    pub(crate) frame: Option<usize>,
     pub(crate) attach: Option<&'a KdlEntry>,
+}
+
+impl Draft<'_> {
+    fn moves_children(&self) -> bool {
+        let clip = matches!(self.extras, Extras::Group { clip: true, .. });
+        let set = |name| {
+            self.kind
+                .prop_index(name)
+                .is_some_and(|index| self.entries[index].is_some() || self.anims[index].is_some())
+        };
+        self.kind == Kind::Group && !clip && FRAME_ORIGIN.iter().any(|name| set(name))
+    }
 }
 
 #[derive(Default)]
@@ -43,6 +57,7 @@ pub(crate) struct Tree<'a> {
 struct Context {
     layer: usize,
     clips: Vec<usize>,
+    frame: Option<usize>,
 }
 
 pub(crate) fn collect<'a>(
@@ -98,6 +113,13 @@ fn walk<'a>(
         let index = tree.drafts.len();
         let draft = draft(node, kind, context, palette, diags);
         let clip = matches!(draft.extras, Extras::Group { clip: true, .. });
+        let moves = draft.moves_children();
+        if context.frame.is_some() && (clip || kind == Kind::Reflection) {
+            diags.error(
+                node.span().offset(),
+                format!("`{name}` can't go inside a group that moves its children; put the moving group inside it"),
+            );
+        }
         tree.drafts.push(draft);
         match kind {
             Kind::Layer if context.layer != 0 => {
@@ -120,6 +142,9 @@ fn walk<'a>(
                 let mut inner = context.clone();
                 if clip {
                     inner.clips.push(index);
+                }
+                if moves {
+                    inner.frame = Some(index);
                 }
                 if inner.clips.len() > MAX_CLIP_NESTING {
                     diags.error(
@@ -188,6 +213,7 @@ fn draft<'a>(
         extras,
         layer: context.layer,
         clips: context.clips.clone(),
+        frame: context.frame,
         attach,
     }
 }

@@ -37,6 +37,7 @@ pub(super) fn run(input: &Input, options: &Options) -> Result<Vec<PathBuf>> {
     let job = ExportJob {
         kind,
         scale: input.scale,
+        detail: input.detail,
         transparent: options.transparent,
         frames,
         out: options

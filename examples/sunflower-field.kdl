@@ -1,0 +1,71 @@
+// A sunflower field at summer dusk, in portrait.
+
+use "parts/sunflowers/sunflower-palette.kdl"
+use "parts/sunflowers/dusk-sky.kdl"
+use "parts/sunflowers/clouds.kdl"
+use "parts/sunflowers/sunflower.kdl"
+
+motif sun-row scene x step spread y rise seed count gust scale=1 {
+    use-scene $scene "=$x + i * $step + $spread * rand(i + $seed)" "=$y + $rise * rand(i + $seed + 100)" count=$count scale=$scale offset="=mod(-i * $gust, 4)"
+}
+motif sun-bird index lag y flap {
+    line "bird$index" "=mod(t * 15 - $lag, 240) - 40" "=$y + 2 * sin(tau * t / 4 + $index)" "=@self.x1 + 2" "=@self.y1 + 1 + on2(square(t * 3 + $flap))" paint=ink
+    line "=@bird$index.x2" "=@bird$index.y2" "=@bird$index.x1 + 4" "=@bird$index.y1" paint=ink
+}
+
+scene sunflower-field palette=sunflower width=160 height=224 fps=12 duration="16s" loop=#true seed=11 background=sky.0 {
+    layer sky {
+        use-scene dusk-band -8 "=-2 + i * 5.2" count=29
+        ellipse -50 118 260 48 paint=dawn.5 emissive=#true opacity="=0.45 + 0.05 * sin(tau * t / 16)"
+        ellipse -30 130 220 30 paint=dawn.4 emissive=#true opacity=0.6
+        ellipse -10 139 180 16 paint=dawn.3 emissive=#true opacity=0.7
+        rect 0 145 160 4 paint=dawn.2 emissive=#true opacity=0.8
+    }
+    layer clouds {
+        use-scene cloud-bank "=-24 + osc(16s, -3, 3)" 26 scale=1.5
+        use-scene cloud-heap "=168 + osc(16s, 2, -2)" 40 flip=#true scale=1.3 offset=2
+        use-scene cloud-wisp "=56 + osc(16s, -2, 2)" 58 scale=0.9 offset=5
+        use-scene cloud-bank "=176 + osc(16s, -3, 3)" 88 flip=#true scale=1.1 offset=3
+        use-scene cloud-wisp "=-6 + osc(16s, 2, -2)" 104 scale=1.3 offset=6
+        use-scene cloud-streak "=-14 + osc(16s, 2, -2)" 134 scale=0.9 offset=3
+        use-scene cloud-streak "=70 + osc(16s, -2, 2)" 139 scale=0.7 offset=9
+        use-scene cloud-heap "=92 + osc(16s, -2, 2)" 128 scale=0.9 offset=1
+    }
+    layer horizon {
+        rect 0 147 160 2 paint=dawn.0 emissive=#true
+        blob 0 148 circles="-4,0,6 4,-3,5 10,-1,4 16,0,3" smooth=2 paint=tree.1 texture=0.5 texture-scale=1
+        blob 128 148 circles="0,0,3 8,-2,5 16,-4,6 26,-3,6 36,0,5" smooth=2 paint=tree.1 texture=0.5 texture-scale=1
+        rect 0 149 160 75 paint=leaf.1 texture=0.5 texture-scale=2
+    }
+    layer far-field {
+        sun-row "far-sunflower" -2 4 2 151 1 seed=0 count=42 gust=0.1 scale=0.5
+        sun-row "far-sunflower" -3 5 2 154 1 seed=200 count=34 gust=0.125 scale=0.65
+        sun-row "far-sunflower" -4 6.5 3 158 2 seed=400 count=26 gust=0.16 scale=0.8
+        sun-row "far-sunflower" -5 8 3 162 2 seed=600 count=22 gust=0.2
+    }
+    layer near-field {
+        sun-row "leaf-clump" -4 12 4 168 1 seed=800 count=14 gust=0.2 scale=0.35
+        sun-row "sunflower" -10 10 3 168 1 seed=1000 count=18 gust=0.22 scale=0.34
+        sun-row "leaf-clump" -3 14 4 174 2 seed=1200 count=13 gust=0.3 scale=0.5
+        sun-row "sunflower" -10 14 4 177 1 seed=1400 count=12 gust=0.3 scale=0.45
+        sun-row "leaf-clump" -0.5 19 6 183 2 seed=1600 count=10 gust=0.4 scale=0.65
+        sun-row "sunflower" -10 19 6 188 2 seed=1800 count=9 gust=0.4 scale=0.6
+        use-scene sunflower "=9 + i * 38 + 11 * rand(i + 2000)" "=190 + 2 * rand(i + 2100)" count=4 sx=0.6 scale=0.6 offset="=mod(-i * 0.8, 4)"
+        sun-row "leaf-clump" 3 26 8 196 3 seed=2200 count=8 gust=0.5 scale=0.9
+        sun-row "sunflower" -10 26 8 202 2 seed=2400 count=7 gust=0.55 scale=0.8
+        use-scene sunflower "=16 + i * 52 + 16 * rand(i + 2600)" "=204 + 2 * rand(i + 2700)" count=4 sx=0.55 sy=0.95 scale=0.8 offset="=mod(-i * 1.1, 4)"
+        sun-row "leaf-clump" 8 36 11 212 4 seed=2800 count=6 gust=0.75 scale=1.2
+        sun-row "sunflower" -10 36 11 222 3 seed=3000 count=6 gust=0.8 scale=1.1
+        use-scene sunflower "=26 + i * 72 + 22 * rand(i + 3200)" "=225 + 3 * rand(i + 3300)" count=3 sy=0.6 scale=1.1 offset="=mod(-i * 1.6, 4)"
+        sun-row "leaf-clump" 14 48 14 232 5 seed=3400 count=5 gust=1.0 scale=1.6
+        use-scene sunflower "=30 + i * 80 + 24 * rand(i + 3600)" "=244 + 5 * rand(i + 3700)" count=2 sx=0.6 scale=1.7 offset="=mod(-i * 2.0, 4)"
+        sun-row "sunflower" -10 80 24 252 6 seed=3800 count=3 gust=1.7 scale=1.9
+    }
+
+    layer air {
+        particles 0 150 160 74 count=28 vx=3 vy=-5 life="4s" paint=petal.6 emissive=#true fade=#true
+        sun-bird 0 0 72 0
+        sun-bird 1 9 77 0.4
+        sun-bird 2 15 69 0.7
+    }
+}

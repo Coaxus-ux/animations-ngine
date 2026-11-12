@@ -16,6 +16,7 @@ mod palette;
 mod palette_edit;
 mod panel_frame;
 mod preview;
+mod render_cache;
 mod timeline;
 mod tools;
 
@@ -26,10 +27,11 @@ use px_format::edit::NodePath;
 use px_ui::{Id, Input, Rect, Ui, centered_label};
 
 pub use canvas::{CanvasPaint, paint_canvas};
-pub use doc_view::{Placement, RenderCache};
+pub use doc_view::Placement;
 pub use layout::tab_strip_area;
 pub use menus::MenuState;
 pub use preview::paint_preview;
+pub use render_cache::{FRAME_CACHE_BYTES, Image, RenderCache};
 
 use crate::app::{
     CodeBuffer, Dialog, Editing, Intent, PanelKind, Panels, Picker, TabInfo, ViewState, WindowKind,

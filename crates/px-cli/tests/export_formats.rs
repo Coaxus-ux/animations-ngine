@@ -126,6 +126,7 @@ fn a_transparent_png_has_alpha() {
     let job = ExportJob {
         kind: ExportKind::Png,
         scale: 1,
+        detail: px_engine::Detail::NATIVE,
         transparent: true,
         frames: FrameScope::Current(3),
         out: out.clone(),
