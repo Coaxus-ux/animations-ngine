@@ -94,7 +94,7 @@ The full command design is in [docs/CLI.md](docs/CLI.md).
 | [`trailer`](examples/trailer.kdl) | A sequence of shots and transitions |
 | [`editor-trailer`](examples/editor-trailer.kdl) | The editor redrawn as scenes at 640×360, with Mount Fuji, the sunflower field and the fallen warrior playing inside it |
 | [`typography`](examples/typography.kdl) | Text in the engine's pixel font |
-| [`quote`](examples/quote.kdl) | A quote that types itself in: one card scene shot twice with different words and colors |
+| [`quote`](examples/quote.kdl) | A quote told as a small story: accusation in the rain, then mercy at sunrise, with a reusable verse overlay that types the words in |
 
 ## Project layout
 
