@@ -8,9 +8,11 @@ The short version:
 2. Make one focused change, following the [ground rules](#ground-rules).
 3. Run `tools/check.sh` until it prints `All checks passed.`
 4. Commit in plain English with no AI agent attribution, push, and open a pull request.
+5. On your first pull request, sign the [Contributor License Agreement](#licence-and-the-cla) by adding your line to [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
 ## Contents
 
+- [Licence and the CLA](#licence-and-the-cla)
 - [Ground rules](#ground-rules)
 - [Setup](#setup)
 - [Where things live](#where-things-live)
@@ -27,6 +29,32 @@ The short version:
 - [Commits and pull requests](#commits-and-pull-requests)
 - [Review checklist](#review-checklist)
 - [Troubleshooting](#troubleshooting)
+
+## Licence and the CLA
+
+This project is source-available, not open source (D-032). The code is published under the [PolyForm Noncommercial License 1.0.0](LICENSE.md), free for any noncommercial purpose, and commercial use is sold separately under paid licences ([COMMERCIAL.md](COMMERCIAL.md)).
+
+The copyright holder can only offer both licences if it holds the right to license every contribution. So before a change can be merged, its author signs the [Contributor License Agreement](CLA.md). In short, it says:
+
+- You keep ownership of what you contribute and can use it anywhere else.
+- You give the project a permanent licence to use it and to license it to others under any terms, including paid commercial licences.
+- You are not paid for contributions and receive no share of commercial licence revenue.
+- You confirm the work is yours to contribute, or that your employer allows it.
+
+Read the full text before signing; the summary above does not replace it.
+
+**To sign**, add one line to the table in [CONTRIBUTORS.md](CONTRIBUTORS.md), in the same pull request as your first contribution, in a commit you authored:
+
+```
+| Your full legal name | @your-github-handle | 2026-11-13 | 1.0 |
+```
+
+Use the date you sign and the version shown at the top of [CLA.md](CLA.md). You sign once; it covers every later contribution. If the agreement gets a new version, contributors are asked to sign again before their next change is merged.
+
+Two things follow from the licence:
+
+- **Only contribute what you can license.** Do not paste in code, art, fonts or palettes from elsewhere unless their licence allows this use, and say where they come from in the pull request.
+- **New dependencies need a licence that allows commercial distribution** (MIT, Apache-2.0, BSD, Zlib and similar). A copyleft or noncommercial dependency would block the commercial licence, so it will not be accepted.
 
 ## Ground rules
 
@@ -321,6 +349,7 @@ An entry states the decision and the reason in a few sentences. Refer to it by n
 - Which golden hashes changed and why, if any.
 - A GIF or PNG for anything visual. Export it to `out/` and attach it; do not commit rendered output outside `docs/media/`.
 - Any new decision entry.
+- Your line in [CONTRIBUTORS.md](CONTRIBUTORS.md), if this is your first contribution.
 
 ## Review checklist
 
@@ -333,6 +362,7 @@ Reviewers work through [RUST-STANDARDS.md §18](docs/engineering/RUST-STANDARDS.
 - **SOLID and DRY:** does each unit have one responsibility, and each rule one source of truth?
 - **Generality:** does the engine still know nothing about any particular scene?
 - **Docs:** do appendix A and the relevant document match what the code now does?
+- **Licence:** has the author signed the CLA, and is every new dependency or imported asset under a licence that allows commercial distribution?
 
 ## Troubleshooting
 

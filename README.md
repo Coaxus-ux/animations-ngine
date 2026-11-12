@@ -130,4 +130,8 @@ Start at [docs/README.md](docs/README.md) for the reading order. The most useful
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `tools/check.sh` before every push (no hosted CI, D-006), follow [CLAUDE.md](CLAUDE.md) and [RUST-STANDARDS.md](docs/engineering/RUST-STANDARDS.md), and never add AI agent signatures to commits (D-005).
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `tools/check.sh` before every push (no hosted CI, D-006), follow [CLAUDE.md](CLAUDE.md) and [RUST-STANDARDS.md](docs/engineering/RUST-STANDARDS.md), and never add AI agent signatures to commits (D-005). Your first pull request also signs the [Contributor License Agreement](CLA.md).
+
+## License
+
+Source-available, not open source. The code is free for noncommercial use under the [PolyForm Noncommercial License 1.0.0](LICENSE.md): personal projects, study, research, and use by educational, charitable and government organizations. Any commercial use, including producing assets for a paid product or running the engine inside a for-profit company, needs a paid commercial licence; see [COMMERCIAL.md](COMMERCIAL.md).
