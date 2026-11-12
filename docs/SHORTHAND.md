@@ -1,6 +1,6 @@
 # Shorter scene files
 
-Five rules make KDL scenes shorter. A load-time pass in `px-format` (`crates/px-format/src/expand/`) rewrites them into plain nodes before the loader reads the scene, so the engine never sees them and a scene written either way renders the same pixels (D-027).
+Seven rules make KDL scenes shorter. A load-time pass in `px-format` (`crates/px-format/src/expand/`) rewrites them into plain nodes before the loader reads the scene, so the engine never sees them and a scene written either way renders the same pixels (D-027).
 
 ```kdl
 motif pier x {
@@ -112,13 +112,83 @@ scatter 67 seed=3 step="0..2" h="14..28" {
 - A body can hold shapes, groups, placed scenes and motif calls, but not `layer`, `pixels`, `camera`, `ambient`, `param`, `wind`, `timeline`, `anim` or another `scatter`. A `scatter` can't take `repeat`.
 - Unlike the other rules, `scatter` doesn't reproduce a hand-placed layout: turning a written run into a `scatter` moves its shapes.
 
+## 6. `part`
+
+A named piece drawn around its own (0, 0), at the top level of any file. A call places it like a shape, and parts place other parts, so small pieces add up to big ones: atoms (a pane, a post) make molecules (a window, a street lamp), molecules make organisms (a house, a block), and a scene places those.
+
+```kdl
+part lamp height=20 paint=iron {
+    rect 0 "=-$height" 1 $height paint=$paint
+    rounded-rect -1 "=-$height-4" 3 4 paint=glass.hi emissive=#true
+    anchor top 0 "=-$height-2"
+}
+part bus-stop {
+    lamp 0 0
+    bench 12 0
+    slot
+}
+
+scene street palette=town width=320 height=180 {
+    bus-stop 40 150 id=stop
+    bus-stop 200 150 scale=0.75 flip=#true { walker 4 0 }
+    light-point attach=stop.top reach=40
+}
+```
+
+| Header | Meaning |
+|---|---|
+| `part name a b=3` | As a motif: `a` is required, `b` optional with a default |
+
+| Call | Meaning |
+|---|---|
+| `name 40 150` | The first two bare values are `x y`, where the part's (0, 0) goes; without them it sits at (0, 0) |
+| `name 40 150 6` | Further bare values fill the required params in order, except `paint` |
+| `scale=`, `flip=`, `seed=` | Size, mirror on x around its (0, 0), and the root of its randomness |
+| `id=`, `attach=` | Names the placed part, and hooks it onto another object (FORMAT A.6) |
+| `name 40 150 { … }` | The children go where the body says `slot` |
+
+- **Body.** Written in the part's own coordinates, with `$param` as in a motif. It runs on the clock of the scene that places it and reads that scene's `param`s and timeline markers.
+- **`slot`.** Marks where the children of a call are drawn, in the part's coordinates; it can sit inside a `group` or be passed on to an inner part (`house 0 0 { slot }`). The children see the caller's `$` values. A call with children to a part without `slot` is an error.
+- **`anchor name x y`.** A named point with no pixels. From outside, `attach=stop.top` hooks onto the anchor `top` of the part placed with `id=stop`; a dotted path reaches into inner parts that have ids. It works in a scene too.
+- **Ids are the part's own.** Two calls never clash, and `@id.x` inside a body reads the body's objects only. A piece that must read the scene's objects (`@sun.x`) is a `motif`.
+- **Limits.** `x`, `y`, `scale`, `flip`, `id`, `attach`, `seed`, `k` and `repeat` can't be param names. A body can't hold what a motif's can't. Motifs and parts nest 8 deep together, and a scene places at most 4096 parts and scenes. A part call takes `repeat` and can sit in a `scatter`.
+- **Under the hood** a call becomes a `use-scene` of a scene made for it with the host's header (D-031), so everything in FORMAT A.6 about placed scenes holds. `pxe timeline` leaves parts out.
+- **Previewing.** A file of parts has no scene to open. Add one that places them, as `examples/kit-street.kdl` does for the town kit.
+
+When to use which:
+
+| | `motif` | `part` | `use-scene` |
+|---|---|---|---|
+| Own origin, `scale`, `flip`, `id`, `attach` | no | yes | yes |
+| Children (`slot`) | no | yes | no |
+| Reads the scene's `@id`s | yes | no | no |
+| Own clock, loop, `start`/`speed` | no | no | yes |
+| Header (palette, size, duration) | none | none | required |
+
+## 7. Groups that move their children
+
+A `group` with `x` or `y` and no `clip` moves everything inside it: its children's coordinates count from the group's point, and they follow it when it is animated. Moving groups nest.
+
+```kdl
+group bob y="=round(abs(sin(tau * t))) - 1" {
+    rounded-rect coat -4 -26 9 14 paint=$coat
+    ellipse head -4 -37 10 10 paint=skin
+}
+```
+
+- `@coat.y` still reads what is written (-26); `attach=coat` lands on the moved point.
+- A group with `clip=#true` is a window: its box and its children stay in scene coordinates. A clip group or a `reflection` can't go inside a moving group; put the moving group inside the clip.
+- A group with no `x` or `y` moves nothing, as before.
+
 ## The shared kit
 
-`examples/kit/` holds motifs that several scenes share. Add one there only when it replaces definitions in at least two scenes, and name it `kit-…`, since motif names are global.
+`examples/kit/` holds motifs that several scenes share and parts to build scenes from. Add a motif there only when it replaces definitions in at least two scenes. Add a part when it is a piece a new scene would start from, at the level it belongs to: an atom draws shapes, a molecule places atoms, an organism places molecules. Name everything `kit-…`, since motif and part names are global.
 
 | File | Motifs |
 |---|---|
 | `kit/sky.kdl` | `kit-star x y paint=… visible=1`, a 1×1 emissive dot; `kit-twinkle x y period paint=… duty=0.15`, one that blinks off with `pulse`; `kit-flicker x y paint=… odds=0.85 rate=4 cycle=8 salt=0`, one shown by `chance` |
+| `kit/town.kdl` | Parts, each drawn from the middle of its base. Atoms: `kit-pane`, `kit-sill`, `kit-shutter`, `kit-flowers`, `kit-door`, `kit-wall width height`, `kit-gable width half`, `kit-chimney` (`smoke=0` turns its smoke off), `kit-trunk`, `kit-crown` (sized with `scale`), `kit-post`, `kit-lantern`, `kit-picket`. Molecules: `kit-window` (slot, e.g. `kit-flowers`), `kit-tree`, `kit-fence count=6`, `kit-street-lamp` (anchor `top`, a warm light). Organisms: `kit-house` (slot on the roof line), `kit-block` (slot, lamp `id=lamp`) |
+| `kit/town-palette.kdl` | `kit-town`, the ramps those parts paint with by default; use it or `include` it |
 
 `paint` is always named, because every palette names its ramps its own way. Scatter them for a sky:
 
@@ -150,7 +220,8 @@ All are reported at the node, or at the outermost motif call when the problem is
 | A slot given bare and by name | Which slot |
 | `rect $w 2 3 4` with no motif binding `$w` | Write `"=$w"` |
 | A bad call: missing, extra, unknown or repeated argument, or children | The motif's signature |
-| `motif` not at the top level, or a name defined twice | Where the other one is |
+| `motif` or `part` not at the top level, or a name defined twice | Where the other one is |
+| Children on a call to a part with no `slot`, or `slot` outside a part | The part's signature |
 | Depth over 8, or a scene past 65,534 nodes | The limit |
 
 Every loaded file is expanded, so a bad call in a scene you didn't select still stops the load.
@@ -161,9 +232,9 @@ Nothing writes the expanded nodes back, so shorthand survives every edit (D-014)
 
 | Action | What happens |
 |---|---|
-| Pick a motif shape | Selects the call |
+| Pick a motif or part shape | Selects the call |
 | Pick a `repeat` copy | Selects the template line; the status says how many copies change |
 | Inspector | Bare values show as rows named after their slot or motif param. Typing a number or `=expression` writes that value in place; a plain string is refused in a first slot |
 | Recolor a call | Writes `paint=` if the motif declares `paint`. Otherwise it refuses and points at the motif |
 | Recolor a `repeat` | Writes `paint=` on the template line |
-| Edit a motif body | Changes every call. A body has no pick of its own |
+| Edit a motif or part body | Changes every call. A body has no pick of its own |

@@ -5,6 +5,7 @@ use px_expr::Env;
 
 use crate::assemble::{Output, Request, Scope};
 use crate::diagnostic::Diagnostics;
+use crate::expand;
 use crate::scene::{self, Builder, Overrides};
 use crate::schema::Kind;
 use crate::suggest;
@@ -50,18 +51,19 @@ pub(crate) fn expand(
     let first = copies.window(&request.params, 0);
     check_seam(request, first, looping.then_some(duration), diags);
     let tracking = builder.tracking;
-    out.tracks.extend(tracking.then(|| Track {
-        scene: name.to_owned(),
-        id: request.id.clone(),
-        depth: builder.stack.len() - 1,
-        count: copies.count,
-        start: first.start,
-        end: first.end,
-        offset: first.offset,
-        speed: first.speed,
-        duration,
-        looping,
-    }));
+    out.tracks
+        .extend((tracking && !expand::is_part(node)).then(|| Track {
+            scene: name.to_owned(),
+            id: request.id.clone(),
+            depth: builder.stack.len() - 1,
+            count: copies.count,
+            start: first.start,
+            end: first.end,
+            offset: first.offset,
+            speed: first.speed,
+            duration,
+            looping,
+        }));
     builder.stack.push(name.to_owned());
     let first_instance = out.world.instances.len();
     for index in 0..copies.count {

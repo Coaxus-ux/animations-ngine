@@ -456,7 +456,7 @@ Sub-pixel values never accumulate between frames, because each frame is computed
 
 ## 10. Structure nodes: group, repeat, scatter, clone
 
-Draft. Today `repeat=`, `scatter` and `motif` ([SHORTHAND.md](SHORTHAND.md)) do this work.
+Draft. Today `repeat=`, `scatter`, `motif` and moving groups ([SHORTHAND.md](SHORTHAND.md)) do this work.
 
 ### 10.1 `group`
 A container with its own transform, seed and visibility. It has no visuals of its own.
@@ -514,7 +514,7 @@ clone "@hero" id="hero-2" x=120 seed=99 materials cloth-a="cloth-blue"
 
 ## 11. Prefabs, sockets and placement
 
-Draft. Today `motif` ([SHORTHAND.md](SHORTHAND.md)) reuses blocks of nodes.
+Draft. Today `motif` and `part` ([SHORTHAND.md](SHORTHAND.md)) reuse blocks of nodes; a `part` has its own origin, `slot` and `anchor`s.
 
 ### 11.1 Declaring a prefab
 ```kdl
@@ -767,7 +767,7 @@ scene "street" view="perspective" palette="neon-night" warmup="2s" loop-blend="6
 
 ## Appendix A. What the loader accepts today
 
-The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes. Bare coordinates, `repeat=` and `motif` shorten all of this: see [SHORTHAND.md](SHORTHAND.md). The editor writes only these nodes: its palette editor writes `ramp` lines and saves standalone palette files (a file holding one `palette` node, as in `examples/parts/pond/pond-palette.kdl`), and its per-element code editor replaces one node's text in place.
+The sections above describe the full format. This appendix lists the subset `px-format` loads now (2026-10-29). Everything else is reported as an unknown node or property, with a "Did you mean …?" hint. See `examples/` for working scenes. Bare coordinates, `repeat=`, `motif` and `part` shorten all of this, and `part` is how small pieces are built into big ones: see [SHORTHAND.md](SHORTHAND.md). The editor writes only these nodes: its palette editor writes `ramp` lines and saves standalone palette files (a file holding one `palette` node, as in `examples/parts/pond/pond-palette.kdl`), and its per-element code editor replaces one node's text in place.
 
 ### A.1 Scene children
 
@@ -778,7 +778,7 @@ The sections above describe the full format. This appendix lists the subset `px-
 | `ambient` | `darkness` 0 | `occlusion` 0..4, `key-light` 225 (degrees) | Darkness lowers every non-emissive pixel by tone steps; occlusion darkens pixels next to closer shapes; `key-light` is the direction dome shading is lit from |
 | `camera` | `x` 0, `y` 0, `zoom` 1 | | Multi-property keys: `camera { k "0s" x=0; k "4s" x=24 zoom=2 }`. `zoom` scales about the canvas center and can be any value: shapes are drawn again at the new size every frame (never resampled), outlines stay 1 px and textures stay anchored to the shapes |
 | `layer "name"` | `fog` 0 | `parallax` 1, `fog-paint` | Children are drawn in this layer; layers can't nest. Fog moves tones into the fog paint's ramp, toward its tone |
-| `group "name"` | `x y width height` 0 | `clip`, `round` | With `clip=#true`, children are clipped to the box (an ellipse if `round`). Clips nest up to 8 deep. A group can hold `anim` blocks, so an empty group works as a named, keyframed value others read with `@group.x` |
+| `group "name"` | `x y width height` 0 | `clip`, `round` | With `clip=#true`, children are clipped to the box (an ellipse if `round`) and stay in scene coordinates. Clips nest up to 8 deep. Without `clip`, a group given `x` or `y` moves its children with it (SHORTHAND §7). A group can hold `anim` blocks, so an empty group works as a named, keyframed value others read with `@group.x` |
 | `use-scene "scene"` | `x y` 0, `scale` 1 | `id`, `flip`, `count`, `seed`, `start`, `end`, `offset`, `speed`, `loop`, params | Places another scene (A.6) |
 | `timeline` | | `marker "name" at="2s"` children | Named times; any time value can name a marker (A.6) |
 | `light-point` | `x y` (required), `reach` 40, `intensity` 1 | `color`, `shadows` | `intensity` is in tone steps at the center, falling off linearly to `reach` |

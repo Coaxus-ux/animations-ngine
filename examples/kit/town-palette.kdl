@@ -1,0 +1,33 @@
+// The colors the town kit paints with by default. A scene uses it as it is, or includes it in its own.
+palette kit-town {
+    ramp night "0a0c22 121634 1c2148 282e5e 3a4078"
+    ramp star "8a8fb8 c8cce8 fffbe6"
+    ramp moon "8f8c86 bdb698 e2dcbc fffbe6"
+    ramp hill "080a1a 0e1228 151a36"
+    ramp smoke "2c2c42 40405a 5a5a76"
+    ramp plaster "2a2430 3e3644 574c5c 746678 96879a"
+    ramp brick "2a1418 44202a 62303a 84444c a85c60"
+    ramp roof "1a1218 2a1a22 3e242c 563038 723c44"
+    ramp wood "1c130d 2c1f15 40301e 584228 745834"
+    ramp glass "4a2a10 8a5220 d08a34 ffc860 fff0b0"
+    ramp leaf "0c2018 123024 1a4632 245e42 327a56"
+    ramp bloom "5a1626 8e2438 c83c50 f0707a ffb0b0"
+    ramp iron "0c0c14 16161f 22222e 32323f 464656"
+    ramp stone "18161e 24212c 34303d 474251 5f5969"
+    ramp street "141219 201d28 2e2a38 403b4a 555061"
+    ramp ink "05050b"
+    ramp plaster-warm "3a2418 573624 7a4e30 a26c40 cc9054"
+    ramp brick-warm "3a1810 5c2818 843c22 ae562e d8743e"
+    ramp roof-warm "321b14 49251d 663025 893f30 b14d3a"
+    ramp wood-warm "351c0b 4c2b12 693f1a 8c5422 b46e2c"
+    ramp stone-warm "2f201a 402d25 573f34 735445 966f59"
+    ramp street-warm "291b15 3a2822 4f3830 694c3f 876452"
+    ramp leaf-warm "1c2410 2c3a16 42541e 5c7228 7c9434"
+    twin plaster warm=plaster-warm
+    twin brick warm=brick-warm
+    twin roof warm=roof-warm
+    twin wood warm=wood-warm
+    twin stone warm=stone-warm
+    twin street warm=street-warm
+    twin leaf warm=leaf-warm
+}

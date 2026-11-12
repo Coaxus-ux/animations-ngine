@@ -15,7 +15,7 @@ use crate::scene::Overrides;
 use crate::source_map::{Origin, PaintNames};
 use crate::sources::{FsSources, MemorySources, SourceFile, Sources};
 use crate::timeline::Timeline;
-use crate::{palettes, scene, sequence, suggest};
+use crate::{expand, palettes, scene, sequence, suggest};
 
 const MEMORY_FILE: &str = "scene.kdl";
 
@@ -232,8 +232,8 @@ impl<'l> Catalog<'l> {
             other => diags.error(
                 offset,
                 format!(
-                    "unknown top-level node `{other}` (expected `use`, `palette`, `font`, `motif`, `scene` or `sequence`).{}",
-                    suggest::did_you_mean(other, ["use", "palette", "font", "motif", "scene", "sequence"])
+                    "unknown top-level node `{other}` (expected `use`, `palette`, `font`, `motif`, `part`, `scene` or `sequence`).{}",
+                    suggest::did_you_mean(other, ["use", "palette", "font", "motif", "part", "scene", "sequence"])
                 ),
             ),
         }
@@ -252,7 +252,7 @@ impl<'l> Catalog<'l> {
             (&mut self.scenes, Target::Scene(file, node))
         };
         map.insert(name, (file, node));
-        if file == 0 {
+        if file == 0 && !expand::is_part(node) {
             self.roots.push(target);
         }
     }

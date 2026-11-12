@@ -34,30 +34,10 @@ impl Targets {
         attached: Option<&Anchor>,
         layer: usize,
     ) {
-        let read = |names: [&str; 2]| {
-            names
-                .iter()
-                .find_map(|name| kind.prop_index(name))
-                .and_then(|index| params.get(index))
-                .cloned()
-        };
-        let (Some(x), Some(y)) = (read(["x", "x1"]), read(["y", "y1"])) else {
-            return;
-        };
-        let anchor = match attached {
-            Some(base) => Anchor {
-                x: sum(&base.x, &x),
-                y: sum(&base.y, &y),
-                ..base.clone()
-            },
-            None => Anchor {
-                instance: owner,
-                x,
-                y,
-            },
-        };
-        self.0
-            .insert((owner, id.to_owned()), Target::Point { anchor, layer });
+        if let Some(anchor) = origin(owner, kind, params, attached) {
+            self.0
+                .insert((owner, id.to_owned()), Target::Point { anchor, layer });
+        }
     }
 
     pub(crate) fn placed(
@@ -123,6 +103,34 @@ impl Targets {
         }
         Err("`attach` needs an id, like attach=\"hand\" or attach=\"hero.hand\"".to_owned())
     }
+}
+
+pub(crate) fn origin(
+    owner: Option<usize>,
+    kind: Kind,
+    params: &[Param],
+    attached: Option<&Anchor>,
+) -> Option<Anchor> {
+    let read = |names: [&str; 2]| {
+        names
+            .iter()
+            .find_map(|name| kind.prop_index(name))
+            .and_then(|index| params.get(index))
+            .cloned()
+    };
+    let (x, y) = (read(["x", "x1"])?, read(["y", "y1"])?);
+    Some(match attached {
+        Some(base) => Anchor {
+            x: sum(&base.x, &x),
+            y: sum(&base.y, &y),
+            ..base.clone()
+        },
+        None => Anchor {
+            instance: owner,
+            x,
+            y,
+        },
+    })
 }
 
 fn sum(a: &Param, b: &Param) -> Param {

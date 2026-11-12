@@ -1,4 +1,5 @@
 mod motif;
+mod part;
 mod scatter;
 mod slots;
 mod substitute;
@@ -13,15 +14,19 @@ use crate::sources::SourceFile;
 
 use motif::Motif;
 pub use motif::MotifSignature;
+use part::Host;
+pub(crate) use part::is_part;
 use scatter::Scatter;
 use substitute::Env;
 
 const MAX_DEPTH: usize = 8;
 const MAX_EMITTED: usize = 65_534;
 const MAX_REPEAT: u32 = 4096;
-const NOT_REPEATABLE: [&str; 9] = [
-    "layer", "pixels", "camera", "ambient", "param", "wind", "timeline", "anim", "scatter",
+const NOT_REPEATABLE: [&str; 10] = [
+    "layer", "pixels", "camera", "ambient", "param", "wind", "timeline", "anim", "scatter", "slot",
 ];
+const DEFINITIONS: [&str; 2] = ["motif", "part"];
+const SLOT: &str = "slot";
 
 pub(crate) fn run(
     documents: &mut [Option<KdlDocument>],
@@ -29,23 +34,30 @@ pub(crate) fn run(
     diags: &mut Diagnostics,
 ) -> Vec<MotifSignature> {
     let motifs = motif::collect(documents, files, diags);
+    let mut placed = 0;
     for (file, document) in documents.iter_mut().enumerate() {
         let Some(document) = document else { continue };
         let previous = diags.in_file(file);
+        let mut scenes = Vec::new();
         for scene in document
             .nodes_mut()
             .iter_mut()
             .filter(|node| node.name().value() == "scene")
         {
+            let host = Host::of(scene);
             let mut expander = Expander {
                 motifs: &motifs,
                 diags,
                 emitted: 0,
+                scenes: Vec::new(),
+                placed: &mut placed,
             };
             if let Some(children) = scene.children_mut() {
-                expander.block(children, Scope::top(&Env::default(), file));
+                expander.block(children, Scope::top(&Env::default(), file, &host));
             }
+            scenes.append(&mut expander.scenes);
         }
+        document.nodes_mut().append(&mut scenes);
         diags.in_file(previous);
     }
     motifs.into_values().map(|motif| motif.signature).collect()
@@ -54,7 +66,8 @@ pub(crate) fn run(
 #[derive(Clone, Copy)]
 struct Call<'e> {
     offset: usize,
-    motif: &'e str,
+    name: &'e str,
+    label: &'static str,
 }
 
 #[derive(Clone, Copy)]
@@ -63,15 +76,19 @@ struct Scope<'e> {
     file: usize,
     call: Option<Call<'e>>,
     depth: usize,
+    host: &'e Host,
+    slot: Option<&'e [KdlNode]>,
 }
 
 impl<'e> Scope<'e> {
-    const fn top(env: &'e Env, file: usize) -> Self {
+    const fn top(env: &'e Env, file: usize, host: &'e Host) -> Self {
         Self {
             env,
             file,
             call: None,
             depth: 0,
+            host,
+            slot: None,
         }
     }
 
@@ -90,6 +107,8 @@ struct Expander<'m, 'd> {
     motifs: &'m BTreeMap<String, Motif>,
     diags: &'d mut Diagnostics,
     emitted: usize,
+    scenes: Vec<KdlNode>,
+    placed: &'d mut usize,
 }
 
 impl Expander<'_, '_> {
@@ -103,9 +122,21 @@ impl Expander<'_, '_> {
     }
 
     fn node(&mut self, mut node: KdlNode, scope: Scope<'_>, out: &mut Vec<KdlNode>) {
-        if node.name().value() == "motif" {
-            let offset = node.span().offset();
-            self.report(scope, offset, "`motif` belongs at the top level of a file");
+        let name = node.name().value();
+        if DEFINITIONS.contains(&name) {
+            let message = format!("`{name}` belongs at the top level of a file");
+            self.report(scope, node.span().offset(), message);
+            return;
+        }
+        if name == SLOT {
+            match scope.slot {
+                Some(filled) => out.extend(filled.iter().cloned()),
+                None => self.report(
+                    scope,
+                    node.span().offset(),
+                    "`slot` belongs in the body of a `part`",
+                ),
+            }
             return;
         }
         if node.name().value() == "scatter" {
@@ -191,6 +222,10 @@ impl Expander<'_, '_> {
             );
             return;
         }
+        if let Err(message) = part::anchor(&mut node) {
+            self.report(scope, offset, message);
+            return;
+        }
         let kind = Kind::parse(node.name().value());
         if let Some(kind) = kind
             && let Err(message) = slots::assign(&mut node, kind)
@@ -234,7 +269,7 @@ impl Expander<'_, '_> {
             self.report(
                 scope,
                 offset,
-                format!("motifs nest at most {MAX_DEPTH} deep"),
+                format!("motifs and parts nest at most {MAX_DEPTH} deep"),
             );
             return;
         }
@@ -245,21 +280,41 @@ impl Expander<'_, '_> {
                 return;
             }
         };
+        let part = motif.signature.part;
+        let mut filled = Vec::new();
+        for child in node.children().map(KdlDocument::nodes).unwrap_or_default() {
+            self.node(child.clone(), scope, &mut filled);
+        }
         let inner = Scope {
-            env: &bound,
+            env: &bound.env,
             file: motif.signature.file,
             call: scope.call.or(Some(Call {
                 offset,
-                motif: name,
+                name,
+                label: motif.signature.label(),
             })),
             depth: scope.depth + 1,
+            host: scope.host,
+            slot: part.then_some(&filled),
         };
         let start = out.len();
+        let made = self.scenes.len();
+        let mut body = Vec::new();
         for child in &motif.body {
-            self.node(child.clone(), inner, out);
+            self.node(
+                child.clone(),
+                inner,
+                if part { &mut body } else { &mut *out },
+            );
+        }
+        if part {
+            *self.placed += 1;
+            let scene = format!("{name}#{}", *self.placed);
+            out.push(scope.host.placement(&scene, bound.placement, node));
+            self.scenes.push(scope.host.scene(&scene, body, node));
         }
         let foreign = motif.signature.file != scope.file;
-        for emitted in &mut out[start..] {
+        for emitted in out[start..].iter_mut().chain(&mut self.scenes[made..]) {
             respan(emitted, node, foreign);
         }
     }
@@ -267,9 +322,10 @@ impl Expander<'_, '_> {
     fn report(&mut self, scope: Scope<'_>, offset: usize, message: impl Into<String>) {
         let message = message.into();
         match scope.call {
-            Some(call) => self
-                .diags
-                .error(call.offset, format!("in motif `{}`: {message}", call.motif)),
+            Some(call) => self.diags.error(
+                call.offset,
+                format!("in {} `{}`: {message}", call.label, call.name),
+            ),
             None => self.diags.error(offset, message),
         }
     }
